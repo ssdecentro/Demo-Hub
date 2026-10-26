@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Decentro — LRS Checkout · Customer Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!--
+================================================================================
+  DECENTRO · CROSS-BORDER LRS — CUSTOMER / PAYER FACING FLOW
+  Design language: shadcn/ui (neutral base, radius 10px, Inter)
+  White-label: partner brand is driven by ONE token  -> --brand
+  Build target: React + shadcn/ui + Tailwind. Every block below carries an
+  @dev annotation naming the shadcn component, states, validation and
+  the Decentro API touchpoint. Search the file for "@dev" for the full handoff.
+  Screen index (bottom-right pill) is DEMO-ONLY — strip before implementation.
+================================================================================
+-->
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS — shadcn/ui naming. Map 1:1 into globals.css
+   @dev: these are the exact CSS variables shadcn expects. Drop them in
+   :root and the whole flow themes itself. --brand is the ONLY value a
+   partner changes for white-labelling.
+═══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --background:#fafafa;      --foreground:#09090b;
+  --card:#ffffff;            --card-foreground:#09090b;
+  --popover:#ffffff;         --popover-foreground:#09090b;
+  --primary:#09090b;         --primary-foreground:#fafafa;
+  --secondary:#f4f4f5;       --secondary-foreground:#18181b;
+  --muted:#f4f4f5;           --muted-foreground:#71717a;
+  --accent:#f4f4f5;          --accent-foreground:#18181b;
+  --destructive:#dc2626;     --destructive-foreground:#ffffff;
+  --border:#e4e4e7;          --input:#e4e4e7;  --ring:#09090b;
+  --radius:10px;
+
+  /* semantic — status & compliance */
+  --success:#16a34a; --success-bg:#f0fdf4; --success-bd:#bbf7d0; --success-tx:#166534;
+  --warn:#d97706;    --warn-bg:#fffbeb;    --warn-bd:#fde68a;    --warn-tx:#92400e;
+  --info:#2563eb;    --info-bg:#eff6ff;    --info-bd:#bfdbfe;    --info-tx:#1e40af;
+  --danger-bg:#fef2f2; --danger-bd:#fecaca; --danger-tx:#991b1b;
+
+  /* partner white-label */
+  --brand:#4f46e5; --brand-2:#7c3aed; --brand-fg:#ffffff;
+
+  --shadow-sm:0 1px 2px rgba(9,9,11,.05);
+  --shadow-md:0 4px 12px rgba(9,9,11,.06),0 2px 4px rgba(9,9,11,.04);
+  --shadow-lg:0 12px 32px rgba(9,9,11,.10);
+}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;min-height:100vh;background:var(--background);color:var(--foreground);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* ── screen system (demo shell) ── */
+.screen{display:none;min-height:100vh;flex-direction:column;overflow-x:hidden;}
+.screen.active{display:flex;}
+
+/* ═══════════════════════════════════════
+   NAVBAR  · @dev: <header> + partner logo slot. Height 64/56.
+═══════════════════════════════════════ */
+.navbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 40px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0;}
+.navbar.brand{background:linear-gradient(140deg,var(--brand),var(--brand-2));border-bottom:none;}
+.nav-left{display:flex;align-items:center;gap:14px;min-width:0;flex:1;}
+.nav-back{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;}
+.nav-back:hover{background:var(--secondary);border-color:#d4d4d8;}
+.navbar.brand .nav-back{border-color:rgba(255,255,255,.24);background:rgba(255,255,255,.12);}
+.navbar.brand .nav-back svg{color:#fff;}
+.nav-title{font-size:15px;font-weight:700;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-subtitle{font-size:11px;color:var(--muted-foreground);font-weight:500;margin-top:1px;}
+.navbar.brand .nav-title{color:#fff;}
+.navbar.brand .nav-subtitle{color:rgba(255,255,255,.65);}
+.nav-powered{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.nav-powered-text{font-size:11px;color:var(--muted-foreground);font-weight:500;white-space:nowrap;}
+.navbar.brand .nav-powered-text{color:rgba(255,255,255,.55);}
+.navbar.brand .nav-powered svg{color:#fff;}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,.2);}
+.brand-mark.solid{background:linear-gradient(140deg,var(--brand),var(--brand-2));border:none;}
+@media(max-width:768px){.navbar{padding:0 20px;height:56px;}.nav-title{font-size:14px;}}
+@media(max-width:480px){.navbar{padding:0 14px;gap:8px;}.nav-left{gap:10px;}
+  .nav-powered-text{display:none;}.nav-subtitle{display:none;}.nav-title{font-size:13px;}}
+
+/* ── page container ── */
+.page{flex:1;padding:36px 40px 72px;display:flex;flex-direction:column;align-items:center;width:100%;overflow-x:hidden;}
+@media(max-width:768px){.page{padding:24px 20px 80px;}}
+@media(max-width:480px){.page{padding:18px 16px 84px;}}
+.content-sm{width:100%;max-width:560px;}
+.content-md{width:100%;max-width:760px;}
+.content-lg{width:100%;max-width:1000px;}
+.content-xl{width:100%;max-width:1180px;}
+
+/* ═══════════════════════════════════════
+   CARD  · @dev: <Card>/<CardHeader>/<CardContent>/<CardFooter>
+═══════════════════════════════════════ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
+.card+.card{margin-top:16px;}
+.card-header{padding:16px 22px;border-bottom:1px solid var(--border);background:var(--card);}
+.card-header.tinted{background:var(--secondary);}
+.card-title{font-size:14px;font-weight:700;letter-spacing:-.1px;display:flex;align-items:center;gap:9px;}
+.card-title svg{color:var(--muted-foreground);flex-shrink:0;}
+.card-desc{font-size:12px;color:var(--muted-foreground);margin-top:3px;line-height:1.5;}
+.card-body{padding:22px;}
+.card-footer{padding:16px 22px;border-top:1px solid var(--border);background:var(--secondary);display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
+@media(max-width:480px){.card-header{padding:14px 16px;}.card-body{padding:16px;}.card-footer{padding:14px 16px;}}
+
+/* ═══════════════════════════════════════
+   BUTTON · @dev: <Button variant size>
+═══════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 22px;
+  border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background),0 0 0 4px var(--ring);}
+.btn-primary{background:var(--primary);color:var(--primary-foreground);}
+.btn-primary:hover{background:#27272a;}
+.btn-primary:active{transform:scale(.985);}
+.btn-primary:disabled{background:#e4e4e7;color:#a1a1aa;cursor:not-allowed;transform:none;}
+.btn-outline{background:var(--card);color:var(--foreground);border-color:var(--border);}
+/* secondary action — outlined in the primary colour, no fill. Reads as a
+   real choice next to a page title without competing with the main CTA. */
+.btn-outline.strong{background:transparent;color:var(--primary);border-color:var(--primary);border-width:1.5px;}
+.btn-outline.strong:hover{background:var(--secondary);}
+.btn-outline:hover{background:var(--secondary);}
+.btn-ghost{background:transparent;color:var(--foreground);}
+.btn-ghost:hover{background:var(--secondary);}
+.btn-brand{background:linear-gradient(140deg,var(--brand),var(--brand-2));color:var(--brand-fg);}
+.btn-brand:hover{filter:brightness(1.08);}
+.btn-destructive{background:var(--destructive);color:#fff;}
+.btn-sm{height:36px;padding:0 14px;font-size:13px;border-radius:8px;}
+.btn-lg{height:50px;font-size:15px;padding:0 28px;}
+.btn-block{width:100%;}
+@media(max-width:480px){.btn-lg{height:48px;font-size:14px;}}
+
+/* ═══════════════════════════════════════
+   FORM · @dev: <Label> <Input> <Select> <Textarea> + react-hook-form + zod
+═══════════════════════════════════════ */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:12.5px;font-weight:600;color:var(--foreground);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.form-label .req{color:var(--destructive);}
+.form-input,.form-select,.form-textarea{display:block;width:100%;height:44px;padding:0 13px;
+  border:1px solid var(--input);border-radius:var(--radius);font-family:inherit;font-size:14px;
+  color:var(--foreground);background:var(--card);outline:none;transition:border-color .15s,box-shadow .15s;}
+.form-textarea{height:auto;padding:11px 13px;resize:vertical;min-height:76px;line-height:1.5;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--ring);box-shadow:0 0 0 3px rgba(9,9,11,.07);}
+.form-input::placeholder,.form-textarea::placeholder{color:#a1a1aa;}
+.form-input.is-error{border-color:var(--destructive);box-shadow:0 0 0 3px rgba(220,38,38,.08);}
+.form-input:disabled{background:var(--muted);color:var(--muted-foreground);cursor:not-allowed;}
+.form-hint{font-size:11.5px;color:var(--muted-foreground);margin-top:5px;line-height:1.5;}
+.form-error{font-size:11.5px;color:var(--destructive);margin-top:5px;font-weight:500;display:flex;align-items:center;gap:5px;}
+.form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;}
+.form-row-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+@media(max-width:560px){.form-row,.form-row-3{grid-template-columns:minmax(0,1fr);}}
+.form-select{-webkit-appearance:none;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2371717a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
+
+/* ═══════════════════════════════════════
+   BADGE / ALERT / SEPARATOR
+═══════════════════════════════════════ */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;
+  border-radius:100px;border:1px solid transparent;white-space:nowrap;line-height:1.5;}
+.badge-secondary{background:var(--secondary);color:var(--secondary-foreground);border-color:var(--border);}
+.badge-success{background:var(--success-bg);color:var(--success-tx);border-color:var(--success-bd);}
+.badge-warn{background:var(--warn-bg);color:var(--warn-tx);border-color:var(--warn-bd);}
+.badge-info{background:var(--info-bg);color:var(--info-tx);border-color:var(--info-bd);}
+.badge-danger{background:var(--danger-bg);color:var(--danger-tx);border-color:var(--danger-bd);}
+.badge-outline{background:transparent;color:var(--muted-foreground);border-color:var(--border);}
+.alert{border-radius:var(--radius);padding:13px 15px;display:flex;gap:10px;align-items:flex-start;border:1px solid;font-size:12.5px;line-height:1.6;}
+.alert svg{flex-shrink:0;margin-top:1px;}
+.alert strong{font-weight:700;}
+.alert strong.t{display:block;margin-bottom:2px;}
+.alert-info{background:var(--info-bg);border-color:var(--info-bd);color:var(--info-tx);}
+.alert-warn{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-tx);}
+.alert-success{background:var(--success-bg);border-color:var(--success-bd);color:var(--success-tx);}
+.alert-danger{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-tx);}
+.alert-muted{background:var(--secondary);border-color:var(--border);color:var(--secondary-foreground);}
+.sep{height:1px;background:var(--border);margin:18px 0;border:none;}
+.section-label{font-size:11px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;}
+.page-title{font-size:24px;font-weight:800;letter-spacing:-.6px;margin-bottom:6px;}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+.page-head .page-sub{margin-bottom:0;}
+.page-head>.btn{flex-shrink:0;}
+@media(max-width:560px){.page-head{margin-bottom:18px;}}
+.page-sub{font-size:13.5px;color:var(--muted-foreground);line-height:1.6;margin-bottom:24px;}
+@media(max-width:480px){.page-title{font-size:20px;}.page-sub{font-size:13px;margin-bottom:18px;}}
+
+/* ═══════════════════════════════════════
+   STEPPER · @dev: custom. Persist current step in URL (?step=beneficiary)
+   so a refresh or a resumed KYC callback returns to the right place.
+═══════════════════════════════════════ */
+.stepper{display:flex;align-items:center;gap:0;margin-bottom:26px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+.stepper::-webkit-scrollbar{display:none;}
+.step{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:700;background:var(--card);color:var(--muted-foreground);border:1.5px solid var(--border);flex-shrink:0;}
+.step-dot.active{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary);}
+.step-dot.done{background:var(--success);color:#fff;border-color:var(--success);}
+.step-label{font-size:11.5px;font-weight:600;color:var(--muted-foreground);white-space:nowrap;}
+.step-label.active{color:var(--foreground);font-weight:700;}
+.step-line{width:20px;height:1.5px;background:var(--border);margin:0 7px;flex-shrink:0;}
+.step-line.done{background:var(--success);}
+@media(max-width:900px){.step-label{display:none;}.step-line{width:22px;margin:0 6px;}}
+
+/* ═══════════════════════════════════════
+   SELECTABLE CARD (purpose / method / beneficiary)
+   @dev: <RadioGroup> + <RadioGroupItem> rendered as cards. Keyboard
+   navigable with arrow keys — do not build with onClick divs.
+═══════════════════════════════════════ */
+.opt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.opt-grid-1{grid-template-columns:minmax(0,1fr);}
+@media(max-width:640px){.opt-grid{grid-template-columns:minmax(0,1fr);}}
+.opt{position:relative;border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--card);
+  cursor:pointer;transition:all .15s;display:flex;gap:13px;align-items:flex-start;text-align:left;font-family:inherit;width:100%;}
+.opt:hover{border-color:#a1a1aa;}
+.opt.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(9,9,11,.06);background:#fcfcfd;}
+.opt.disabled{opacity:.5;pointer-events:none;}
+.opt-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:var(--secondary);color:var(--foreground);}
+.opt.selected .opt-icon{background:var(--primary);color:var(--primary-foreground);}
+.opt-body{flex:1;min-width:0;}
+.opt-title{font-size:13.5px;font-weight:700;letter-spacing:-.1px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.opt-desc{font-size:11.5px;color:var(--muted-foreground);margin-top:3px;line-height:1.55;}
+.opt-radio{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;margin-top:2px;transition:all .15s;}
+.opt.selected .opt-radio{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff;}
+.opt-tag{position:absolute;top:-8px;right:12px;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:5px;
+  background:var(--success-bg);color:var(--success-tx);border:1px solid var(--success-bd);letter-spacing:.3px;}
+
+/* ═══════════════════════════════════════
+   AMOUNT + FX  · @dev: quote is server-owned. Never compute FX client-side.
+═══════════════════════════════════════ */
+.amount-box{display:flex;align-items:center;border:1.5px solid var(--input);border-radius:var(--radius);overflow:hidden;transition:all .18s;background:var(--card);}
+.amount-box:focus-within{border-color:var(--ring);box-shadow:0 0 0 3px rgba(9,9,11,.07);}
+.amount-prefix{padding:0 14px;height:60px;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;
+  background:var(--secondary);border-right:1px solid var(--border);flex-shrink:0;}
+.amount-field{flex:1;height:60px;border:none;outline:none;min-width:0;background:transparent;
+  font-family:inherit;font-size:26px;font-weight:700;letter-spacing:-.5px;padding:0 14px;color:var(--foreground);}
+.amount-field::placeholder{color:#d4d4d8;}
+.ccy-select{height:60px;border:none;border-left:1px solid var(--border);background:var(--secondary);
+  font-family:inherit;font-size:14px;font-weight:700;padding:0 34px 0 14px;outline:none;cursor:pointer;flex-shrink:0;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2371717a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;}
+@media(max-width:480px){.amount-field{font-size:21px;}.amount-prefix,.amount-field,.ccy-select{height:54px;}}
+.chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.chip{padding:7px 15px;border-radius:100px;border:1px solid var(--border);background:var(--card);
+  font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--foreground);}
+.chip:hover{border-color:#a1a1aa;background:var(--secondary);}
+.chip.active{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary);}
+
+.rate-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--secondary);border:1px solid var(--border);border-radius:var(--radius);padding:12px 15px;margin-top:16px;}
+.rate-val{font-size:13px;font-weight:700;}
+.rate-val small{font-weight:500;color:var(--muted-foreground);}
+.rate-lock{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--warn-tx);
+  background:var(--warn-bg);border:1px solid var(--warn-bd);padding:4px 10px;border-radius:100px;}
+.rate-lock.expired{color:var(--danger-tx);background:var(--danger-bg);border-color:var(--danger-bd);}
+
+/* ═══════════════════════════════════════
+   SUMMARY RAIL · @dev: sticky <Card> on ≥1024, collapses to a bottom sheet
+   trigger on mobile (see .msheet). Values come from the quote response.
+═══════════════════════════════════════ */
+.flow-grid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:28px;align-items:start;}
+@media(max-width:1000px){.flow-grid{grid-template-columns:minmax(0,1fr);gap:20px;}}
+.rail{position:sticky;top:88px;}
+@media(max-width:1000px){.rail{position:static;}}
+.sum-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;font-size:13px;}
+.sum-row+.sum-row{border-top:1px solid #f4f4f5;}
+.sum-label{color:var(--muted-foreground);font-weight:500;display:flex;align-items:center;gap:5px;}
+.sum-label .qmark{width:14px;height:14px;border-radius:50%;background:var(--secondary);border:1px solid var(--border);
+  color:var(--muted-foreground);font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:help;}
+.sum-value{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
+.sum-value.neg{color:var(--success);}
+.sum-total{background:var(--primary);margin:-22px;margin-top:18px;padding:16px 22px;
+  border-radius:0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.sum-total .t-label{color:rgba(255,255,255,.65);font-size:12.5px;font-weight:500;}
+.sum-total .t-value{color:#fff;font-size:19px;font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums;}
+@media(max-width:480px){.sum-total{margin:-16px;margin-top:14px;padding:14px 16px;}.sum-total .t-value{font-size:17px;}}
+
+/* ═══════════════════════════════════════
+   LRS LIMIT METER
+═══════════════════════════════════════ */
+.meter{height:8px;border-radius:100px;background:var(--secondary);overflow:hidden;border:1px solid var(--border);}
+.meter-fill{height:100%;border-radius:100px;background:var(--success);transition:width .5s ease;}
+.meter-fill.warn{background:var(--warn);}
+.meter-fill.danger{background:var(--destructive);}
+.meter-legend{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted-foreground);margin-top:7px;font-weight:500;}
+
+/* ═══════════════════════════════════════
+   DOCUMENT UPLOAD
+   @dev: presigned PUT to Decentro storage, then POST the object key.
+   Client-side guard: pdf/jpg/png, ≤ 10 MB, max 5 files per slot.
+═══════════════════════════════════════ */
+.doc-item{border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;gap:12px;align-items:center;background:var(--card);}
+.doc-item+.doc-item{margin-top:10px;}
+.doc-item.dashed{border-style:dashed;background:var(--secondary);cursor:pointer;transition:all .15s;}
+.doc-item.dashed:hover{border-color:var(--primary);background:#fafafa;}
+.doc-item.done{border-color:var(--success-bd);background:var(--success-bg);}
+.doc-item.error{border-color:var(--danger-bd);background:var(--danger-bg);}
+.doc-icon{width:38px;height:38px;border-radius:9px;background:var(--secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.doc-item.done .doc-icon{background:#fff;color:var(--success);}
+.doc-item.error .doc-icon{background:#fff;color:var(--destructive);}
+.doc-info{flex:1;min-width:0;}
+.doc-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-meta{font-size:11.5px;color:var(--muted-foreground);margin-top:2px;}
+.doc-item.error .doc-meta{color:var(--danger-tx);font-weight:500;}
+
+/* ═══════════════════════════════════════
+   TIMELINE (tracking)
+═══════════════════════════════════════ */
+.timeline{position:relative;padding-left:30px;}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:16px;width:2px;background:var(--border);}
+.tl-item{position:relative;padding-bottom:24px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-dot{position:absolute;left:-30px;top:1px;width:20px;height:20px;border-radius:50%;background:var(--card);
+  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:1;}
+.tl-dot.done{background:var(--success);border-color:var(--success);}
+.tl-dot.active{background:var(--card);border-color:var(--primary);box-shadow:0 0 0 4px rgba(9,9,11,.07);}
+.tl-dot.active::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--primary);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.tl-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.tl-time{font-size:11.5px;color:var(--muted-foreground);margin-top:3px;}
+.tl-note{font-size:12px;color:var(--muted-foreground);margin-top:6px;line-height:1.55;background:var(--secondary);
+  border:1px solid var(--border);border-radius:8px;padding:9px 11px;}
+.tl-item.pending .tl-title{color:var(--muted-foreground);font-weight:600;}
+
+/* ═══════════════════════════════════════
+   TABLE  · @dev: <Table>. Horizontal scroll container is required on mobile.
+═══════════════════════════════════════ */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tbl{width:100%;border-collapse:collapse;min-width:640px;}
+.tbl th{font-size:10.5px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.5px;
+  padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--secondary);white-space:nowrap;}
+.tbl td{padding:13px 16px;border-bottom:1px solid #f4f4f5;font-size:13px;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover{background:#fbfbfc;cursor:pointer;}
+.tbl .num{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;}
+.tbl th:last-child,.tbl td:last-child{text-align:right;}
+
+/* ═══════════════════════════════════════
+   OTP
+═══════════════════════════════════════ */
+.otp-grid{display:flex;gap:9px;justify-content:center;}
+.otp-input{width:46px;height:54px;border-radius:var(--radius);border:1.5px solid var(--input);background:var(--card);
+  font-family:inherit;font-size:21px;font-weight:700;text-align:center;outline:none;transition:all .15s;min-width:0;}
+.otp-input:focus{border-color:var(--ring);box-shadow:0 0 0 3px rgba(9,9,11,.07);}
+.otp-input.filled{border-color:var(--primary);background:#fafafa;}
+@media(max-width:480px){.otp-grid{gap:6px;}.otp-input{width:42px;height:50px;font-size:19px;}}
+@media(max-width:380px){.otp-input{width:36px;height:46px;font-size:17px;}}
+
+/* ═══════════════════════════════════════
+   MISC — powered-by, security, toast, spinner, demo index
+═══════════════════════════════════════ */
+.powered-sticky{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 16px;background:rgba(255,255,255,.93);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--border);}
+.powered-sticky span{font-size:11px;color:var(--muted-foreground);font-weight:500;}
+.powered-sticky.hidden{display:none;}
+.decentro-logo{height:13px;width:auto;color:var(--foreground);}
+.security-row{display:flex;align-items:center;justify-content:center;gap:20px;padding:20px 0 4px;flex-wrap:wrap;}
+.security-badge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--muted-foreground);}
+.toast{position:fixed;bottom:64px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--primary);color:#fff;
+  padding:11px 20px;border-radius:100px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;
+  transition:all .25s;z-index:200;max-width:calc(100vw - 32px);text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+.spinner.dark{border-color:rgba(9,9,11,.15);border-top-color:var(--primary);}
+.spinner.lg{width:44px;height:44px;border-width:3px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.overlay{position:fixed;inset:0;background:rgba(250,250,250,.94);backdrop-filter:blur(3px);z-index:300;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;}
+.overlay.show{display:flex;}
+.overlay-text{font-size:14px;font-weight:600;}
+.overlay-sub{font-size:12.5px;color:var(--muted-foreground);}
+
+/* success hero */
+.success-hero{text-align:center;padding:32px 0 24px;}
+.success-check{width:76px;height:76px;border-radius:50%;background:var(--success-bg);display:flex;align-items:center;justify-content:center;
+  margin:0 auto 18px;box-shadow:0 0 0 10px #f7fef9;color:var(--success);}
+.success-amt{font-size:30px;font-weight:800;letter-spacing:-.8px;margin-bottom:5px;}
+.success-sub{font-size:13.5px;color:var(--muted-foreground);margin-bottom:14px;line-height:1.6;}
+@media(max-width:480px){.success-amt{font-size:24px;}.success-check{width:64px;height:64px;}}
+.ref-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--secondary);
+  border:1px solid var(--border);border-radius:var(--radius);padding:11px 15px;margin-bottom:18px;}
+.ref-label{font-size:11px;color:var(--muted-foreground);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.ref-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+
+/* demo-only screen index */
+.demo-index{position:fixed;right:16px;bottom:52px;z-index:400;}
+.demo-toggle{height:38px;padding:0 14px;border-radius:100px;background:var(--primary);color:#fff;border:none;
+  font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:7px;}
+.demo-panel{display:none;position:absolute;bottom:46px;right:0;width:262px;max-height:60vh;overflow-y:auto;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:8px;}
+.demo-panel.open{display:block;}
+.demo-panel h5{font-size:10px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.6px;padding:8px 10px 5px;}
+.demo-link{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:7px;border:none;background:transparent;
+  font-family:inherit;font-size:12.5px;font-weight:500;color:var(--foreground);cursor:pointer;}
+.demo-link:hover{background:var(--secondary);}
+.demo-link.on{background:var(--primary);color:#fff;font-weight:600;}
+@media print{.demo-index,.powered-sticky{display:none!important;}}
+</style>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   FLOW-SPECIFIC COMPONENTS
+   Carried over from the Overseas Investment prototype so this journey
+   reads as the same product family, restyled onto shadcn tokens.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── 4-step tracker (Identity · Account · Bank · Status) ── */
+.steps4{display:flex;align-items:center;justify-content:center;padding:4px 0 26px;flex-wrap:nowrap;overflow-x:auto;}
+.steps4::-webkit-scrollbar{display:none;}
+.s4{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.s4-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12.5px;font-weight:700;background:var(--card);color:var(--muted-foreground);border:1.5px solid var(--border);flex-shrink:0;}
+.s4-dot.active{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary);}
+.s4-dot.done{background:var(--success);color:#fff;border-color:var(--success);}
+.s4-label{font-size:12.5px;font-weight:600;color:var(--muted-foreground);white-space:nowrap;}
+.s4-label.active{color:var(--foreground);font-weight:700;}
+.s4-line{width:52px;height:2px;background:var(--border);margin:0 12px;flex-shrink:0;}
+.s4-line.done{background:var(--success);}
+@media(max-width:720px){.s4-label{display:none;}.s4-line{width:30px;margin:0 8px;}}
+
+/* ── merchant / payee badge ── */
+.payee-badge{display:flex;align-items:center;gap:14px;padding:15px 18px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:22px;}
+.pb-logo{width:44px;height:44px;border-radius:11px;background:linear-gradient(140deg,var(--brand),var(--brand-2));
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;}
+.pb-info{flex:1;min-width:0;}
+.pb-name{font-size:14.5px;font-weight:700;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pb-desc{font-size:12px;color:var(--muted-foreground);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pb-verified{width:28px;height:28px;border-radius:50%;background:var(--success-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--success);}
+
+/* ── fixed amount display (merchant-set request) ── */
+.amt-display{text-align:center;padding:26px 20px;background:var(--secondary);border-bottom:1px solid var(--border);}
+.amt-display-label{font-size:11.5px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;}
+.amt-display-value{font-size:38px;font-weight:800;letter-spacing:-1.2px;font-variant-numeric:tabular-nums;}
+.amt-display-sub{font-size:13px;color:var(--muted-foreground);margin-top:6px;}
+@media(max-width:480px){.amt-display{padding:20px 14px;}.amt-display-value{font-size:29px;}}
+
+/* ── linked bank accounts ── */
+.bank-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+@media(max-width:560px){.bank-grid{grid-template-columns:minmax(0,1fr);}}
+.bank-option{position:relative;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;
+  display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--card);transition:all .15s;
+  font-family:inherit;text-align:left;width:100%;}
+.bank-option:hover{border-color:#a1a1aa;}
+.bank-option.selected{border-color:var(--primary);background:#fcfcfd;box-shadow:0 0 0 3px rgba(9,9,11,.06);}
+.bank-radio{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;transition:all .15s;}
+.bank-option.selected .bank-radio{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff;}
+.bank-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:9px;font-weight:800;color:#fff;letter-spacing:-.2px;}
+.bank-detail{flex:1;min-width:0;}
+.bank-detail-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bank-detail-acc{font-size:11.5px;color:var(--muted-foreground);margin-top:2px;font-variant-numeric:tabular-nums;}
+.linked-tag{position:absolute;top:-8px;right:12px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:5px;
+  background:var(--success-bg);color:var(--success-tx);border:1px solid var(--success-bd);letter-spacing:.4px;}
+
+.others-toggle{width:100%;margin-top:10px;padding:12px 15px;border:1.5px solid var(--border);border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--card);font-family:inherit;transition:all .15s;}
+.others-toggle:hover{border-color:#a1a1aa;}
+.others-toggle.open{border-color:var(--primary);border-radius:var(--radius) var(--radius) 0 0;border-bottom-color:var(--border);}
+.others-toggle span{font-size:13px;font-weight:600;color:var(--foreground);}
+.others-toggle svg{color:var(--muted-foreground);transition:transform .2s;}
+.others-toggle.open svg{transform:rotate(180deg);}
+.others-dropdown{display:none;border:1.5px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow:hidden;max-height:260px;overflow-y:auto;}
+.others-dropdown.open{display:block;}
+.other-bank-item{padding:11px 15px;display:flex;align-items:center;gap:11px;cursor:pointer;background:var(--card);
+  border-bottom:1px solid var(--border);transition:background .1s;font-size:13px;font-weight:600;}
+.other-bank-item:last-child{border-bottom:none;}
+.other-bank-item:hover{background:var(--secondary);}
+.other-bank-item .bank-logo{width:32px;height:32px;border-radius:7px;font-size:8px;}
+
+/* ── net-banking remittance guide carousel ── */
+.guide-head{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:16px;flex-wrap:wrap;}
+.guide-head-logo{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
+.guide-head-info{flex:1;min-width:180px;}
+.guide-head-name{font-size:14.5px;font-weight:700;letter-spacing:-.1px;}
+.guide-head-sub{font-size:12px;color:var(--muted-foreground);margin-top:2px;}
+.guide-counter{font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:100px;background:var(--secondary);border:1px solid var(--border);white-space:nowrap;}
+.guide-progress{height:4px;border-radius:100px;background:var(--secondary);overflow:hidden;margin-bottom:16px;border:1px solid var(--border);}
+.guide-progress-fill{height:100%;background:var(--primary);border-radius:100px;transition:width .35s ease;}
+.guide-slide{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);padding:26px;min-height:250px;display:flex;gap:22px;align-items:flex-start;}
+@media(max-width:720px){.guide-slide{flex-direction:column;padding:18px;gap:16px;min-height:0;}}
+.guide-num{width:44px;height:44px;border-radius:12px;background:var(--primary);color:var(--primary-foreground);
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0;}
+.guide-body{flex:1;min-width:0;}
+.guide-title{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:8px;}
+.guide-text{font-size:13.5px;color:var(--secondary-foreground);line-height:1.7;}
+.guide-text strong{font-weight:700;}
+.guide-tip{margin-top:14px;background:var(--info-bg);border:1px solid var(--info-bd);color:var(--info-tx);
+  border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;}
+.guide-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:18px 0;}
+.guide-arrow{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--card);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;}
+.guide-arrow:hover:not(:disabled){background:var(--secondary);border-color:#a1a1aa;}
+.guide-arrow:disabled{opacity:.35;cursor:not-allowed;}
+.guide-dots{display:flex;gap:7px;}
+.guide-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;border:none;padding:0;}
+.guide-dot.on{background:var(--primary);width:22px;border-radius:100px;}
+
+/* ── simulated bank net-banking page ── */
+.bank-header{padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  background:var(--bank-color,#004b8d);}
+.bank-header-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.bank-header-secure{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:rgba(255,255,255,.75);}
+@media(max-width:768px){.bank-header{padding:0 20px;}}
+@media(max-width:480px){.bank-header{padding:0 14px;height:56px;}.bank-header-logo{font-size:16px;}}
+.bank-alert{background:var(--danger-bg);border:1px solid var(--danger-bd);border-radius:var(--radius);
+  padding:13px 16px;display:flex;gap:10px;align-items:flex-start;margin-bottom:20px;color:var(--danger-tx);font-size:12.5px;line-height:1.6;}
+.bank-alert svg{flex-shrink:0;margin-top:1px;}
+.bank-grid2{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start;}
+@media(max-width:900px){.bank-grid2{grid-template-columns:minmax(0,1fr);gap:18px;}}
+.bank-card{background:#fff;border:1px solid #e5e7eb;border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;}
+.bank-card-head{padding:15px 20px;border-bottom:1px solid #eef0f2;font-size:14.5px;font-weight:700;color:#22252a;}
+.bank-card-body{padding:20px;}
+.bank-label{font-size:12px;font-weight:600;color:#4b5563;margin-bottom:6px;display:block;}
+.bank-input{display:block;width:100%;height:44px;padding:0 13px;border:1.5px solid #d7dbe0;border-radius:8px;
+  font-family:inherit;font-size:14px;color:#22252a;outline:none;margin-bottom:14px;background:#fff;}
+.bank-input:focus{border-color:var(--bank-color,#004b8d);box-shadow:0 0 0 3px rgba(0,0,0,.05);}
+.bank-btn{width:100%;height:48px;border:none;border-radius:var(--radius);background:var(--bank-color,#004b8d);
+  color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;}
+.bank-btn:hover:not(:disabled){filter:brightness(1.1);}
+.bank-btn:disabled{opacity:.45;cursor:not-allowed;}
+.bank-side{background:#fff;border:1px solid #e5e7eb;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);}
+.bank-side h3{font-size:13.5px;font-weight:700;margin-bottom:14px;color:#22252a;}
+.bank-side-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6;font-size:12.5px;}
+.bank-side-row:last-of-type{border-bottom:none;}
+.bank-side-label{color:#6b7280;font-weight:500;}
+.bank-side-value{font-weight:600;color:#22252a;text-align:right;word-break:break-word;}
+
+/* ── status screen ── */
+.status-hero{text-align:center;padding:30px 0 22px;}
+.status-ring{width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.status-ring.ok{background:var(--success-bg);color:var(--success);box-shadow:0 0 0 10px #f7fef9;}
+.status-ring.wait{background:var(--warn-bg);color:var(--warn);box-shadow:0 0 0 10px #fffdf5;}
+.status-ring.fail{background:var(--danger-bg);color:var(--destructive);box-shadow:0 0 0 10px #fff7f7;}
+.status-amt{font-size:29px;font-weight:800;letter-spacing:-.8px;margin-bottom:5px;}
+.status-sub{font-size:13.5px;color:var(--muted-foreground);margin-bottom:14px;line-height:1.6;}
+@media(max-width:480px){.status-amt{font-size:23px;}.status-ring{width:66px;height:66px;}}
+.txn-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--secondary);
+  border:1px solid var(--border);border-radius:var(--radius);padding:11px 15px;margin-bottom:18px;}
+.txn-label{font-size:10.5px;color:var(--muted-foreground);font-weight:700;text-transform:uppercase;letter-spacing:.6px;}
+.txn-id{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;}
+.next-action{display:flex;align-items:center;gap:13px;border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;background:var(--card);cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm);}
+.next-action:hover{border-color:#a1a1aa;box-shadow:var(--shadow-md);}
+.na-icon{width:38px;height:38px;border-radius:9px;background:var(--secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.na-label{font-size:13px;font-weight:700;}
+.na-desc{font-size:11.5px;color:var(--muted-foreground);margin-top:2px;}
+
+/* ── consent ── */
+.consent-box{background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--radius);
+  padding:13px 15px;display:flex;gap:11px;align-items:flex-start;}
+.consent-chk{width:21px;height:21px;border-radius:6px;border:1.5px solid var(--info-bd);background:#fff;flex-shrink:0;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s;}
+.consent-chk.on{background:var(--primary);border-color:var(--primary);}
+.consent-chk svg{width:12px;height:12px;color:#fff;display:none;}
+.consent-chk.on svg{display:block;}
+.consent-text{font-size:12px;color:var(--info-tx);line-height:1.6;font-weight:500;}
+.consent-text strong{font-weight:700;display:block;margin-bottom:2px;color:#0c4a6e;}
+
+/* ── checkbox rows ── */
+.chk-row{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f4f4f5;cursor:pointer;font-size:12.5px;line-height:1.65;}
+.chk-row:last-child{border-bottom:none;}
+.chk-row .chk{width:18px;height:18px;margin-top:1px;flex-shrink:0;accent-color:#09090b;cursor:pointer;}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--secondary);padding:1px 5px;border-radius:4px;border:1px solid var(--border);}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;}
+</style>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   STAGE SHELL — the five API stages of the LRS payer journey
+   Stage 0  POST   /payments/lrs/customers
+   Stage 1  PATCH  /payments/lrs/customers
+   Stage 2  GET    /payments/lrs/customers/:id
+   Stage 3  iFrame redirection into the bank's own remittance portal
+   Stage 4  Order status, UTR reconciliation, audit record
+═══════════════════════════════════════════════════════════════ */
+.stagebar{background:#0b1020;border-bottom:1px solid rgba(255,255,255,.09);padding:0 40px;
+  display:flex;align-items:center;gap:18px;height:58px;position:sticky;top:0;z-index:60;overflow-x:auto;}
+.stagebar::-webkit-scrollbar{display:none;}
+@media(max-width:768px){.stagebar{padding:0 16px;gap:12px;height:54px;}}
+.sb-brand{display:flex;align-items:center;gap:9px;flex-shrink:0;padding-right:16px;border-right:1px solid rgba(255,255,255,.1);}
+.sb-brand .decentro-logo{color:#fff;}
+.sb-brand span{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.7px;text-transform:uppercase;white-space:nowrap;}
+.sb-steps{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
+.sb-step{display:flex;align-items:center;gap:8px;padding:6px 11px;border-radius:8px;flex-shrink:0;cursor:pointer;
+  border:1px solid transparent;background:transparent;font-family:inherit;transition:all .15s;}
+.sb-step:hover{background:rgba(255,255,255,.06);}
+.sb-step.on{background:rgba(99,102,241,.16);border-color:rgba(129,140,248,.45);}
+.sb-step.done .sb-num{background:#10b981;color:#04241a;border-color:#10b981;}
+.sb-num{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:10.5px;font-weight:800;background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.14);}
+.sb-step.on .sb-num{background:#6366f1;color:#fff;border-color:#818cf8;}
+.sb-txt{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.5);white-space:nowrap;}
+.sb-step.on .sb-txt{color:#fff;}
+.sb-step.done .sb-txt{color:rgba(255,255,255,.7);}
+@media(max-width:900px){.sb-txt{display:none;}}
+.sb-arrow{color:rgba(255,255,255,.2);flex-shrink:0;}
+@media(max-width:900px){.sb-arrow{display:none;}}
+
+/* endpoint banner at the top of each stage */
+.ep-banner{background:linear-gradient(135deg,#0f1530,#141b3d);border:1px solid rgba(129,140,248,.28);
+  border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;color:#e6e9f5;}
+.ep-chip{display:inline-flex;align-items:center;gap:7px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;font-weight:700;
+  padding:5px 11px;border-radius:100px;background:rgba(99,102,241,.2);border:1px solid rgba(129,140,248,.45);color:#c7d2fe;margin-bottom:11px;}
+.ep-chip.get{background:rgba(16,185,129,.16);border-color:rgba(52,211,153,.45);color:#a7f3d0;}
+.ep-chip.patch{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.4);color:#bae6fd;}
+.ep-title{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:5px;}
+.ep-desc{font-size:12.5px;line-height:1.65;color:rgba(230,233,245,.65);max-width:760px;}
+.ep-desc code,.ep-title code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:rgba(129,140,248,.16);
+  border:1px solid rgba(129,140,248,.3);color:#c7d2fe;padding:1px 6px;border-radius:5px;}
+.ep-right{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:10px;padding:10px 14px;text-align:right;flex-shrink:0;}
+.ep-right-label{font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:rgba(230,233,245,.45);}
+.ep-right-val{font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;color:#818cf8;margin-top:3px;}
+.ep-flex{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;}
+
+/* key-value tiles used across review + audit */
+.kv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;}
+@media(max-width:820px){.kv-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:520px){.kv-grid{grid-template-columns:minmax(0,1fr);}}
+.kv{background:var(--secondary);border:1px solid var(--border);border-radius:9px;padding:11px 13px;min-width:0;}
+.kv.hl{background:#eef2ff;border-color:#c7d2fe;}
+.kv-k{font-size:11px;color:var(--muted-foreground);font-weight:500;margin-bottom:4px;}
+.kv-v{font-size:13.5px;font-weight:700;word-break:break-word;}
+.kv-v.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;}
+.kv.hl .kv-v{color:#4338ca;}
+
+/* partner bank cards */
+.pb-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+@media(max-width:900px){.pb-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:560px){.pb-grid{grid-template-columns:minmax(0,1fr);}}
+.pbank{position:relative;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--card);
+  padding:15px;text-align:left;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:9px;min-width:0;}
+.pbank:hover{border-color:#a1a1aa;box-shadow:var(--shadow-md);}
+.pbank.on{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);background:#fcfcff;}
+.pbank-top{display:flex;align-items:center;gap:10px;min-width:0;}
+.pbank-logo{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:9px;font-weight:800;color:#fff;letter-spacing:-.2px;}
+.pbank-name{font-size:13.5px;font-weight:700;line-height:1.25;}
+.pbank-code{font-size:10.5px;color:var(--muted-foreground);font-family:ui-monospace,Menlo,monospace;margin-top:1px;}
+.pbank-desc{font-size:11.5px;color:var(--muted-foreground);line-height:1.55;flex:1;}
+.pbank-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:9px;border-top:1px solid var(--border);}
+.pbank-portal{font-size:11px;font-weight:600;color:var(--secondary-foreground);font-family:ui-monospace,Menlo,monospace;}
+.pbank-flag{align-self:flex-start;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:100px;letter-spacing:.3px;
+  background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;}
+.pbank.registered{border-color:var(--success-bd);background:var(--success-bg);}
+.pbank.registered .pbank-foot{border-top-color:var(--success-bd);}
+.acct-strip{background:#fff;border:1px solid var(--success-bd);border-radius:8px;padding:9px 11px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;}
+.acct-strip b{font-weight:700;}
+
+/* ── in-app iframe redirection window ── */
+.iframe-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg);background:#0b1020;}
+.browser-bar{background:#0b1020;padding:11px 14px;display:flex;align-items:center;gap:13px;flex-wrap:wrap;}
+.dots{display:flex;gap:6px;flex-shrink:0;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.dot.r{background:#ff5f57;}.dot.y{background:#febc2e;}.dot.g{background:#28c840;}
+.browser-label{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.4);line-height:1.25;flex-shrink:0;max-width:78px;}
+.url-bar{flex:1;min-width:140px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  padding:7px 12px;display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:rgba(255,255,255,.72);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.url-bar svg{color:#34d399;flex-shrink:0;}
+.sim-switch{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.sim-label{font-size:10.5px;color:rgba(255,255,255,.4);font-weight:600;line-height:1.25;max-width:60px;}
+.sim-btn{padding:6px 11px;border-radius:7px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
+  font-family:inherit;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer;line-height:1.25;transition:all .15s;}
+.sim-btn.on{background:var(--portal-color,#e01b24);border-color:var(--portal-color,#e01b24);color:#fff;}
+.portal-body{background:#eef1f6;padding:22px;}
+@media(max-width:560px){.portal-body{padding:12px;}.browser-label{display:none;}}
+
+/* the bank's own portal (inside the iframe) */
+.portal-card{background:#fff;border:1px solid #dfe3ea;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.06);}
+.portal-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:1px solid #eceff4;}
+.portal-head.dark{background:var(--portal-color,#97144d);border-bottom:none;}
+.portal-head.dark .portal-name{color:#fff;}
+.portal-head.dark .portal-tag{color:rgba(255,255,255,.78);}
+.portal-head.dark .portal-user{color:rgba(255,255,255,.6);}
+.portal-head.dark .portal-user b{color:#fff;}
+.portal-head.dark .portal-mark{background:#fff;color:var(--portal-color,#97144d);}
+.portal-mark.square{border-radius:9px;}
+.portal-mark{width:38px;height:38px;border-radius:50%;background:var(--portal-color,#e01b24);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0;}
+.portal-name{font-size:15px;font-weight:800;color:var(--portal-color,#e01b24);letter-spacing:-.2px;}
+.portal-tag{font-size:12px;color:#5b6472;margin-top:1px;}
+.portal-user{text-align:right;font-size:11.5px;color:#7a8494;line-height:1.4;}
+.portal-user b{display:block;font-size:13px;color:#1c222b;font-weight:800;letter-spacing:.2px;}
+.portal-steps{display:flex;gap:0;padding:12px 20px;background:#f7f9fc;border-bottom:1px solid #eceff4;overflow-x:auto;}
+.portal-steps::-webkit-scrollbar{display:none;}
+.pstep{display:flex;align-items:center;gap:7px;padding-right:22px;flex-shrink:0;}
+.pstep-n{width:19px;height:19px;border-radius:50%;background:#d5dae2;color:#fff;font-size:10.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pstep.done .pstep-n{background:#0a7d54;}
+.pstep.on .pstep-n{background:var(--portal-color,#e01b24);}
+.pstep-t{font-size:11.5px;font-weight:700;color:#9aa3b1;line-height:1.3;max-width:88px;}
+.pstep.done .pstep-t{color:#0a7d54;}
+.pstep.on .pstep-t{color:var(--portal-color,#e01b24);}
+.portal-panel{padding:22px 20px;}
+@media(max-width:560px){.portal-panel{padding:16px 14px;}.portal-head{padding:14px;}.portal-steps{padding:10px 14px;}}
+.portal-h{font-size:15px;font-weight:800;color:#1c222b;padding-bottom:11px;border-bottom:2px solid #1c222b;
+  margin-bottom:18px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.portal-h .code{font-size:12.5px;font-weight:800;color:var(--portal-color,#e01b24);font-family:ui-monospace,Menlo,monospace;}
+.pf-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;margin-bottom:16px;}
+@media(max-width:560px){.pf-row{grid-template-columns:minmax(0,1fr);}}
+.pf-label{font-size:12px;font-weight:700;color:#3d4653;margin-bottom:5px;display:block;}
+.pf-input{width:100%;height:42px;padding:0 12px;border:1.5px solid #ccd3dd;border-radius:7px;background:#fff;
+  font-family:inherit;font-size:13.5px;color:#1c222b;outline:none;}
+.pf-input:focus{border-color:var(--portal-color,#e01b24);}
+.pf-input.accent{border-color:var(--portal-color,#e01b24);color:var(--portal-color,#e01b24);font-weight:700;}
+.pf-input.accent2{border-color:#3f51b5;color:#3f51b5;font-weight:700;}
+.pf-box{background:#f7f9fc;border:1px solid #e3e8ef;border-radius:8px;padding:14px 16px;margin-bottom:16px;}
+.pf-line{display:flex;justify-content:space-between;gap:14px;font-size:13.5px;padding:4px 0;flex-wrap:wrap;}
+.pf-line b{font-weight:800;color:#1c222b;}
+.pf-note{font-size:11.5px;color:#7a8494;line-height:1.6;margin-top:8px;font-style:italic;}
+.pf-warn{background:#fff9e6;border:1px solid #ffe08a;border-radius:8px;padding:13px 15px;margin-bottom:16px;}
+.pf-warn b{display:block;font-size:13px;font-weight:800;color:#8a6100;margin-bottom:3px;}
+.pf-warn span{font-size:12.5px;color:#a07400;line-height:1.6;}
+.pf-chk{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.65;color:#2b333f;
+  font-weight:600;cursor:pointer;margin-bottom:11px;}
+.pf-chk input{width:15px;height:15px;margin-top:2px;flex-shrink:0;accent-color:#1a73e8;}
+.pf-actions{display:flex;justify-content:space-between;gap:11px;margin-top:20px;flex-wrap:wrap;}
+.pf-btn{height:44px;padding:0 20px;border-radius:7px;border:none;font-family:inherit;font-size:13.5px;font-weight:700;
+  cursor:pointer;background:var(--portal-color,#e01b24);color:#fff;transition:all .15s;}
+.pf-btn:hover:not(:disabled){filter:brightness(1.08);}
+.pf-btn:disabled{opacity:.45;cursor:not-allowed;}
+.pf-btn.ghost{background:#fff;color:#3d4653;border:1.5px solid #ccd3dd;}
+.pf-kv{background:#f7f9fc;border:1px solid #e3e8ef;border-radius:8px;padding:15px 16px;margin-bottom:16px;}
+.pf-kv-title{font-size:13.5px;font-weight:800;color:#1c222b;margin-bottom:4px;}
+.pf-kv-sub{font-size:12.5px;color:#5b6472;padding-bottom:11px;border-bottom:1px solid #e3e8ef;margin-bottom:11px;}
+.pf-kv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 18px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#3d4653;}
+@media(max-width:560px){.pf-kv-grid{grid-template-columns:minmax(0,1fr);}}
+.pf-kv-grid b{font-weight:700;color:#1c222b;}
+
+/* ── developer status simulator (dark, deliberately not payer-facing) ── */
+.devsim{background:#0b1020;border:1px dashed rgba(129,140,248,.35);border-radius:14px;padding:18px;margin-bottom:22px;}
+.devsim-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px;}
+.devsim-title{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;letter-spacing:1.1px;
+  text-transform:uppercase;color:#e6e9f5;}
+.devsim-title svg{color:#818cf8;}
+.devsim-now{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:rgba(230,233,245,.45);}
+.devsim-now b{color:#818cf8;font-weight:800;}
+.devsim-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
+@media(max-width:1000px){.devsim-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:560px){.devsim-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.devsim-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:11px 12px;
+  text-align:left;font-family:inherit;cursor:pointer;transition:all .15s;min-width:0;}
+.devsim-btn:hover{background:rgba(255,255,255,.08);}
+.devsim-btn.on{background:#6366f1;border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.2);}
+.devsim-k{font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:800;color:rgba(230,233,245,.85);letter-spacing:.4px;}
+.devsim-btn.on .devsim-k{color:#fff;}
+.devsim-s{font-size:10.5px;color:rgba(230,233,245,.42);margin-top:3px;}
+.devsim-btn.on .devsim-s{color:rgba(255,255,255,.75);}
+.devsim-spec{margin-top:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;
+  padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+.devsim-spec-t{font-size:12.5px;color:rgba(230,233,245,.72);line-height:1.6;}
+.devsim-spec-t b{color:#e6e9f5;font-weight:800;}
+.devsim-utr{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:700;padding:5px 11px;border-radius:7px;
+  background:rgba(56,189,248,.13);border:1px solid rgba(56,189,248,.36);color:#7dd3fc;white-space:nowrap;}
+.devsim-utr.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(230,233,245,.4);}
+
+/* ── stage 4 status card ── */
+.stat-card{border-radius:14px;padding:22px;border:1px solid;margin-bottom:18px;}
+.stat-card.ok{background:linear-gradient(135deg,#f0fdf4,#eef2ff);border-color:var(--success-bd);}
+.stat-card.warn{background:linear-gradient(135deg,#fffbeb,#fef6e7);border-color:var(--warn-bd);}
+.stat-card.bad{background:linear-gradient(135deg,#fef2f2,#fef6f6);border-color:var(--danger-bd);}
+.stat-top{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+.stat-head{display:flex;align-items:center;gap:13px;margin-bottom:15px;}
+.stat-body{min-width:0;}
+.stat-ref{display:inline-flex;align-items:center;gap:11px;margin-top:16px;padding:8px 10px 8px 13px;
+  border-radius:10px;background:rgba(9,9,11,.045);border:1px solid rgba(9,9,11,.09);max-width:100%;}
+.stat-ref-k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted-foreground);white-space:nowrap;}
+.stat-ref-v{font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:800;letter-spacing:.3px;
+  overflow:hidden;text-overflow:ellipsis;}
+.icon-btn.ghost{border-color:rgba(9,9,11,.12);background:rgba(255,255,255,.7);}
+.stat-ref-txt{display:inline-flex;align-items:center;gap:10px;min-width:0;}
+/* on a phone the reference is too long to share a line with its label,
+   so the label stacks above it and the copy button holds the right edge */
+@media(max-width:480px){
+  .stat-ref{width:100%;justify-content:space-between;padding:9px 10px 9px 13px;}
+  .stat-ref-txt{flex-direction:column;align-items:flex-start;gap:3px;}
+}
+.stat-ico{width:52px;height:52px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid;}
+.stat-card.ok .stat-ico{background:#fff;color:var(--success);border-color:var(--success-bd);}
+.stat-card.warn .stat-ico{background:#fff;color:var(--warn);border-color:var(--warn-bd);}
+.stat-card.bad .stat-ico{background:#fff;color:var(--destructive);border-color:var(--danger-bd);}
+.stat-body{flex:1;min-width:220px;}
+.stat-h{font-size:22px;font-weight:800;letter-spacing:-.6px;margin:0 0 7px;}
+.stat-p{font-size:13.5px;line-height:1.65;color:var(--secondary-foreground);}
+.stat-urn{background:#0b1020;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:11px 15px;text-align:right;flex-shrink:0;}
+.stat-urn-k{font-size:10.5px;color:rgba(230,233,245,.5);font-weight:600;}
+.stat-urn-v{font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:800;color:#fbbf24;margin-top:3px;letter-spacing:.4px;}
+@media(max-width:480px){.stat-h{font-size:18px;}.stat-urn{text-align:left;width:100%;}}
+.track4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid rgba(9,9,11,.09);}
+@media(max-width:720px){.track4{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.tk{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;color:var(--muted-foreground);min-width:0;}
+.tk svg{flex-shrink:0;}
+.tk.done{color:var(--success);}
+.tk.on{color:#4338ca;}
+.tk.dead{color:var(--muted-foreground);opacity:.55;}
+
+/* UTR reconciliation */
+.utr-card{background:var(--card);border:1.5px solid #c7d2fe;border-radius:14px;padding:22px;box-shadow:0 0 0 4px rgba(99,102,241,.07);margin-bottom:18px;}
+.utr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+.utr-badge{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;padding:4px 10px;border-radius:6px;
+  background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;display:inline-block;margin-bottom:9px;}
+.utr-title{font-size:17px;font-weight:800;letter-spacing:-.3px;}
+.utr-p{font-size:13px;color:var(--secondary-foreground);line-height:1.7;padding-top:14px;border-top:1px solid var(--border);margin-bottom:16px;}
+.utr-p code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--secondary);border:1px solid var(--border);padding:2px 7px;border-radius:5px;}
+.utr-row{display:flex;gap:11px;flex-wrap:wrap;}
+.utr-input{flex:1;min-width:220px;height:50px;padding:0 16px;border:1.5px solid var(--input);border-radius:10px;background:var(--card);
+  font-family:ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.6px;color:var(--foreground);outline:none;transition:all .15s;}
+.utr-input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+.utr-input.err{border-color:var(--destructive);box-shadow:0 0 0 3px rgba(220,38,38,.09);}
+.utr-btn{height:50px;padding:0 22px;border-radius:10px;border:none;background:#4f46e5;color:#fff;font-family:inherit;
+  font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:all .15s;}
+.utr-btn:hover{background:#4338ca;}
+.utr-linked{display:inline-flex;align-items:center;gap:7px;font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:700;
+  padding:6px 12px;border-radius:8px;background:var(--success-bg);border:1px solid var(--success-bd);color:var(--success-tx);}
+
+/* audit record */
+.audit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px;}
+@media(max-width:720px){.audit-grid{grid-template-columns:minmax(0,1fr);gap:0;}}
+.aud-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid #f4f4f5;font-size:13px;}
+.aud-k{color:var(--muted-foreground);font-weight:500;flex-shrink:0;}
+.aud-v{font-weight:700;text-align:right;word-break:break-word;}
+.aud-v.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;}
+.aud-v.accent{color:#4f46e5;}
+</style>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   CUSTOMER-FACING LAYER
+   Everything a payer sees. The developer tooling lives behind one
+   button in the top-right and never appears in the flow itself.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── app bar ── */
+.appbar{background:var(--card);border-bottom:1px solid var(--border);height:64px;padding:0 40px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:55;flex-shrink:0;}
+@media(max-width:768px){.appbar{height:56px;padding:0 16px;}}
+.ab-left{display:flex;align-items:center;gap:13px;min-width:0;flex:1;}
+.ab-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(140deg,#4f46e5,#7c3aed);
+  display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.ab-name{font-size:15px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ab-sub{font-size:11.5px;color:var(--muted-foreground);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ab-right{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.ab-powered{display:flex;align-items:center;gap:7px;}
+.ab-powered span{font-size:11px;color:var(--muted-foreground);font-weight:500;white-space:nowrap;}
+@media(max-width:560px){.ab-powered span{display:none;}.ab-sub{display:none;}}
+.ab-dev{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--card);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted-foreground);
+  transition:all .15s;flex-shrink:0;position:relative;}
+.ab-dev:hover{background:var(--secondary);color:var(--foreground);border-color:#a1a1aa;}
+.ab-dev.live::after{content:'';position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;
+  background:#6366f1;border:2px solid var(--card);}
+
+/* ── customer progress ── */
+.cprog{display:flex;align-items:center;justify-content:center;gap:0;margin:0 0 28px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;}
+.cprog::-webkit-scrollbar{display:none;}
+.cs{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.cs-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;background:var(--card);color:var(--muted-foreground);border:1.5px solid var(--border);flex-shrink:0;}
+.cs.on .cs-dot{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary);}
+.cs.done .cs-dot{background:var(--success);color:#fff;border-color:var(--success);}
+.cs-l{font-size:12.5px;font-weight:600;color:var(--muted-foreground);white-space:nowrap;}
+.cs.on .cs-l{color:var(--foreground);font-weight:700;}
+.cs.done .cs-l{color:var(--secondary-foreground);}
+.cs-line{width:46px;height:2px;background:var(--border);margin:0 12px;flex-shrink:0;}
+.cs-line.done{background:var(--success);}
+@media(max-width:760px){.cs-l{display:none;}.cs-line{width:26px;margin:0 7px;}}
+
+/* ── section heads with a number ── */
+.sec{display:flex;align-items:center;gap:11px;margin-bottom:14px;}
+.sec-n{width:24px;height:24px;border-radius:7px;background:var(--secondary);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:var(--secondary-foreground);flex-shrink:0;}
+.sec-t{font-size:14px;font-weight:700;letter-spacing:-.1px;}
+.sec-r{margin-left:auto;}
+
+/* ── order rail ── */
+.order-hero{background:linear-gradient(145deg,#0f172a,#1e1b4b);border-radius:var(--radius) var(--radius) 0 0;
+  padding:22px;color:#fff;text-align:center;}
+.oh-label{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:rgba(255,255,255,.45);}
+.oh-amt{font-size:30px;font-weight:800;letter-spacing:-1px;margin:7px 0 4px;font-variant-numeric:tabular-nums;}
+.oh-to{font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.5;}
+@media(max-width:480px){.oh-amt{font-size:25px;}.order-hero{padding:18px;}}
+.trust-row{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding:14px 0 2px;}
+.trust{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--muted-foreground);}
+/* ── status screen grid ──
+   Row 1: the outcome takes two thirds, the summary one third.
+   Row 2: the optional reference spans the full width.
+   Placement is explicit so every status renders in the same shape. */
+.status-wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:stretch;}
+.sw-status{grid-column:1;grid-row:1;margin-bottom:0;display:flex;flex-direction:column;}
+.sw-status{padding-bottom:22px;}
+.sw-status .track4{margin-top:auto;}
+.sw-side{grid-column:2;grid-row:1;align-self:stretch;position:static;}
+.sw-side>.card{height:100%;display:flex;flex-direction:column;}
+.sw-side .card-body{flex:1;}
+/* the two cards end on the same line — tracker and actions at the foot of one,
+   the created stamp at the foot of the other */
+.page-actions{display:flex;justify-content:center;margin-top:22px;}
+.id-cell{display:inline-flex;align-items:center;gap:8px;min-width:0;}
+.id-val{font-family:ui-monospace,Menlo,monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--card);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted-foreground);
+  flex-shrink:0;transition:all .15s;padding:0;}
+.icon-btn:hover{background:var(--secondary);color:var(--foreground);border-color:#a1a1aa;}
+@media(max-width:768px){.icon-btn{width:36px;height:36px;}}
+.sw-utr{grid-column:1 / -1;grid-row:2;margin-bottom:0;}
+.sw-utr .utr-card{margin-bottom:0;}
+@media(max-width:1000px){
+  .status-wrap{grid-template-columns:minmax(0,1fr);gap:16px;}
+  .sw-status,.sw-side,.sw-utr{grid-column:auto;grid-row:auto;}
+}
+.rate-note{font-size:11.5px;line-height:1.6;color:var(--muted-foreground);padding:9px 0 3px;border-top:1px solid #f4f4f5;margin-top:-1px;}
+
+/* ── saved account rows ── */
+.acct{position:relative;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--card);
+  display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .15s;font-family:inherit;text-align:left;width:100%;}
+.acct+.acct{margin-top:10px;}
+.acct:hover{border-color:#a1a1aa;}
+.acct.on{border-color:var(--primary);background:#fcfcfd;box-shadow:0 0 0 3px rgba(9,9,11,.06);}
+.acct-radio{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;transition:all .15s;}
+.acct.on .acct-radio{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff;}
+.acct-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:9px;font-weight:800;color:#fff;}
+.acct-b{flex:1;min-width:0;}
+.acct-n{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.acct-m{font-size:11.5px;color:var(--muted-foreground);margin-top:2px;font-variant-numeric:tabular-nums;}
+.acct-tag{position:absolute;top:-8px;right:12px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:5px;
+  background:var(--success-bg);color:var(--success-tx);border:1px solid var(--success-bd);letter-spacing:.4px;}
+
+/* ── expander for "add another bank" ── */
+.expander{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:12px;}
+.exp-head{width:100%;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--secondary);border:none;cursor:pointer;font-family:inherit;transition:background .15s;}
+.exp-head:hover{background:#ebebef;}
+.exp-title{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;}
+.exp-head svg.chev{color:var(--muted-foreground);transition:transform .2s;}
+.expander.open .exp-head svg.chev{transform:rotate(180deg);}
+.exp-body{display:none;padding:18px 15px;background:var(--card);border-top:1px solid var(--border);}
+.expander.open .exp-body{display:block;}
+
+/* ── review rows with edit ── */
+.rev{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.rev+.rev{margin-top:12px;}
+.rev-h{padding:12px 16px;background:var(--secondary);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.rev-t{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.rev-t svg{color:var(--muted-foreground);}
+.rev-b{padding:14px 16px;}
+.rev-edit{font-size:12px;font-weight:600;color:var(--foreground);background:none;border:none;cursor:pointer;
+  font-family:inherit;text-decoration:underline;text-underline-offset:3px;padding:0;}
+.rev-edit:hover{color:#4f46e5;}
+
+/* ── sticky pay bar (mobile) ── */
+.paybar{position:fixed;left:0;right:0;bottom:0;z-index:58;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--border);
+  padding:11px 16px;display:none;align-items:center;gap:12px;box-shadow:0 -4px 18px rgba(9,9,11,.06);}
+.paybar-l{flex:1;min-width:0;}
+.paybar-k{font-size:10.5px;color:var(--muted-foreground);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.paybar-v{font-size:16px;font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums;}
+/* the sticky bar carries the forward action on narrow screens, so the
+   in-page duplicate is hidden rather than repeated */
+@media(max-width:1000px){.dup{display:none!important;}}
+@media(max-width:1000px){.paybar.show{display:flex;}}
+/* the sticky summary above already carries the amount, so the bar is the
+   action alone — repeating the figure twice on one small screen is noise */
+@media(max-width:1000px){ .paybar-l{display:none;} .paybar #pbBtn{width:100%;} }
+
+/* ═══════════════════════════════════════════════════════════════
+   DEVELOPER DRAWER — everything technical, out of the payer's way
+═══════════════════════════════════════════════════════════════ */
+.dv-backdrop{position:fixed;inset:0;background:rgba(9,9,11,.45);z-index:180;opacity:0;pointer-events:none;transition:opacity .2s;}
+.dv-backdrop.open{opacity:1;pointer-events:auto;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:92vw;background:#0b1020;z-index:190;
+  transform:translateX(102%);visibility:hidden;transition:transform .26s cubic-bezier(.4,0,.2,1),visibility .26s;display:flex;flex-direction:column;
+  border-left:1px solid rgba(255,255,255,.1);box-shadow:-12px 0 40px rgba(0,0,0,.35);}
+.drawer.open{transform:translateX(0);visibility:visible;}
+.dv-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;}
+.dv-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#e6e9f5;}
+.dv-title svg{color:#818cf8;}
+.dv-close{width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);
+  color:rgba(230,233,245,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.dv-close:hover{background:rgba(255,255,255,.1);color:#fff;}
+.dv-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:20px;}
+.dv-sec-t{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(230,233,245,.4);margin-bottom:10px;}
+.dv-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:14px;}
+.dv-ep{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;font-weight:700;color:#c7d2fe;
+  background:rgba(99,102,241,.16);border:1px solid rgba(129,140,248,.4);border-radius:7px;padding:7px 11px;
+  display:inline-block;margin-bottom:9px;word-break:break-all;}
+.dv-ep.get{background:rgba(16,185,129,.14);border-color:rgba(52,211,153,.4);color:#a7f3d0;}
+.dv-ep.patch{background:rgba(56,189,248,.13);border-color:rgba(56,189,248,.36);color:#bae6fd;}
+.dv-note{font-size:11.5px;line-height:1.65;color:rgba(230,233,245,.6);}
+.dv-note b{color:#e6e9f5;font-weight:700;}
+.dv-pre{font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;color:#c7d2fe;
+  white-space:pre-wrap;word-break:break-word;margin:0;max-height:280px;overflow:auto;}
+.dv-jump{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+.dv-jbtn{padding:9px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  font-family:inherit;font-size:11.5px;font-weight:600;color:rgba(230,233,245,.72);cursor:pointer;text-align:left;transition:all .15s;}
+.dv-jbtn:hover{background:rgba(255,255,255,.09);color:#fff;}
+.dv-jbtn.on{background:#6366f1;border-color:#818cf8;color:#fff;}
+.dv-states{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+.dv-st{padding:9px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  font-family:inherit;cursor:pointer;text-align:left;transition:all .15s;}
+.dv-st:hover{background:rgba(255,255,255,.09);}
+.dv-st.on{background:#6366f1;border-color:#818cf8;}
+.dv-st-k{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:800;color:rgba(230,233,245,.85);}
+.dv-st.on .dv-st-k{color:#fff;}
+.dv-st-s{font-size:10px;color:rgba(230,233,245,.42);margin-top:2px;}
+.dv-st.on .dv-st-s{color:rgba(255,255,255,.78);}
+.dv-flag{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:6px;
+  background:rgba(56,189,248,.13);border:1px solid rgba(56,189,248,.36);color:#7dd3fc;display:inline-block;margin-top:10px;}
+.dv-flag.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(230,233,245,.4);}
+.dv-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.09);flex-shrink:0;display:flex;gap:9px;}
+.dv-fbtn{flex:1;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);
+  font-family:inherit;font-size:12.5px;font-weight:700;color:rgba(230,233,245,.8);cursor:pointer;}
+.dv-fbtn:hover{background:rgba(255,255,255,.1);color:#fff;}
+.dv-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:rgba(230,233,245,.72);font-weight:600;}
+.dv-switch{width:38px;height:22px;border-radius:100px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.14);
+  position:relative;cursor:pointer;flex-shrink:0;transition:background .18s;}
+.dv-switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .18s;}
+.dv-switch.on{background:#6366f1;border-color:#818cf8;}
+.dv-switch.on::after{transform:translateX(16px);}
+
+/* ── developer tools: an attract state, because a bare </> in the corner
+   reads as decoration. Pulse + one-time coach mark, dismissed on any tap.
+   Everything here respects prefers-reduced-motion. ── */
+.ab-dev.attract{border-color:#a5b4fc;color:#4f46e5;background:#eef2ff;}
+.ab-dev.attract::after{content:'';position:absolute;inset:-5px;border-radius:13px;
+  border:2px solid #6366f1;opacity:0;animation:devRing 2.4s cubic-bezier(.2,.7,.3,1) infinite;}
+@keyframes devRing{0%{transform:scale(.86);opacity:.65;}70%{transform:scale(1.28);opacity:0;}100%{opacity:0;}}
+
+.dev-wrap{position:relative;flex-shrink:0;display:flex;}
+.devtip{position:absolute;z-index:75;top:calc(100% + 10px);right:0;width:290px;max-width:min(290px,calc(100vw - 24px));
+  background:#0b1020;color:#e6e9f5;border:1px solid rgba(129,140,248,.5);border-radius:12px;
+  padding:14px 15px;box-shadow:0 16px 44px rgba(9,9,11,.32);cursor:pointer;
+  opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;transition:opacity .24s,transform .24s;}
+.devtip.show{opacity:1;transform:none;pointer-events:auto;}
+.devtip::before{content:'';position:absolute;top:-6px;right:12px;width:11px;height:11px;background:#0b1020;
+  border-left:1px solid rgba(129,140,248,.5);border-top:1px solid rgba(129,140,248,.5);transform:rotate(45deg);}
+.devtip-t{font-size:12.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#c7d2fe;
+  display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.devtip-p{font-size:12.5px;line-height:1.6;color:rgba(230,233,245,.72);}
+.devtip-x{margin-top:11px;width:100%;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.07);color:#e6e9f5;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+.devtip-x:hover{background:rgba(255,255,255,.13);}
+@media(prefers-reduced-motion:reduce){
+  .ab-dev.attract::after{animation:none;opacity:0;}
+  .devtip{transition:opacity .2s;transform:none;}
+}
+
+/* annotation chips — off by default, toggled from the drawer */
+.anno{display:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:700;padding:3px 9px;
+  border-radius:6px;background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;}
+body.anno-on .anno{display:inline-flex;align-items:center;gap:5px;}
+</style>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE-FIRST & EMBED (iFrame checkout / SDK)
+   This flow ships inside a host app's frame on a phone. Everything
+   below exists because of that, not as polish.
+═══════════════════════════════════════════════════════════════ */
+
+/* iOS zooms any focused input under 16px. Inside an iframe that reads as
+   the page breaking mid-typing, and the host cannot undo it. */
+@media(max-width:768px){
+  .form-input,.form-select,.form-textarea,.utr-input,.pf-input,.amount-field,.otp-input{font-size:16px;}
+  .btn{height:46px;}
+  .btn-sm{height:40px;}
+  .pf-input{height:46px;}
+  .pf-btn{height:46px;width:100%;}
+  .pf-actions{flex-direction:column-reverse;}
+  .pf-actions .pf-btn.ghost{width:100%;}
+}
+
+/* safe areas — the pay bar otherwise sits under the home indicator */
+.paybar{padding-bottom:calc(11px + env(safe-area-inset-bottom,0px));}
+.drawer{padding-bottom:env(safe-area-inset-bottom,0px);}
+@media(max-width:1000px){.page{padding-bottom:104px;}}
+
+/* ── mobile order summary ──
+   The rail is dead weight below the fold on a phone, so the amount rides
+   under the app bar instead and opens on tap. */
+.msum{display:none;position:sticky;top:64px;z-index:52;background:var(--card);border-bottom:1px solid var(--border);}
+.msum-head{width:100%;display:flex;align-items:center;gap:12px;padding:10px 16px;background:none;border:none;
+  font-family:inherit;cursor:pointer;text-align:left;}
+.msum-k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-foreground);}
+.msum-v{font-size:15px;font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums;margin-top:2px;}
+.msum-to{font-size:11.5px;color:var(--muted-foreground);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msum-chev{margin-left:auto;color:var(--muted-foreground);transition:transform .2s;flex-shrink:0;}
+.msum.open .msum-chev{transform:rotate(180deg);}
+.msum-body{display:none;padding:0 16px 12px;}
+.msum.open .msum-body{display:block;}
+@media(max-width:1000px){ .msum.show{display:block;} .rail-collapse{display:none;} }
+@media(max-width:768px){ .msum{top:56px;} }
+
+/* ── embedded in a host app ──
+   The host owns its own branding and chrome, so ours steps back. */
+body.embed .appbar{height:52px;}
+body.embed .ab-logo,body.embed .ab-name{display:none;}
+body.embed .ab-sub{display:block;font-size:13px;font-weight:700;color:var(--foreground);margin-top:0;}
+body.embed .msum{top:52px;}
+body.embed .page{padding-top:18px;}
+
+/* ── small phones ── */
+@media(max-width:400px){
+  .page{padding-left:12px;padding-right:12px;}
+  .card-body,.card-header,.card-footer{padding-left:14px;padding-right:14px;}
+  .cs-dot{width:26px;height:26px;font-size:11px;}
+  .portal-body{padding:10px;}
+  .browser-bar{padding:9px 10px;gap:9px;}
+  .dots{display:none;}
+  .page-title{font-size:19px;}
+  .paybar-v{font-size:15px;}
+}
+@media(max-width:480px){ .drawer{max-width:100vw;width:100%;} }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ ICON SPRITE — lucide-react in implementation ═══════════
+     @dev: every <use href="#i-x"> below maps to a lucide icon of the same
+     name. Do not ship this sprite; import from lucide-react instead. -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+ <defs><g id="ic" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g></defs>
+ <symbol id="i-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+ <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+ <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+ <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+ <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+ <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+ <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+ <symbol id="i-cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/><path d="m2 10 10-5 10 5-10 5z"/></symbol>
+ <symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></symbol>
+ <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+ <symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol>
+ <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+ <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+ <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+ <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+ <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+ <symbol id="i-bank" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-7 9 7"/><path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/></symbol>
+ <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+ <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="13" height="13" x="9" y="9" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+ <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+ <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+ <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+ <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></symbol>
+ <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></symbol>
+ <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1z"/><path d="M16 8h-6"/><path d="M16 12h-6"/></symbol>
+ <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+ <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+ <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+ <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+ <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></symbol>
+ <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></symbol>
+ <symbol id="decentro-logo" viewBox="0 0 2749.67 538.23">
+  <polygon fill="currentColor" points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/>
+  <rect fill="#0092ff" x="120.6" y="357.11" width="60.28" height="60.28"/>
+  <path fill="currentColor" d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/>
+  <path fill="currentColor" d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/>
+  <path fill="currentColor" d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61l-6.49-1.21h-.02l-6.38-1.47h-.02l-2.37-.62c-3.15-.85-6.26-1.8-9.33-2.84l-2.3-.8c-1.85-.66-3.69-1.36-5.51-2.1l-3.6-1.52-.01,0-3.55-1.61-.01,0c-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3l2.07-.66h.01l7.47-2.12,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75l6.82-.61c3.79-.26,7.61-.39,11.47-.39l2.89.02,1.63.04,2.57.09,1.91.09,2.14.12.4.03c2.12.15,4.23.33,6.33.56l3.18.37,2.68.37c2.27.33,4.52.7,6.75,1.12l4.64.95,4.58,1.08,2.27.59c2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34l-.55.51-3.08,3.04c-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9l2.77,2.75c15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/>
+  <polygon fill="currentColor" points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/>
+  <path fill="currentColor" d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95l11.06-.34,57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/>
+  <polygon fill="currentColor" points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/>
+  <polygon fill="currentColor" points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/>
+ </symbol>
+</svg>
+
+<!--
+================================================================================
+  DECENTRO · LRS CHECKOUT — customer-facing build
+  Same five stages as the API journey, presented as a product rather than a
+  console. All developer tooling — endpoints, payloads, status simulation,
+  screen jumps — lives behind the single button in the top-right.
+
+  Customer steps      API stage
+  1 Your details      POST  /payments/lrs/customers
+  2 Bank account      PATCH /payments/lrs/customers
+  3 Review & pay      GET   /payments/lrs/customers/:id
+  4 Payment           iFrame redirection into the bank's remittance portal
+  Outcome             order status · optional UTR · receipt
+================================================================================
+-->
+
+<div class="appbar">
+  <div class="ab-left">
+    <button class="nav-back" id="abBack" onclick="back()" style="display:none"><svg width="16" height="16"><use href="#i-arrow-left"/></svg></button>
+    <div class="ab-logo"><svg width="18" height="18"><use href="#i-trend"/></svg></div>
+    <div style="min-width:0">
+      <div class="ab-name">Vested Finance</div>
+      <div class="ab-sub" id="abSub">Add funds · US equity investing</div>
+    </div>
+  </div>
+  <div class="ab-right">
+    <div class="ab-powered"><span>Powered by</span><svg class="decentro-logo" width="76" height="14"><use href="#decentro-logo"/></svg></div>
+  <div class="dev-wrap">
+    <button class="ab-dev" id="devBtn" onclick="openDrawer()" title="Developer tools">
+      <svg width="16" height="16"><use href="#i-code"/></svg>
+    </button>
+    <!-- coach mark — anchored to the button, moves with it. Demo affordance,
+         strip it with the drawer. -->
+    <div class="devtip" id="devTip" onclick="dismissTip()" role="status" aria-live="polite">
+      <div class="devtip-t"><svg width="13" height="13"><use href="#i-code"/></svg> Developer tools</div>
+      <div class="devtip-p">Endpoints, live request payloads, order-state simulation and screen jumps — all behind this button.</div>
+      <button class="devtip-x" onclick="dismissTip(event)">Got it</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- mobile order summary — sticky under the app bar on phones -->
+<div class="msum" id="msum">
+  <button class="msum-head" onclick="document.getElementById('msum').classList.toggle('open')">
+    <div style="min-width:0">
+      <div class="msum-k">You're paying</div>
+      <div class="msum-v rail-amt">$100.00</div>
+      <div class="msum-to">to Vested Finance (DriveWealth LLC)</div>
+    </div>
+    <svg class="msum-chev" width="16" height="16"><use href="#i-chevron-down"/></svg>
+  </button>
+  <div class="msum-body">
+    <div class="sum-row"><span class="sum-label">From</span><span class="sum-value rail-bank">Axis ···· 0887</span></div>
+    <div class="sum-row"><span class="sum-label">Purpose</span><span class="sum-value">Equity investment</span></div>
+    <div class="rate-note" style="border-top:none;padding-top:8px">The exchange rate shown here is for reference only. Your bank will share the actual exchange rate and the payable amount.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ STEP 1 · YOUR DETAILS ═══════════════
+  @dev POST /payments/lrs/customers → lrs_customer_id -->
+<div class="screen active" id="sc-details">
+  <div class="page">
+    <div class="content-xl">
+      <div class="cprog" id="prog1"></div>
+      <div class="flow-grid">
+        <div>
+          <div class="page-head">
+            <div style="min-width:0">
+              <div class="page-title">Your details</div>
+              <div class="page-sub">We collect these once. Every future transfer skips straight to payment.
+                <span class="anno">POST /payments/lrs/customers</span></div>
+            </div>
+            <button class="btn btn-outline strong btn-sm" onclick="prefill()">Use sample details</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><svg width="15" height="15"><use href="#i-user"/></svg> Name, as printed on your PAN</div>
+            </div>
+            <div class="card-body">
+              <div class="form-row-3">
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">First name <span class="req">*</span></label>
+                  <input class="form-input k" id="f_first" data-k="first_name" placeholder="John" oninput="syncAll()"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">Middle name</label>
+                  <input class="form-input k" id="f_middle" data-k="middle_name" placeholder="Alex" oninput="syncAll()"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">Last name <span class="req">*</span></label>
+                  <input class="form-input k" id="f_last" data-k="last_name" placeholder="Doe" oninput="syncAll()"></div>
+              </div>
+              <div class="form-hint" style="margin-top:12px">Names that don't match the PAN record are the most common reason a bank turns a transfer down.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title"><svg width="15" height="15"><use href="#i-shield"/></svg> Identity</div></div>
+            <div class="card-body">
+              <div class="form-row-3">
+                <div class="form-group"><label class="form-label">PAN <span class="req">*</span></label>
+                  <input class="form-input k" id="f_pan" data-k="pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase" oninput="syncAll();validatePan()">
+                  <div class="form-hint" id="panMsg">Verified with NSDL, instantly.</div></div>
+                <div class="form-group"><label class="form-label">Date of birth <span class="req">*</span></label>
+                  <input class="form-input k" id="f_dob" data-k="date_of_birth" placeholder="DD / MM / YYYY" oninput="syncAll()"></div>
+                <div class="form-group"><label class="form-label">Nationality <span class="req">*</span></label>
+                  <select class="form-select k" id="f_nat" data-k="nationality" onchange="syncAll()">
+                    <option value="IN" selected>India</option><option value="NP">Nepal</option><option value="BT">Bhutan</option>
+                  </select></div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;max-width:340px">
+                <label class="form-label">Passport number <span style="color:var(--muted-foreground);font-weight:500">— optional</span></label>
+                <input class="form-input k" id="f_pass" data-k="passport_number" placeholder="L1234567" style="text-transform:uppercase" oninput="syncAll()">
+                <div class="form-hint">Not needed for investment transfers. Required if you later send money for education or travel.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title"><svg width="15" height="15"><use href="#i-send"/></svg> Contact</div>
+              <div class="card-desc">Your receipt, the A2 copy and the FIRA are sent here.</div></div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">Email <span class="req">*</span></label>
+                  <input class="form-input k" id="f_email" data-k="email" placeholder="john.doe@example.com" oninput="syncAll()"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">Mobile number <span class="req">*</span></label>
+                  <input class="form-input k" id="f_mobile" data-k="mobile" placeholder="+91 98765 43210" oninput="syncAll()">
+                  <div class="form-hint">Your bank sends the payment OTP here.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title"><svg width="15" height="15"><use href="#i-bank"/></svg> Permanent address</div></div>
+            <div class="card-body">
+              <div class="form-group"><label class="form-label">Address</label>
+                <input class="form-input k" id="f_addr" data-k="address" placeholder="123, Tech Park" oninput="syncAll()"></div>
+              <div class="form-row-3" style="margin-bottom:0">
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">City</label>
+                  <input class="form-input k" id="f_city" data-k="city" placeholder="Bangalore" oninput="syncAll()"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">State</label>
+                  <input class="form-input k" id="f_state" data-k="state" placeholder="Karnataka" oninput="syncAll()"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">PIN code</label>
+                  <input class="form-input k" id="f_pin" data-k="pincode" placeholder="560001" maxlength="6" oninput="syncAll()"></div>
+              </div>
+              <input type="hidden" class="k" id="f_cc" data-k="country_code" value="IN">
+            </div>
+            <div class="card-footer" style="justify-content:space-between">
+              <span style="font-size:11.5px;color:var(--muted-foreground)"><svg width="12" height="12" style="vertical-align:-2px;color:var(--success)"><use href="#i-lock"/></svg> Encrypted and shared only with your bank</span>
+              <button class="btn btn-primary dup" onclick="saveProfile()">Continue to bank account <svg width="15" height="15"><use href="#i-chevron-right"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- order rail -->
+        <div class="rail rail-collapse">
+          <div class="card">
+            <div class="order-hero">
+              <div class="oh-label">You're adding</div>
+              <div class="oh-amt rail-amt">$100.00</div>
+              <div class="oh-to">to your Vested Finance account<br>DriveWealth LLC · United States</div>
+            </div>
+            <div class="card-body">
+              <div class="sum-row"><span class="sum-label">Estimated INR debit</span><span class="sum-value rail-inr">₹8,725</span></div>
+              <div class="sum-row"><span class="sum-label">Reference rate</span><span class="sum-value rail-rate">1 USD ≈ ₹87.25</span></div>
+              <div class="sum-row"><span class="sum-label">Purpose</span><span class="sum-value">Equity investment</span></div>
+            </div>
+          </div>
+          <div class="alert alert-muted" style="margin-top:13px">
+            <svg width="15" height="15"><use href="#i-info"/></svg>
+            <div>The rate and charges are set by your bank when it books the transfer, so the final debit can differ a little from the estimate.</div>
+          </div>
+          <div class="trust-row">
+            <span class="trust"><svg width="13" height="13"><use href="#i-lock"/></svg> 256-bit encrypted</span>
+            <span class="trust"><svg width="13" height="13"><use href="#i-shield"/></svg> RBI authorised bank</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STEP 2 · BANK ACCOUNT ═══════════════
+  @dev PATCH /payments/lrs/customers — partner + account linkage -->
+<div class="screen" id="sc-bank">
+  <div class="page">
+    <div class="content-xl">
+      <div class="cprog" id="prog2"></div>
+      <div class="flow-grid">
+        <div>
+          <div class="page-title">Where should we debit from?</div>
+          <div class="page-sub">The account has to be in your own name — that's an RBI rule for money leaving India, not ours.
+            <span class="anno">PATCH /payments/lrs/customers</span></div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title"><svg width="15" height="15"><use href="#i-bank"/></svg> Your accounts</div>
+              <div class="card-desc">Verified against your PAN and ready to use.</div></div>
+            <div class="card-body">
+              <div id="acctList">
+                <button class="acct on" data-bank="axis" onclick="pickAccount('axis')">
+                  <span class="acct-tag">VERIFIED</span>
+                  <div class="acct-radio"></div>
+                  <div class="acct-logo" style="background:#97144d">AXIS</div>
+                  <div class="acct-b"><div class="acct-n">Axis Bank</div><div class="acct-m">Savings ···· 0887 · Axis ARGO</div></div>
+                </button>
+              </div>
+
+              <!-- add another bank -->
+              <div class="expander" id="addExp">
+                <button class="exp-head" onclick="document.getElementById('addExp').classList.toggle('open')">
+                  <span class="exp-title"><svg width="15" height="15"><use href="#i-plus"/></svg> Use a different bank</span>
+                  <svg class="chev" width="15" height="15"><use href="#i-chevron-down"/></svg>
+                </button>
+                <div class="exp-body">
+                  <div class="section-label">Banks that support outward remittance online</div>
+                  <div class="pb-grid" id="partnerGrid">
+                    <button class="pbank on" data-bank="kotak" onclick="pickPartner('kotak')">
+                      <span class="pbank-flag">Fully digital</span>
+                      <div class="pbank-top"><div class="pbank-logo" style="background:#e01b24">KOTK</div>
+                        <div style="min-width:0"><div class="pbank-name">Kotak Mahindra Bank</div><div class="pbank-code">Kotak Remit</div></div></div>
+                      <div class="pbank-desc">Paperless — the A2 form is signed inside the portal.</div>
+                    </button>
+                    <button class="pbank" data-bank="icici" onclick="pickPartner('icici')">
+                      <div class="pbank-top"><div class="pbank-logo" style="background:#f37920">ICIC</div>
+                        <div style="min-width:0"><div class="pbank-name">ICICI Bank</div><div class="pbank-code">Money2World</div></div></div>
+                      <div class="pbank-desc">Direct debit from your ICICI NetBanking account.</div>
+                    </button>
+                    <button class="pbank" data-bank="hdfc" onclick="pickPartner('hdfc')">
+                      <div class="pbank-top"><div class="pbank-logo" style="background:#004b8d">HDFC</div>
+                        <div style="min-width:0"><div class="pbank-name">HDFC Bank</div><div class="pbank-code">RemitNow</div></div></div>
+                      <div class="pbank-desc">Instant international transfer portal.</div>
+                    </button>
+                    <button class="pbank" data-bank="sbi" onclick="pickPartner('sbi')">
+                      <div class="pbank-top"><div class="pbank-logo" style="background:#22409a">SBIN</div>
+                        <div style="min-width:0"><div class="pbank-name">State Bank of India</div><div class="pbank-code">FXOutward</div></div></div>
+                      <div class="pbank-desc">Outward remittance from the SBI FX portal.</div>
+                    </button>
+                    <button class="pbank" data-bank="federal" onclick="pickPartner('federal')">
+                      <div class="pbank-top"><div class="pbank-logo" style="background:#0b6b3a">FDRL</div>
+                        <div style="min-width:0"><div class="pbank-name">Federal Bank</div><div class="pbank-code">FedSend Direct</div></div></div>
+                      <div class="pbank-desc">Direct GIFT City routing for stock investment.</div>
+                    </button>
+                  </div>
+
+                  <hr class="sep">
+                  <div class="sec"><span class="sec-n"><svg width="12" height="12"><use href="#i-bank"/></svg></span>
+                    <span class="sec-t" id="newBankTitle">Kotak Mahindra Bank account</span></div>
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Account number <span class="req">*</span></label>
+                      <input class="form-input" id="b_acc" value="9449423920" oninput="syncAll()"></div>
+                    <div class="form-group"><label class="form-label">IFSC <span class="req">*</span></label>
+                      <input class="form-input" id="b_ifsc" value="KKBK0000958" style="text-transform:uppercase" oninput="syncAll()">
+                      <div class="form-hint" id="ifscHint" style="color:var(--success);font-weight:600">Kotak Mahindra Bank · branch matched</div></div>
+                  </div>
+                  <div class="form-group"><label class="form-label">Account type <span class="req">*</span></label>
+                    <select class="form-select" id="b_type" style="max-width:320px" onchange="syncAll()">
+                      <option value="SAVINGS" selected>Savings</option><option value="CURRENT">Current</option></select></div>
+
+                  <label style="display:flex;gap:11px;align-items:flex-start;cursor:pointer;background:var(--secondary);
+                    border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+                    <input type="checkbox" id="b_same" checked onchange="sameAsPrimary()" style="width:17px;height:17px;margin-top:1px;accent-color:#09090b;flex-shrink:0">
+                    <span style="flex:1;font-size:12.5px;line-height:1.6">The bank has the same mobile and email
+                      <span style="display:block;color:var(--muted-foreground);font-size:11.5px;margin-top:2px" id="sameMeta">+919876543210 · john.doe@example.com</span></span>
+                  </label>
+                  <div id="bankContact" style="display:none">
+                    <div class="form-row">
+                      <div class="form-group"><label class="form-label">Mobile registered with the bank <span class="req">*</span></label>
+                        <input class="form-input" id="b_mob" value="+919876543210" oninput="syncAll()"></div>
+                      <div class="form-group"><label class="form-label">Email registered with the bank <span class="req">*</span></label>
+                        <input class="form-input" id="b_mail" value="john.doe@example.com" oninput="syncAll()"></div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="max-width:320px"><label class="form-label">Customer ID / CRN <span style="color:var(--muted-foreground);font-weight:500">— optional</span></label>
+                    <input class="form-input" id="b_crn" placeholder="CUST123456" oninput="syncAll()">
+                    <div class="form-hint">Pre-fills the login on your bank's page.</div></div>
+
+                  <button class="btn btn-primary btn-block" id="linkBtn" onclick="linkAccount()">Add Kotak Mahindra Bank account</button>
+                </div>
+              </div>
+
+              </div>
+            <div class="card-footer" style="justify-content:space-between">
+              <button class="btn btn-ghost" onclick="go('sc-details')"><svg width="15" height="15"><use href="#i-arrow-left"/></svg> Back</button>
+              <button class="btn btn-primary dup" onclick="proceedFromBank()">Continue to review <svg width="15" height="15"><use href="#i-chevron-right"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rail rail-collapse">
+          <div class="card">
+            <div class="order-hero">
+              <div class="oh-label">You're adding</div>
+              <div class="oh-amt rail-amt">$100.00</div>
+              <div class="oh-to">to your Vested Finance account<br>DriveWealth LLC · United States</div>
+            </div>
+            <div class="card-body">
+              <div class="sum-row"><span class="sum-label">Estimated INR debit</span><span class="sum-value rail-inr">₹8,725</span></div>
+              <div class="sum-row"><span class="sum-label">Debit from</span><span class="sum-value rail-bank">Axis ···· 0887</span></div>
+              <div class="sum-row"><span class="sum-label">Purpose</span><span class="sum-value">Equity investment</span></div>
+            </div>
+          </div>
+          <div class="alert alert-warn" style="margin-top:13px">
+            <svg width="15" height="15"><use href="#i-alert"/></svg>
+            <div><strong class="t">Check your transfer limit</strong>Your net banking limit needs to cover <strong class="rail-inr2">₹8,725</strong>. You can raise it in your bank's app in a couple of minutes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STEP 3 · REVIEW & PAY ═══════════════
+  @dev GET /payments/lrs/customers/:id — read back, never trust local state -->
+<div class="screen" id="sc-review">
+  <div class="page">
+    <div class="content-xl">
+      <div class="cprog" id="prog3"></div>
+      <div class="flow-grid">
+        <div>
+          <div class="page-title">Review and confirm</div>
+          <div class="page-sub">You'll finish the payment on your bank's own page. Check everything here first.
+            <span class="anno">GET /payments/lrs/customers/:id</span></div>
+
+          <div class="rev">
+            <div class="rev-h"><span class="rev-t"><svg width="14" height="14"><use href="#i-user"/></svg> Your details</span>
+              <button class="rev-edit" onclick="go('sc-details')">Edit</button></div>
+            <div class="rev-b">
+              <div class="sum-row"><span class="sum-label">Name</span><span class="sum-value" id="r_name">John Alex Doe</span></div>
+              <div class="sum-row"><span class="sum-label">PAN</span><span class="sum-value" id="r_pan">ABCDE1234F</span></div>
+              <div class="sum-row"><span class="sum-label">Contact</span><span class="sum-value" id="r_contact" style="font-size:12.5px">john.doe@example.com · +919876543210</span></div>
+            </div>
+          </div>
+
+          <div class="rev">
+            <div class="rev-h"><span class="rev-t"><svg width="14" height="14"><use href="#i-bank"/></svg> Paying from</span>
+              <button class="rev-edit" onclick="go('sc-bank')">Change</button></div>
+            <div class="rev-b">
+              <div class="sum-row"><span class="sum-label">Account</span><span class="sum-value" id="r_acct">Axis Bank · Savings ···· 0887</span></div>
+              <div class="sum-row"><span class="sum-label">Name check</span><span class="sum-value"><span class="badge badge-success"><svg width="10" height="10"><use href="#i-check"/></svg> Matches your PAN</span></span></div>
+              <div class="sum-row"><span class="sum-label">You'll pay at</span><span class="sum-value" id="r_portal">Axis ARGO</span></div>
+            </div>
+          </div>
+
+          <div class="rev">
+            <div class="rev-h"><span class="rev-t"><svg width="14" height="14"><use href="#i-send"/></svg> Transfer</span></div>
+            <div class="rev-b">
+              <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-value rail-amt">$100.00</span></div>
+              <div class="sum-row"><span class="sum-label">Estimated INR debit</span><span class="sum-value rail-inr">₹8,725</span></div>
+              <div class="sum-row"><span class="sum-label">Reference rate</span><span class="sum-value rail-rate">1 USD ≈ ₹87.25</span></div>
+              <div class="rate-note">The exchange rate shown here is for reference only. Your bank will share the actual exchange rate and the payable amount.</div>
+              <div class="sum-row"><span class="sum-label">Beneficiary</span><span class="sum-value" style="font-size:12.5px">Vested Finance (DriveWealth LLC)</span></div>
+              <div class="sum-row"><span class="sum-label">Purpose</span><span class="sum-value">Equity investment <span class="anno" style="margin-left:5px">S0001</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rail rail-collapse">
+          <div class="card">
+            <div class="order-hero">
+              <div class="oh-label">You're paying</div>
+              <div class="oh-amt rail-amt">$100.00</div>
+              <div class="oh-to">to Vested Finance (DriveWealth LLC)</div>
+            </div>
+            <div class="card-body">
+              <div class="sum-row"><span class="sum-label">From</span><span class="sum-value rail-bank">Axis ···· 0887</span></div>
+              <div class="sum-row"><span class="sum-label">Purpose</span><span class="sum-value">Equity investment</span></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block dup" id="payBtn" style="margin-top:14px" onclick="openPortal()">
+            <svg width="16" height="16"><use href="#i-lock"/></svg> <span id="payBtnLabel">Pay $100.00 at Axis ARGO</span>
+          </button>
+          <div class="alert alert-muted" style="margin-top:13px">
+            <svg width="15" height="15"><use href="#i-lock"/></svg>
+            <div>You'll enter your netbanking details on your bank's page only. Vested Finance and Decentro never see them.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STEP 4 · PAYMENT AT YOUR BANK ═══════════════
+  @dev the bank's own portal, opened in a sandboxed frame. We own the wrapper,
+  the signed launch URL and the exit — nothing inside. -->
+<div class="screen" id="sc-portal" style="--portal-color:#97144d">
+  <div class="page">
+    <div class="content-xl">
+      <div class="cprog" id="prog4"></div>
+
+      <div class="card" style="border-color:#c7d2fe;box-shadow:0 0 0 3px rgba(99,102,241,.07);margin-bottom:16px">
+        <div class="card-body" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div style="display:flex;gap:13px;align-items:flex-start;flex:1;min-width:250px">
+            <div class="opt-icon" style="background:#eef2ff;color:#4338ca;flex-shrink:0"><svg width="17" height="17"><use href="#i-lock"/></svg></div>
+            <div>
+              <div style="font-size:14.5px;font-weight:700">You're on <span id="pBankName">Axis Bank</span>'s secure page</div>
+              <div style="font-size:12.5px;color:var(--muted-foreground);line-height:1.6;margin-top:3px;max-width:540px">
+                Finish the payment below. When your bank confirms the booking, come back and tell us — we'll start tracking it.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-outline" onclick="go('sc-bank')">Cancel</button>
+            <button class="btn btn-primary" onclick="finishAtBank()"><svg width="15" height="15"><use href="#i-check"/></svg> I've completed the payment</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="iframe-wrap">
+        <div class="browser-bar">
+          <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+          <div class="url-bar"><svg width="12" height="12"><use href="#i-lock"/></svg><span id="portalUrl">https://argo.axisbank.co.in/outward/lrs/s0001</span></div>
+        </div>
+        <div class="portal-body">
+          <div class="portal-card">
+            <div class="portal-head">
+              <div style="display:flex;gap:12px;align-items:center;min-width:0">
+                <div class="portal-mark" id="portalMark">A</div>
+                <div style="min-width:0"><div class="portal-name" id="portalBank">Axis Bank</div>
+                  <div class="portal-tag" id="portalTag">Axis ARGO — Outward Remittance</div></div>
+              </div>
+              <div class="portal-user">Welcome,<b id="portalUser">JOHN ALEX DOE</b></div>
+            </div>
+            <div class="portal-steps" id="portalSteps"></div>
+
+            <div class="portal-panel pp" id="pp1">
+              <div style="text-align:center;padding:10px 0 4px">
+                <div class="portal-mark" id="portalMarkBig" style="width:58px;height:58px;font-size:25px;margin:0 auto 14px"></div>
+                <div id="pLoginH" style="font-size:15.5px;font-weight:800;color:#1c222b">NetBanking login</div>
+                <div style="font-size:12.5px;color:#5b6472;margin-top:4px;line-height:1.6">Authenticating <b id="portalUser2">John Alex Doe</b> for outward remittance.</div>
+              </div>
+              <div style="max-width:400px;margin:20px auto 0;background:#f7f9fc;border:1px solid #e3e8ef;border-radius:10px;padding:18px">
+                <label class="pf-label" id="pLoginLabel">CRN / Customer ID / Mobile</label>
+                <input class="pf-input" id="pCrn" value="+919876543210" readonly style="margin-bottom:14px">
+                <label class="pf-label" id="pPwLabel">Password / MPIN</label>
+                <input class="pf-input" type="password" value="••••••" readonly>
+              </div>
+              <div style="max-width:400px;margin:18px auto 0">
+                <button class="pf-btn" id="pLoginBtn" style="width:100%" onclick="portalStep(2)">Login &amp; open remit journey →</button>
+                <div style="font-size:11px;color:#7a8494;text-align:center;margin-top:11px;line-height:1.6">Simulated for this demo. Credentials never leave the bank's domain.</div>
+              </div>
+            </div>
+
+            <div class="portal-panel pp" id="pp2" style="display:none">
+              <div class="portal-h" id="ph2">02. Transfer details <span class="code">Purpose code: S0001</span></div>
+              <div class="pf-row">
+                <div><label class="pf-label">Receiving country</label><input class="pf-input" value="United States" readonly></div>
+                <div><label class="pf-label">Receiving currency</label><input class="pf-input" value="USD" readonly></div>
+              </div>
+              <div class="pf-row">
+                <div><label class="pf-label">Beneficiary</label><input class="pf-input accent" value="Vested Finance (DriveWealth LLC)" readonly></div>
+                <div><label class="pf-label">Purpose of remittance</label><input class="pf-input accent2" value="Portfolio investment in equity shares (S0001)" readonly></div>
+              </div>
+              <div class="pf-row">
+                <div><label class="pf-label">Promocode</label><input class="pf-input" value="KMGEMP" readonly></div>
+                <div><label class="pf-label">Amount (USD)</label><input class="pf-input" value="$100.00 USD" readonly></div>
+              </div>
+              <div class="pf-box">
+                <div class="pf-line"><span>Estimated INR debit:</span><b class="rail-inr">₹8,725</b></div>
+                <div class="pf-note">The actual forex rate and bank charges will vary — the forex rate is decided by the bank.</div>
+              </div>
+              <div class="pf-actions"><span></span><button class="pf-btn" onclick="portalStep(3)">Next: beneficiary details →</button></div>
+            </div>
+
+            <div class="portal-panel pp" id="pp3" style="display:none">
+              <div class="portal-h" id="ph3">03. Beneficiary details</div>
+              <div class="pf-kv">
+                <div class="pf-kv-title">DriveWealth LLC / Vested Custody</div>
+                <div class="pf-kv-sub">Address: Chatham Road, Short Hills, NJ 07078, USA</div>
+                <div class="pf-kv-grid">
+                  <div>Account no: <b>00170200000956</b></div><div>SWIFT code: <b>FDRLINAAXXX</b></div>
+                  <div>Bank name: <b>Federal Bank GIFT City Unit (Gandhinagar)</b></div><div>Intermediary: <b>Standard Chartered Bank</b></div>
+                </div>
+              </div>
+              <div class="pf-note" style="margin-bottom:4px">Pre-registered by the platform and not editable — that's what stops a transfer bouncing on a name mismatch.</div>
+              <div class="pf-actions"><button class="pf-btn ghost" onclick="portalStep(2)">Back</button>
+                <button class="pf-btn" onclick="portalStep(4)">Next: sender declaration →</button></div>
+            </div>
+
+            <div class="portal-panel pp" id="pp4" style="display:none">
+              <div class="portal-h" id="ph4">04. Sender declaration <span class="code" style="color:#7a8494">Previous LRS transactions</span></div>
+              <div class="pf-kv">
+                <div class="pf-kv-title" id="pSenderName">John Alex Doe</div>
+                <div class="pf-kv-sub" id="pSenderAddr">123, Tech Park, Bangalore, Karnataka 560001</div>
+                <div class="pf-kv-grid">
+                  <div>PAN: <b id="pSenderPan">ABCDE1234F</b></div>
+                  <div>Mobile: <b id="pSenderMob">+919876543210</b></div>
+                  <div>Funding account: <b id="pSenderAcc">Axis Bank ···· 0887</b></div>
+                  <div>Relationship to beneficiary: <b>Self</b></div>
+                </div>
+              </div>
+              <div class="pf-box">
+                <div class="pf-line"><span>Remitted under LRS this financial year:</span><b>USD 12,400.00</b></div>
+                <div class="pf-line"><span>This remittance:</span><b class="rail-amt">$100.00</b></div>
+                <div class="pf-line" style="margin-top:9px;padding-top:9px;border-top:1px solid #e3e8ef">
+                  <span><b>Remaining LRS entitlement:</b></span><b>USD 2,37,500.00</b></div>
+                <div class="pf-note">As recorded by the bank against your PAN across its own books.</div>
+              </div>
+              <div class="pf-actions"><button class="pf-btn ghost" onclick="portalStep(3)">Back</button>
+                <button class="pf-btn" id="pBtn4" onclick="portalStep(5)">Continue to confirm booking →</button></div>
+            </div>
+
+            <div class="portal-panel pp" id="pp5" style="display:none">
+              <div class="portal-h" id="ph5">05. Declaration &amp; confirm booking</div>
+              <div class="pf-box">
+                <div class="pf-line"><span><b>Remittance amount:</b></span><b class="rail-amt">$100.00</b></div>
+                <div class="pf-line"><span><b>Estimated INR debit:</b></span><b class="rail-inr">₹8,725</b></div>
+                <div class="pf-note">The actual forex rate and bank charges will vary — the forex rate is decided by the bank.</div>
+                <div class="pf-line" style="margin-top:9px;padding-top:9px;border-top:1px solid #e3e8ef">
+                  <span>Funding account:</span><b id="pFund">Axis Bank (•••• 0887)</b></div>
+              </div>
+              <div class="pf-actions"><span></span>
+                <button class="pf-btn" id="pBtn5" onclick="confirmBooking()">Confirm booking &amp; submit to bank →</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:16px">
+        <svg width="15" height="15"><use href="#i-info"/></svg>
+        <div><strong class="t">Keep this tab open</strong>If you close it after paying, don't pay again — open the link in your email and you'll land right back on the status of this transfer.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ OUTCOME · STATUS ═══════════════ -->
+<div class="screen" id="sc-status">
+  <div class="page">
+    <div class="content-xl">
+      <div class="cprog" id="prog5"></div>
+
+      <div class="status-wrap">
+      <div class="stat-card ok sw-status" id="statCard">
+        <div class="stat-head">
+          <div class="stat-ico" id="statIco"><svg width="24" height="24"><use href="#i-check"/></svg></div>
+          <span class="badge badge-success" id="statBadge">Payment completed</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-h" id="statH">Your transfer is on its way</div>
+          <div class="stat-p" id="statP">Axis Bank is processing <strong>$100.00 USD</strong> for your Vested Finance account. Your shares are allocated once the funds land with the broker.</div>
+          <div class="stat-ref" id="statUrnBox">
+            <span class="stat-ref-txt">
+              <span class="stat-ref-k">Bank reference</span>
+              <span class="stat-ref-v" id="statUrn">AXIS-7QM24B-LRS</span>
+            </span>
+            <button class="icon-btn ghost" onclick="toast('Bank reference copied')" title="Copy bank reference" aria-label="Copy bank reference">
+              <svg width="13" height="13"><use href="#i-copy"/></svg></button>
+          </div>
+        </div>
+        <div class="track4" id="track4"></div>
+      </div>
+
+        <div class="sw-utr">
+          <div class="utr-card" id="utrCard">
+            <div class="utr-head">
+              <div>
+                <span class="utr-badge">Optional · speeds things up</span>
+                <div class="utr-title">Add your bank's payment reference</div>
+              </div>
+              <span class="utr-linked" id="utrLinked" style="display:none"><svg width="12" height="12"><use href="#i-check"/></svg> Added: <span id="utrLinkedVal"></span></span>
+            </div>
+            <div class="utr-p">
+              Your bank issues a 12-digit UTR when the transfer goes out — something like <code>420188921034</code>. Adding it here lets us match the payment the moment it arrives, so your shares are allocated sooner. You can skip this entirely; it just takes a little longer.
+            </div>
+            <div class="utr-row">
+              <input class="utr-input" id="utrInput" placeholder="e.g. 420188921034" oninput="clearUtrErr()">
+              <button class="utr-btn" onclick="saveUtr()"><svg width="16" height="16"><use href="#i-check"/></svg> Add reference</button>
+            </div>
+            <div class="form-error" id="utrErr" style="display:none"><svg width="12" height="12"><use href="#i-alert"/></svg> That doesn't look right — enter the 12-digit UTR, or the bank reference shown above.</div>
+            <div class="form-hint" style="margin-top:10px">Find it on your bank's payment receipt or in your account statement, usually within the hour.</div>
+          </div>
+        </div>
+
+        <div class="rail sw-side">
+          <div class="card">
+            <div class="card-header tinted"><div class="card-title"><svg width="15" height="15"><use href="#i-receipt"/></svg> Transfer summary</div></div>
+            <div class="card-body">
+              <div class="sum-row"><span class="sum-label">Decentro Transaction ID</span>
+                <span class="sum-value id-cell">
+                  <span class="id-val">TXN_LRS_2026_8113</span>
+                  <button class="icon-btn" onclick="toast('Transaction ID copied')" title="Copy transaction ID" aria-label="Copy transaction ID">
+                    <svg width="13" height="13"><use href="#i-copy"/></svg></button>
+                </span></div>
+              <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-value rail-amt">$100.00</span></div>
+              <div class="sum-row"><span class="sum-label">Paid from</span><span class="sum-value rail-bank">Axis ···· 0887</span></div>
+              <div class="sum-row"><span class="sum-label">To</span><span class="sum-value" style="font-size:12.5px">Vested Finance</span></div>
+              <div class="sum-row"><span class="sum-label">Purpose</span><span class="sum-value">Equity investment</span></div>
+            </div>
+            <div class="card-footer" style="justify-content:flex-start">
+              <span style="font-size:11.5px;color:var(--muted-foreground)">Created 04 Sep 2026, 2:41 PM IST</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- terminal action, at page level: read the outcome, optionally add the
+           reference, then leave. On mobile the sticky bar carries it instead. -->
+      <div class="page-actions dup">
+        <button class="btn btn-outline" style="min-width:280px" onclick="finishFlow()" id="doneBtn">Back to Vested Finance</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- sticky pay bar for narrow screens -->
+<div class="paybar" id="paybar">
+  <div class="paybar-l"><div class="paybar-k" id="pbK">You're paying</div><div class="paybar-v rail-amt">$100.00</div></div>
+  <button class="btn btn-primary" id="pbBtn" onclick="paybarAction()">Continue</button>
+</div>
+
+<!-- ═══════════════ DEVELOPER DRAWER ═══════════════
+  Everything the payer must never see. One button, top-right.
+  @dev strip this whole block and the .ab-dev button before shipping. -->
+<div class="dv-backdrop" id="dvBackdrop" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dv-head">
+    <div class="dv-title"><svg width="15" height="15"><use href="#i-code"/></svg> Developer tools</div>
+    <button class="dv-close" onclick="closeDrawer()"><svg width="14" height="14"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dv-body">
+    <div>
+      <div class="dv-sec-t">This screen</div>
+      <div class="dv-card">
+        <div class="dv-ep" id="dvEp">POST /payments/lrs/customers</div>
+        <div class="dv-note" id="dvNote"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="dv-sec-t">Payload</div>
+      <div class="dv-card"><pre class="dv-pre" id="dvPayload"></pre></div>
+    </div>
+
+    <div>
+      <div class="dv-sec-t">Order status</div>
+      <div class="dv-states" id="dvStates"></div>
+      <div class="dv-flag" id="dvUtrFlag">UTR INPUT: VISIBLE</div>
+      <div class="dv-note" id="dvSpec" style="margin-top:9px"></div>
+    </div>
+
+    <div>
+      <div class="dv-sec-t">Bank portal</div>
+      <div class="dv-jump" id="dvPortals"></div>
+      <div class="dv-note" style="margin-top:9px">Switching the bank re-themes the portal, the launch URL, the funding account and the reference on every downstream screen.</div>
+    </div>
+
+    <div>
+      <div class="dv-sec-t">Jump to screen</div>
+      <div class="dv-jump" id="dvJump"></div>
+    </div>
+
+    <div>
+      <div class="dv-sec-t">Options</div>
+      <div class="dv-card">
+        <div class="dv-toggle">Show API annotations in the UI
+          <div class="dv-switch" id="annoSwitch" onclick="toggleAnno()"></div></div>
+        <div class="dv-note" style="margin-top:9px">Overlays the endpoint and purpose-code chips inline, for walking engineering through the flow.</div>
+      </div>
+    </div>
+  </div>
+  <div class="dv-foot">
+    <button class="dv-fbtn" onclick="restart()">Reset demo</button>
+    <button class="dv-fbtn" onclick="closeDrawer()">Close</button>
+  </div>
+</aside>
+
+
+<div class="toast" id="toast"></div>
+<div class="overlay" id="overlay">
+  <div class="spinner dark lg"></div>
+  <div class="overlay-text" id="ovText">Opening your bank</div>
+  <div class="overlay-sub" id="ovSub">Do not close this window</div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DEMO RUNTIME — prototype only. Production: router + react-hook-form
+   + zod + TanStack Query. Field names below are the API contract.
+════════════════════════════════════════════════════════════════ */
+const BANKS={
+  axis   :{name:'Axis Bank', code:'AXIS', color:'#97144d', portal:'Axis ARGO',
+           tag:'Axis ARGO — Outward Remittance', mark:'A', ifsc:'UTIB0000102', acc:'9182340887',
+           url:'https://argo.axisbank.co.in/outward/lrs/s0001', urn:'AXIS-7QM24B-LRS',
+           hdr:'dark',shape:'square',loginH:'Axis Internet Banking',loginVal:'JD8842197',loginLabel:'Customer ID / Login ID',pwLabel:'Password',cta:'Login &amp; continue to ARGO →',
+           steps:['Login','Remittance details','Beneficiary','Remitter details','Review &amp; pay']},
+  kotak  :{name:'Kotak Mahindra Bank', code:'KOTK', color:'#e01b24', portal:'Kotak Remit',
+           tag:'Kotak Remit — Send Money Abroad', mark:'k', ifsc:'KKBK0000958', acc:'9449423920',
+           url:'https://remit.kotak.com/outward-remittance/lrs/s0001', urn:'KOTK-3YFJ5H-LRS',
+           hdr:'light',shape:'circle',loginH:'Kotak NetBanking Login',loginVal:'',loginLabel:'CRN / Customer ID / Mobile',pwLabel:'Password / MPIN',cta:'Login &amp; open Remit journey →',
+           steps:['Login &amp; auth','Transfer details','Beneficiary details','Sender details','Confirm booking']},
+  icici  :{name:'ICICI Bank', code:'ICIC', color:'#f37920', portal:'ICICI Money2World',
+           tag:'Money2World — Send Money Abroad', mark:'i', ifsc:'ICIC0000958', acc:'0281740119',
+           url:'https://money2world.icicibank.com/lrs/s0001', urn:'ICIC-5HD91K-LRS',
+           hdr:'light',shape:'square',loginH:'ICICI Bank Internet Banking',loginVal:'johndoe92',loginLabel:'User ID',pwLabel:'Password',cta:'Login to Money2World →',
+           steps:['Login','Transfer details','Beneficiary','Sender details','Confirm &amp; pay']},
+  hdfc   :{name:'HDFC Bank', code:'HDFC', color:'#004b8d', portal:'HDFC RemitNow',
+           tag:'RemitNow — Foreign Outward Remittance', mark:'H', ifsc:'HDFC0000521', acc:'5010028841',
+           url:'https://remitnow.hdfcbank.com/lrs/s0001', urn:'HDFC-2PX83C-LRS',
+           hdr:'dark',shape:'square',loginH:'HDFC Bank NetBanking',loginVal:'84729166',loginLabel:'Customer ID',pwLabel:'IPIN (password)',cta:'Continue to RemitNow →',
+           steps:['Login','Remittance','Beneficiary','Remitter details','Confirm']},
+  sbi    :{name:'State Bank of India', code:'SBIN', color:'#22409a', portal:'SBI FXOutward',
+           tag:'FXOut — Outward Remittance', mark:'S', ifsc:'SBIN0011513', acc:'3801990233',
+           url:'https://fxout.onlinesbi.sbi/lrs/s0001', urn:'SBIN-9LT47D-LRS',
+           hdr:'dark',shape:'circle',loginH:'OnlineSBI — Personal Banking',loginVal:'johnalexdoe',loginLabel:'Username',pwLabel:'Password',cta:'Login to FX-Out →',
+           steps:['Login','Transfer','Beneficiary','Sender details','Confirm']},
+  federal:{name:'Federal Bank', code:'FDRL', color:'#0b6b3a', portal:'FedSend Direct',
+           tag:'FedSend — GIFT City Remittance', mark:'F', ifsc:'FDRL0001284', acc:'1170200005512',
+           url:'https://fedsend.federalbank.co.in/lrs/s0001', urn:'FDRL-4KJ62N-LRS',
+           hdr:'light',shape:'circle',loginH:'FedNet Internet Banking',loginVal:'JDOE1284',loginLabel:'User ID',pwLabel:'Password / sign-on PIN',cta:'Login &amp; open FedSend →',
+           steps:['Login','Transfer','Beneficiary','Remitter details','Confirm']}
+};
+const SAMPLE={first_name:'John',middle_name:'Alex',last_name:'Doe',date_of_birth:'12 / 07 / 1994',
+  nationality:'IN',passport_number:'',pan:'ABCDE1234F',email:'john.doe@example.com',
+  mobile:'+919876543210',address:'123, Tech Park',city:'Bangalore',state:'Karnataka',pincode:'560001',country_code:'IN'};
+const CUST_ID='cust_lrs_98765', TXN='TXN_LRS_2026_8113';
+const AMT=100, RATE=87.25, INR=8725;
+
+let BANK='axis', NEWBANK='kotak', PSTEP=1, STATE='SUCCESS', UTR='', SCREEN='sc-details';
+
+const $=id=>document.getElementById(id);
+const set=(id,v)=>{const e=$(id); if(e) e.textContent=v;};
+const setAll=(cls,v)=>document.querySelectorAll('.'+cls).forEach(e=>{e.textContent=v;});
+
+/* ── customer progress ── */
+const CSTEPS=['Your details','Bank account','Review','Payment'];
+function paintProgress(){
+  const map={'sc-details':1,'sc-bank':2,'sc-review':3,'sc-portal':4,'sc-status':5};
+  let cur=map[SCREEN]||1;
+  /* the outcome screen only completes the tracker when the payment actually
+     completed — a failed transfer showing four green ticks is a lie */
+  if(SCREEN==='sc-status' && ['FAILED','CANCELLED','EXPIRED','REJECTED'].indexOf(STATE)>-1) cur=4;
+  for(let i=1;i<=5;i++){
+    const el=$('prog'+i); if(!el) continue;
+    el.innerHTML=CSTEPS.map(function(t,k){
+      const n=k+1, cls=(n<cur)?'done':(n===cur?'on':'');
+      const dot=(n<cur)?'<svg width="12" height="12"><use href="#i-check"/></svg>':n;
+      return '<div class="cs '+cls+'"><div class="cs-dot">'+dot+'</div><div class="cs-l">'+t+'</div></div>'
+        +(n<CSTEPS.length?'<div class="cs-line '+(n<cur?'done':'')+'"></div>':'');
+    }).join('');
+  }
+}
+
+/* ── profile ── */
+function readProfile(){
+  const o={};
+  document.querySelectorAll('#sc-details .k').forEach(function(el){o[el.dataset.k]=el.value.trim();});
+  return o;
+}
+function fullName(p){return [p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')||'—';}
+function isoDob(v){const m=(v||'').replace(/\s/g,'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:(v||'');}
+function prefill(silent){
+  document.querySelectorAll('#sc-details .k').forEach(function(el){ if(SAMPLE[el.dataset.k]!==undefined) el.value=SAMPLE[el.dataset.k]; });
+  syncAll(); validatePan(); if(!silent) toast('Sample details filled in');
+}
+function validatePan(){
+  const el=$('f_pan'), v=el.value.toUpperCase(), msg=$('panMsg');
+  if(!v){el.classList.remove('is-error');msg.className='form-hint';msg.style.color='';msg.textContent='Verified with NSDL, instantly.';return;}
+  if(/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v)){
+    el.classList.remove('is-error');msg.className='form-hint';msg.style.color='var(--success)';msg.style.fontWeight='600';
+    msg.textContent='Looks right — we’ll confirm it with NSDL.';
+  }else{
+    el.classList.add('is-error');msg.className='form-error';msg.style.color='';msg.style.fontWeight='';
+    msg.textContent='A PAN is five letters, four digits, then one letter.';
+  }
+}
+function saveProfile(){
+  const p=readProfile();
+  const missing=['first_name','last_name','date_of_birth','pan','email','mobile','address','city','state','pincode'].filter(function(k){return !p[k];});
+  if(missing.length){ toast('A few details are still missing — filling in the sample for you'); prefill(true); return; }
+  if(!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(p.pan.toUpperCase())){ toast('Check the PAN format'); return; }
+  go('sc-bank'); toast('Details saved');
+}
+
+/* ── accounts ── */
+function pickAccount(code){
+  BANK=code;
+  document.querySelectorAll('#acctList .acct').forEach(function(el){el.classList.toggle('on',el.dataset.bank===code);});
+  syncAll();
+}
+function pickPartner(code){
+  NEWBANK=code; const b=BANKS[code];
+  document.querySelectorAll('#partnerGrid .pbank').forEach(function(el){el.classList.toggle('on',el.dataset.bank===code);});
+  set('newBankTitle',b.name+' account');
+  $('b_ifsc').value=b.ifsc; $('b_acc').value=b.acc;
+  set('ifscHint',b.name+' · branch matched');
+  /* name the bank on the button — "Link this account" gave no clue which
+     bank was about to be added, so people tapped a card and moved on */
+  set('linkBtn','Add '+b.name+' account');
+  syncAll();
+}
+/* Continue from the bank step. If the payer picked a bank in the expander
+   but never pressed Add, that pick is still their intent — commit it here
+   rather than silently carrying the previously selected account into the
+   bank portal. That mismatch is how ICICI opened Axis ARGO. */
+function proceedFromBank(){
+  const openExp=$('addExp').classList.contains('open');
+  const linked=!!document.querySelector('#acctList [data-bank="'+NEWBANK+'"]');
+  if(openExp && !linked){ if(!linkAccount()) return; }
+  go('sc-review');
+}
+function sameAsPrimary(){
+  const on=$('b_same').checked;
+  $('bankContact').style.display=on?'none':'block';
+  if(on){ const p=readProfile(); $('b_mob').value=p.mobile||SAMPLE.mobile; $('b_mail').value=p.email||SAMPLE.email; }
+  syncAll();
+}
+function linkAccount(){
+  const b=BANKS[NEWBANK], acc=$('b_acc').value.trim();
+  if(!acc||!$('b_ifsc').value.trim()){
+    toast('Add the account number and IFSC for '+b.name);
+    $('addExp').classList.add('open');
+    (acc?$('b_ifsc'):$('b_acc')).focus();
+    return false;
+  }
+  const list=$('acctList');
+  if(!list.querySelector('[data-bank="'+NEWBANK+'"]')){
+    const el=document.createElement('button');
+    el.className='acct'; el.dataset.bank=NEWBANK;
+    el.setAttribute('onclick',"pickAccount('"+NEWBANK+"')");
+    el.innerHTML='<span class="acct-tag">JUST ADDED</span><div class="acct-radio"></div>'+
+      '<div class="acct-logo" style="background:'+b.color+'">'+b.code+'</div>'+
+      '<div class="acct-b"><div class="acct-n">'+b.name+'</div><div class="acct-m">'+$('b_type').value.charAt(0)+$('b_type').value.slice(1).toLowerCase()+' ···· '+acc.slice(-4)+' · '+b.portal+'</div></div>';
+    list.appendChild(el);
+  }
+  $('addExp').classList.remove('open');
+  pickAccount(NEWBANK);
+  toast(b.name+' added and selected');
+  return true;
+}
+
+/* ── keep every surface in sync ── */
+function syncAll(){
+  const p=readProfile(), b=BANKS[BANK];
+  const accEl=document.querySelector('#acctList .acct.on');
+  const last4=(accEl&&accEl.dataset.bank===BANK&&accEl.querySelector('.acct-m'))
+    ? (accEl.querySelector('.acct-m').textContent.match(/(\d{4})/)||[,b.acc.slice(-4)])[1] : b.acc.slice(-4);
+
+  setAll('rail-amt','$'+AMT.toFixed(2));
+  setAll('rail-inr','₹'+INR.toLocaleString('en-IN'));
+  setAll('rail-inr2','₹'+INR.toLocaleString('en-IN'));
+  setAll('rail-rate','1 USD ≈ ₹'+RATE.toFixed(2));
+  setAll('rail-bank',b.code+' ···· '+last4);
+  setAll('rail-payfrom','from '+b.name+' ···· '+last4);
+
+  set('r_name',fullName(p)); set('r_pan',(p.pan||'—').toUpperCase());
+  set('r_contact',(p.email||'—')+' · '+(p.mobile||'—'));
+  set('r_acct',b.name+' · '+($('b_type')?$('b_type').value.charAt(0)+$('b_type').value.slice(1).toLowerCase():'Savings')+' ···· '+last4);
+  set('r_portal',b.portal);
+  set('payBtnLabel','Pay $'+AMT.toFixed(2)+' at '+b.portal);
+  set('sameMeta',(p.mobile||SAMPLE.mobile)+' · '+(p.email||SAMPLE.email));
+  set('pFund',b.name+' (•••• '+last4+')');
+  set('pBankName',b.name);
+  const nm=fullName(p)==='—'?'John Alex Doe':fullName(p);
+  set('portalUser',nm.toUpperCase()); set('portalUser2',nm);
+  if($('pCrn')) $('pCrn').value=BANKS[BANK].loginVal||p.mobile||SAMPLE.mobile;
+  set('pSenderName',nm); set('pSenderPan',(p.pan||SAMPLE.pan).toUpperCase());
+  set('pSenderMob',p.mobile||SAMPLE.mobile);
+  set('pSenderAddr',[p.address||SAMPLE.address,p.city||SAMPLE.city,(p.state||SAMPLE.state)+' '+(p.pincode||SAMPLE.pincode)].join(', '));
+  set('pSenderAcc',b.name+' ···· '+last4);
+  syncDrawer();
+}
+/* The LRS declaration now lives only inside the bank's own A2 step, so there
+   is nothing left for the pay button to gate on. Kept as a no-op so the demo
+   harness and any lingering handler keep working. */
+function checkConsents(){}
+</script>
+<script>
+/* ── bank portal ── */
+/* The portal belongs to the bank, not to us. Same five steps and the same
+   fields — but the chrome, the step naming and the login vocabulary follow
+   whichever bank the payer actually chose. */
+function paintPortal(){
+  const b=BANKS[BANK], n2=function(n){return (n<10?'0':'')+n;};
+  $('sc-portal').style.setProperty('--portal-color',b.color);
+  set('portalBank',b.name); set('portalTag',b.tag); set('portalMark',b.mark);
+  set('portalMarkBig',b.mark); set('portalUrl',b.url);
+
+  /* header treatment: some banks brand the band, others keep it white */
+  const head=document.querySelector('#sc-portal .portal-head');
+  head.classList.toggle('dark',b.hdr==='dark');
+  document.querySelectorAll('#sc-portal .portal-mark').forEach(function(m){
+    m.classList.toggle('square',b.shape==='square');
+  });
+  const big=$('portalMarkBig');
+  if(big){ big.style.background=(b.hdr==='dark'?b.color+'14':b.color+'1f'); big.style.color=b.color; }
+
+  /* login vocabulary differs bank to bank — CRN, Customer ID, User ID… */
+  set('pLoginH',b.loginH); set('pLoginLabel',b.loginLabel); set('pPwLabel',b.pwLabel);
+  const lb=$('pLoginBtn'); if(lb) lb.innerHTML=b.cta;
+  const cr=$('pCrn'); if(cr) cr.value=b.loginVal||(readProfile().mobile||SAMPLE.mobile);
+
+  $('portalSteps').innerHTML=b.steps.map(function(t,i){
+    const n=i+1, cls=n<PSTEP?'done':(n===PSTEP?'on':'');
+    return '<div class="pstep '+cls+'"><span class="pstep-n">'+(n<PSTEP?'✓':n)+'</span><span class="pstep-t">'+n2(n)+' '+t+'</span></div>';
+  }).join('');
+
+  const h2=$('ph2'), h3=$('ph3'), h4=$('ph4'), h5=$('ph5');
+  if(h2) h2.innerHTML=n2(2)+'. '+b.steps[1]+' <span class="code">Purpose code: S0001</span>';
+  if(h3) h3.innerHTML=n2(3)+'. '+b.steps[2];
+  if(h4) h4.innerHTML=n2(4)+'. '+b.steps[3]+' <span class="code" style="color:#7a8494">Previous LRS transactions</span>';
+  if(h5) h5.innerHTML=n2(5)+'. '+b.steps[4];
+
+  for(let i=1;i<=5;i++){ const el=$('pp'+i); if(el) el.style.display=(i===PSTEP)?'block':'none'; }
+}
+function portalStep(n){ PSTEP=n; paintPortal(); document.querySelector('#sc-portal .iframe-wrap').scrollIntoView({behavior:'smooth',block:'start'}); }
+/* The bank's own page owns every consent, so nothing in this mock gates.
+   Kept as a no-op so any stray handler stays harmless. */
+function portalGate(){}
+function resetPortal(){ PSTEP=1; paintPortal(); }
+function openPortal(){
+  const b=BANKS[BANK];
+  overlay('Opening '+b.portal,'Connecting securely to '+b.name);
+  setTimeout(function(){hideOverlay();go('sc-portal');},1400);
+}
+function confirmBooking(){
+  overlay('Submitting to '+BANKS[BANK].name,'Your bank is booking the transfer');
+  setTimeout(function(){hideOverlay();go('sc-status');setState('SUCCESS');},1900);
+}
+function finishAtBank(){
+  overlay('Checking with '+BANKS[BANK].name,'This takes a few seconds');
+  setTimeout(function(){hideOverlay();go('sc-status');setState('SUCCESS');},1700);
+}
+
+/* ── order status. One state, one message, one UTR rule. ── */
+const TRACK=['Payment initiated','Bank settlement','LRS clearance','Dispatched to broker'];
+const STATES={
+  SUCCESS  :{sub:'Payer completed', card:'ok', ico:'i-check', badge:'badge-success', tag:'Payment completed',
+    h:'Your transfer is on its way',
+    p:'BANKNAME is processing <strong>$100.00 USD</strong> for your Vested Finance account. Your shares are allocated once the funds land with the broker.',
+    urn:true, track:['done','on','',''], utr:'visible',
+    spec:'Payer has completed the payment. UTR offered as an optional accelerant.'},
+  COMPLETED:{sub:'Bank settled', card:'ok', ico:'i-check', badge:'badge-success', tag:'Settled by your bank',
+    h:'Funds sent to your broker',
+    p:'BANKNAME has settled the transfer and sent <strong>$100.00 USD</strong> onward. Vested Finance will credit your account shortly.',
+    urn:true, track:['done','done','done','on'], utr:'readonly',
+    spec:'Bank settled and confirmed the URN. UTR shown read-only.'},
+  FAILED   :{sub:'Failed', card:'bad', ico:'i-x', badge:'badge-danger', tag:'Payment failed',
+    h:'The payment did not go through',
+    p:'BANKNAME could not complete this transfer and <strong>nothing was debited</strong>. This is usually a net banking transfer limit — raise it in your bank app and try again.',
+    urn:false, track:['dead','dead','dead','dead'], utr:'hidden',
+    spec:'Attempt failed at the bank. No debit. UTR hidden.'},
+  CANCELLED:{sub:'Cancelled', card:'warn', ico:'i-x', badge:'badge-warn', tag:'Cancelled',
+    h:'You cancelled this transfer',
+    p:'The booking was cancelled on the BANKNAME page before it was submitted. Nothing was debited — start again whenever you are ready.',
+    urn:false, track:['dead','dead','dead','dead'], utr:'hidden',
+    spec:'Payer abandoned the booking inside the portal. UTR hidden.'},
+  EXPIRED  :{sub:'Expired', card:'warn', ico:'i-clock', badge:'badge-warn', tag:'Session expired',
+    h:'This session timed out',
+    p:'The transfer was not completed in time, so the session closed. Nothing was debited. If your account <em>was</em> debited, do not pay again — get in touch with this reference.',
+    urn:false, track:['dead','dead','dead','dead'], utr:'hidden',
+    spec:'No completion within the timeout. Always EXPIRED, never FAILED.'},
+  REJECTED :{sub:'Rejected', card:'bad', ico:'i-alert', badge:'badge-danger', tag:'Rejected by the bank',
+    h:'Your bank declined this transfer',
+    p:'BANKNAME reviewed the booking and declined it. Anything debited comes back to your account within 3-5 working days, and we can share the reason your bank gave.',
+    urn:true, track:['done','fail','dead','dead'], utr:'hidden',
+    spec:'Bank rejected after review. UTR hidden; refund messaging shown.'}
+};
+const SIM_ORDER=['SUCCESS','FAILED','CANCELLED','EXPIRED','REJECTED','COMPLETED'];
+function setState(k){
+  STATE=k; const s=STATES[k], b=BANKS[BANK];
+  $('statCard').className='stat-card sw-status '+s.card;
+  $('statIco').innerHTML='<svg width="24" height="24"><use href="#'+s.ico+'"/></svg>';
+  const bd=$('statBadge'); bd.className='badge '+s.badge; bd.textContent=s.tag;
+  set('statH',s.h);
+  $('statP').innerHTML=s.p.replace(/BANKNAME/g,b.name);
+  $('statUrnBox').style.display=s.urn?'inline-flex':'none';
+  set('statUrn',b.urn);
+  $('track4').innerHTML=TRACK.map(function(t,i){
+    const st=s.track[i];
+    const icon=st==='done'?'i-check':st==='on'?'i-clock':st==='fail'?'i-x':'i-shield';
+    const cls=st==='done'?'done':st==='on'?'on':'dead';
+    const style=st==='fail'?' style="color:var(--destructive)"':'';
+    return '<div class="tk '+cls+'"'+style+'><svg width="15" height="15"><use href="#'+icon+'"/></svg> '+(i+1)+'. '+t+'</div>';
+  }).join('');
+  $('utrCard').style.display=(s.utr==='hidden')?'none':'block';
+  $('utrInput').disabled=(s.utr==='readonly');
+  document.querySelector('#utrCard .utr-btn').style.display=(s.utr==='readonly')?'none':'inline-flex';
+  if(s.utr==='readonly'&&!UTR) UTR='614846487303';
+  renderUtr(); paintProgress(); syncDrawer();
+  if(typeof emit==='function') emit('status',{status:k,bank_reference:s.urn?b.urn:null,utr:UTR||null});
+}
+function renderUtr(){
+  if(UTR){ $('utrLinked').style.display='inline-flex'; set('utrLinkedVal',UTR); $('utrInput').value=UTR; }
+  else { $('utrLinked').style.display='none'; }
+}
+function clearUtrErr(){ $('utrInput').classList.remove('err'); $('utrErr').style.display='none'; }
+function saveUtr(){
+  const v=$('utrInput').value.trim().toUpperCase();
+  if(!(/^\d{12}$/.test(v)||/^[A-Z]{3,5}-[A-Z0-9]{4,10}-LRS$/.test(v))){
+    $('utrInput').classList.add('err'); $('utrErr').style.display='flex'; return; }
+  UTR=v; clearUtrErr(); renderUtr(); emit('utr_added',{utr:UTR}); toast('Reference added — we will match it automatically');
+}
+</script>
+<script>
+/* ── developer drawer: the only place technical detail lives ── */
+const EPS={
+  'sc-details':{m:'POST',u:'/payments/lrs/customers',cls:'',
+    n:'Creates the payer and returns <b>lrs_customer_id</b>. Idempotent on PAN + mobile — return the existing customer, never a duplicate.'},
+  'sc-bank'   :{m:'PATCH',u:'/payments/lrs/customers',cls:'patch',
+    n:'Links the account and pins the NetBanking partner. Gate on <b>name_match</b> — a same-name debit is mandatory under LRS.'},
+  'sc-review' :{m:'GET',u:'/payments/lrs/customers/'+CUST_ID,cls:'get',
+    n:'Read back before launching. If this read fails, do not open the redirection.'},
+  'sc-portal' :{m:'POST',u:'/payments/lrs/orders/'+TXN+'/launch',cls:'',
+    n:'Persist the order <b>before</b> the frame opens. The frame’s completion event is a hint — confirm against the order status API. No callback in 15 minutes is EXPIRED, never FAILED.'},
+  'sc-status' :{m:'GET',u:'/payments/lrs/orders/'+TXN,cls:'get',
+    n:'Source of truth for the outcome, plus webhook <b>lrs.order.status_updated</b>. UTR is optional — it accelerates allocation, it never gates it.'}
+};
+function payloadFor(id){
+  const p=readProfile(), b=BANKS[BANK];
+  if(id==='sc-details'){
+    const body={}; Object.keys(p).forEach(function(k){ body[k]=p[k]||(k==='middle_name'||k==='passport_number'?'':null); });
+    body.date_of_birth=isoDob(body.date_of_birth);
+    return JSON.stringify(body,null,2);
+  }
+  if(id==='sc-bank'){
+    return JSON.stringify({lrs_customer_id:CUST_ID,bank_code:BANKS[NEWBANK].code,
+      account_number:$('b_acc').value.trim()||null,ifsc:($('b_ifsc').value||'').toUpperCase()||null,
+      account_type:$('b_type').value,bank_customer_id:$('b_crn').value.trim()||'',
+      bank_mobile:$('b_mob').value.trim()||null,bank_email:$('b_mail').value.trim()||null},null,2);
+  }
+  if(id==='sc-portal'){
+    return JSON.stringify({order_id:TXN,lrs_customer_id:CUST_ID,bank_code:b.code,
+      amount:{value:AMT,currency:'USD'},purpose_code:'S0001',
+      beneficiary:'Vested Finance (DriveWealth LLC)',
+      return_url:'https://app.vested.co.in/lrs/return?txn='+TXN},null,2);
+  }
+  return JSON.stringify({order_id:TXN,status:STATE,
+    bank_reference:STATES[STATE].urn?b.urn:null,utr:UTR||null,
+    amount:{value:AMT,currency:'USD'},estimated_debit_inr:INR,
+    funding_account:{bank_code:b.code,masked:'••••'+b.acc.slice(-4)}},null,2);
+}
+function syncDrawer(){
+  const ep=EPS[SCREEN]||EPS['sc-details'];
+  const chip=$('dvEp'); chip.className='dv-ep '+ep.cls; chip.textContent=ep.m+' '+ep.u;
+  $('dvNote').innerHTML=ep.n;
+  $('dvPayload').textContent=payloadFor(SCREEN);
+  $('dvStates').innerHTML=SIM_ORDER.map(function(k){
+    return '<button class="dv-st'+(k===STATE?' on':'')+'" onclick="devState(\''+k+'\')">'+
+      '<div class="dv-st-k">'+k+'</div><div class="dv-st-s">'+STATES[k].sub+'</div></button>';
+  }).join('');
+  const f=$('dvUtrFlag'), u=STATES[STATE].utr;
+  f.textContent='UTR INPUT: '+(u==='visible'?'VISIBLE':u==='readonly'?'READ-ONLY':'HIDDEN');
+  f.className='dv-flag'+(u==='hidden'?' off':'');
+  set('dvSpec',STATES[STATE].spec);
+  $('dvPortals').innerHTML=Object.keys(BANKS).map(function(k){
+    return '<button class="dv-jbtn'+(k===BANK?' on':'')+'" onclick="devBank(\''+k+'\')">'+BANKS[k].portal+'</button>';
+  }).join('');
+  const J=[['sc-details','1 · Your details'],['sc-bank','2 · Bank account'],['sc-review','3 · Review'],
+           ['sc-portal','4 · Bank portal'],['sc-status','Outcome · Status']];
+  $('dvJump').innerHTML=J.map(function(j){
+    return '<button class="dv-jbtn'+(j[0]===SCREEN?' on':'')+'" onclick="go(\''+j[0]+'\')">'+j[1]+'</button>';
+  }).join('');
+}
+function devState(k){ if(SCREEN!=='sc-status') go('sc-status'); setState(k); }
+function devBank(k){
+  if(!document.querySelector('#acctList [data-bank="'+k+'"]')){ NEWBANK=k; pickPartner(k); linkAccount(); }
+  else pickAccount(k);
+  resetPortal(); syncAll(); syncDrawer(); toast(BANKS[k].name+' selected');
+}
+function openDrawer(){ if(typeof dismissTip==='function') dismissTip(); syncDrawer(); $('drawer').classList.add('open'); $('dvBackdrop').classList.add('open'); $('drawer').setAttribute('aria-hidden','false'); }
+function closeDrawer(){ $('drawer').classList.remove('open'); $('dvBackdrop').classList.remove('open'); $('drawer').setAttribute('aria-hidden','true'); }
+function toggleAnno(){ document.body.classList.toggle('anno-on'); $('annoSwitch').classList.toggle('on'); }
+
+/* ── shell ── */
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
+function overlay(a,b){set('ovText',a);set('ovSub',b);$('overlay').classList.add('show');}
+function hideOverlay(){$('overlay').classList.remove('show');}
+const BACKTO={'sc-bank':'sc-details','sc-review':'sc-bank','sc-portal':'sc-review'};
+function back(){
+  const t=BACKTO[SCREEN];
+  if(t){ go(t); return; }
+  /* nothing behind step 1 — ask the host to close the checkout */
+  if(typeof EMBED!=='undefined' && EMBED){ emit('exit',{reason:'user_dismissed'}); }
+}
+function paybarAction(){
+  if(SCREEN==='sc-details') saveProfile();
+  else if(SCREEN==='sc-bank') proceedFromBank();
+  else if(SCREEN==='sc-review') openPortal();
+  else if(SCREEN==='sc-status') finishFlow();
+}
+/* Terminal action. Embedded, the host owns dismissal — tell it we are done
+   and let it close the sheet. Standalone, it simply restarts the demo. */
+function finishFlow(){
+  if(typeof EMBED!=='undefined' && EMBED){ emit('exit',{reason:'completed',status:STATE}); }
+  restart();
+}
+function restart(){ UTR=''; STATE='SUCCESS'; resetPortal(); closeDrawer(); go('sc-details'); toast('Demo reset'); }
+function go(id){
+  /* @dev demo only: jumping ahead from the drawer fills the profile so the
+     downstream screens have something real to render. */
+  if(id!=='sc-details' && !readProfile().pan) prefill(true);
+  SCREEN=id;
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  $(id).classList.add('active');
+  paintProgress(); syncAll();
+  $('abBack').style.display=BACKTO[id]?'flex':'none';
+  const subs={'sc-details':'Add funds · US equity investing','sc-bank':'Add funds · choose your bank',
+    'sc-review':'Add funds · review','sc-portal':'Add funds · paying at your bank','sc-status':'Add funds · status'};
+  set('abSub',subs[id]||'');
+  if(id==='sc-portal') resetPortal();
+  if(id==='sc-status') setState(STATE);
+  const pb=$('paybar'), labels={'sc-details':["You're paying",'Continue'],'sc-bank':["You're paying",'Continue'],
+    'sc-review':["You're paying",'Pay $'+AMT.toFixed(2)],'sc-status':["You're paying",'Back to Vested Finance']};
+  if(labels[id]){ pb.classList.add('show'); set('pbK',labels[id][0]); set('pbBtn',labels[id][1]);
+    $('pbBtn').disabled=false; }
+  else pb.classList.remove('show');
+  /* the order summary rides under the app bar on phones, collapsed by default */
+  const ms=$('msum');
+  ms.classList.toggle('show',!!labels[id]);
+  ms.classList.remove('open');
+  /* in a host frame the first screen's back button means "close the sheet" */
+  if(typeof EMBED!=='undefined' && EMBED && id==='sc-details') $('abBack').style.display='flex';
+  syncDrawer(); window.scrollTo(0,0);
+  if(typeof emit==='function'){
+    const step={'sc-details':1,'sc-bank':2,'sc-review':3,'sc-portal':4,'sc-status':5}[id];
+    emit('step',{screen:id,step:step,of:5});
+    emitResize();
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   EMBED / SDK SURFACE
+   This checkout ships inside a host app's iframe. Three things follow:
+   · embed mode strips our branding — the host already has its own
+   · the frame has no idea how tall we are, so we tell it on every change
+   · the host needs lifecycle events to close the sheet, refresh a balance
+     or show its own success screen
+   @dev postMessage uses '*' here for the demo. In production pin the host
+   origin from the session token and validate event.origin on the way back.
+════════════════════════════════════════════════════════════════ */
+const EMBED = new URLSearchParams(location.search).has('embed') || (window.self !== window.top);
+if (EMBED) document.body.classList.add('embed');
+
+function emit(type, payload){
+  try{
+    const msg = Object.assign({source:'decentro-lrs', version:1, order_id:TXN, type:type}, payload||{});
+    if(window.parent && window.parent!==window) window.parent.postMessage(msg,'*');
+    window.dispatchEvent(new CustomEvent('decentro-lrs',{detail:msg}));
+  }catch(e){}
+}
+let rzT=null;
+function emitResize(){
+  clearTimeout(rzT);
+  rzT=setTimeout(function(){
+    emit('resize',{height:Math.ceil(document.documentElement.scrollHeight)});
+  },60);
+}
+window.addEventListener('resize',emitResize);
+if(window.ResizeObserver){ try{ new ResizeObserver(emitResize).observe(document.body); }catch(e){} }
+
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeDrawer(); });
+sameAsPrimary(); paintPortal(); setState('SUCCESS'); go('sc-details');
+
+/* ── developer coach mark ──
+   The button is deliberately quiet for payers, which makes it invisible to
+   the people who need it. It attracts attention once, then never again for
+   the session — dismissed by tapping the tip, the button, or anywhere else. */
+let TIP_DONE=false, tipT=null;
+function showTip(){
+  if(TIP_DONE) return;
+  $('devBtn').classList.add('attract');
+  tipT=setTimeout(function(){ if(!TIP_DONE) $('devTip').classList.add('show'); },1100);
+}
+function dismissTip(e){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  TIP_DONE=true; clearTimeout(tipT);
+  $('devTip').classList.remove('show');
+  $('devBtn').classList.remove('attract');
+}
+document.addEventListener('click',function(e){
+  if(!TIP_DONE && !e.target.closest('#devTip') && !e.target.closest('#devBtn')) dismissTip();
+},true);
+showTip();
+
+emit('ready',{embedded:EMBED, amount:{value:AMT,currency:'USD'}});
+emitResize();
+</script>
+</body>
+</html>
