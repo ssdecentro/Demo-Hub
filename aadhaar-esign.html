@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Decentro · Aadhaar e-Sign demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   TOKENS — shadcn-style names. --brand is the merchant white-label colour.
+   ========================================================================= */
+:root{
+  --background:#F5F5F5; --card:#FFFFFF; --foreground:#0A0A0A;
+  --muted:#FAFAFA; --muted-foreground:#525252; --subtle:#737373;
+  --border:#E5E5E5; --border-soft:#EDEDED; --ring:#0A0A0A;
+  --primary:#0A0A0A; --primary-foreground:#FFFFFF;
+  --success:#15803D; --success-bg:#ECFDF3;
+  --destructive:#B91C1C; --destructive-bg:#FEF2F2; --destructive-line:#FECACA;
+  --radius:12px;
+
+  /* Merchant (NBFC) white-label */
+  --brand:#0E4F47;
+  --brand-soft:color-mix(in srgb, var(--brand) 10%, #FFFFFF);
+  --m-bg:#F6F7F6; --m-ink:#111816; --m-muted:#4A5551; --m-line:#E4E7E5; --m-track:#D5DAD7;
+
+  /* Decentro eSign (ESP) in UIDAI colour language */
+  --u-red:#CC292B; --u-red-ring:#F7E1E1; --u-yellow:#E8B012;
+  --u-ink:#1F1A17; --u-ink-2:#3B3634; --u-grey:#5C5958; --u-grey-2:#A9A8A8;
+  --u-line:#E7E4E2; --u-bg:#FAF9F8; --u-err-bg:#FBEDED; --u-err-line:#EFC2C2; --u-err-ink:#8E1C1E;
+  --u-note-bg:#FDF6E3; --u-note-line:#F3DFA2;
+
+  /* Type scale */
+  --fs-h:clamp(21px, 2.6vw, 25px);
+  --fs-t:14.5px; --fs-b:14px; --fs-s:12.5px; --fs-xs:12px;
+  --lh:1.55;
+  --hd:60px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--foreground);background:var(--background);-webkit-font-smoothing:antialiased;line-height:var(--lh)}
+button,input{font-family:inherit}
+a{color:inherit}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+svg.i-sm{width:14px;height:14px}
+svg.i-xs{width:12px;height:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+/* =========================================================================
+   SCREEN SYSTEM
+   ========================================================================= */
+.screen{display:none;min-height:100dvh;flex-direction:column}
+.screen.active{display:flex;animation:fade .22s ease}
+@keyframes fade{from{opacity:.0}to{opacity:1}}
+
+.hd{height:var(--hd);flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(16px,4vw,48px);background:#fff;border-bottom:1px solid var(--border-soft)}
+.logo{display:block;width:127px;height:16px}
+.logo-sm{display:block;width:80px;height:10px}
+.chip-m{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:500;color:#404040;white-space:nowrap}
+.mk{width:16px;height:16px;border-radius:4px;background:var(--brand);color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+
+.body{flex:1;display:flex;justify-content:center;align-items:flex-start;gap:48px}
+.panel{width:100%;max-width:480px;min-height:calc(100dvh - var(--hd));display:flex;flex-direction:column;background:var(--card)}
+.panel-in{padding:28px 20px 0;display:flex;flex-direction:column;gap:22px}
+.grow{flex:1;min-height:24px}
+.panel-ft{padding:0 20px 22px;display:flex;flex-direction:column;gap:12px}
+.side{display:none;flex:none}
+.d-only{display:none}
+
+@media (min-width:900px){
+  .body{padding:64px 32px}
+  .panel{min-height:0;border:1px solid var(--border);border-radius:16px}
+  .panel-in{padding:32px 32px 0}
+  .panel-ft{padding:0 32px 28px}
+  .side{display:block}
+  .m-only{display:none!important}
+  .d-only{display:block}
+}
+
+/* Typography */
+h1{margin:0;font-size:var(--fs-h);line-height:1.25;font-weight:700;letter-spacing:-.4px}
+.lead{margin:0;font-size:var(--fs-b);line-height:1.55;color:var(--muted-foreground)}
+.eyebrow{font-size:12px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.6px}
+.stack{display:flex;flex-direction:column;gap:8px}
+
+/* Buttons */
+.btn{appearance:none;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;height:52px;width:100%;border-radius:var(--radius);background:var(--primary);color:var(--primary-foreground);font-size:16px;font-weight:600;text-decoration:none;transition:opacity .15s, transform .05s}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn.loading{pointer-events:none}
+.btn.loading .lbl{opacity:0}
+.btn .spin{display:none}
+.btn.loading .spin{display:block;position:absolute}
+.btn{position:relative}
+.btn-ghost{background:transparent;color:var(--foreground);border:1px solid #D4D4D4;height:48px;font-size:15px}
+.link{appearance:none;background:none;border:0;padding:6px 0;font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:inherit}
+.link[disabled]{color:var(--subtle);text-decoration:none;cursor:default}
+.powered{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted-foreground)}
+.spin{width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Fields */
+.lbl-f{font-size:13px;font-weight:600;color:#262626}
+.help{font-size:12px;line-height:1.5;color:var(--muted-foreground)}
+.err{font-size:13px;font-weight:500;color:var(--destructive);display:none;align-items:center;gap:6px}
+.err.show{display:flex}
+.field{display:flex;align-items:center;height:52px;border:1.5px solid #A3A3A3;border-radius:var(--radius);overflow:hidden;background:#fff;transition:border-color .15s, box-shadow .15s}
+.field:focus-within{border-color:var(--ring);box-shadow:0 0 0 3px var(--border-soft)}
+.field.invalid{border-color:var(--destructive);box-shadow:0 0 0 3px var(--destructive-bg)}
+.field .pre{display:flex;align-items:center;height:100%;padding:0 14px;font-size:16px;font-weight:500;color:#404040;border-right:1px solid var(--border);background:var(--muted)}
+.field input{flex:1;min-width:0;height:100%;border:0;outline:none;padding:0 14px;font-size:17px;font-weight:500;letter-spacing:.4px;color:var(--foreground);background:transparent}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:19px;color:#404040;cursor:pointer}
+.check input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--primary)}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--muted);border:1px solid var(--border-soft);border-radius:var(--radius);font-size:12px;line-height:18px;color:var(--muted-foreground)}
+
+/* OTP grid */
+.otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.otp input{height:clamp(48px,13vw,56px);width:100%;text-align:center;font-size:22px;font-weight:600;color:var(--foreground);border:1.5px solid #A3A3A3;border-radius:var(--radius);outline:none;background:#fff;caret-color:var(--ring);transition:border-color .15s, box-shadow .15s}
+.otp input:focus{border-color:var(--ring);box-shadow:0 0 0 3px var(--border-soft)}
+.otp input.filled{border-color:var(--ring)}
+.otp.bad input{border-color:var(--destructive);background:var(--destructive-bg);color:var(--destructive)}
+.otp.bad input:focus{box-shadow:0 0 0 3px #FDE2E2}
+.otp.shake{animation:shake .32s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.otp-meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted-foreground)}
+
+/* Progress (mobile top) */
+.mprog{display:flex;align-items:center;gap:10px;padding:16px 20px 0}
+.mprog .s{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;white-space:nowrap}
+.mprog .n{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.mprog .on .n{background:var(--primary);color:#fff}
+.mprog .off{color:var(--subtle);font-weight:500}
+.mprog .off .n{border:1.5px solid #D4D4D4;color:var(--subtle)}
+.mprog .ln{flex:1;height:1px;background:var(--border)}
+.mprog .ln.on{background:var(--primary)}
+
+/* Steps (desktop side) */
+.side-dc{width:340px;padding-top:8px;display:flex;flex-direction:column;gap:24px}
+.sumcard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.sumrow{display:flex;justify-content:space-between;font-size:13px}
+.sumrow span:first-child{color:var(--muted-foreground)}
+.sumrow span:last-child{font-weight:600}
+.vsteps{list-style:none;margin:0;padding:0}
+.vsteps li{display:flex;gap:12px}
+.vsteps .rail{display:flex;flex-direction:column;align-items:center}
+.vsteps .n{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+.vsteps .bar{width:2px;flex:1;min-height:20px;background:var(--border)}
+.vsteps .tx{display:flex;flex-direction:column;gap:2px;padding:2px 0 18px}
+.vsteps .t1{font-size:14px;font-weight:600}
+.vsteps .t2{font-size:12px;color:var(--muted-foreground)}
+.vsteps .done .n{background:var(--success);color:#fff}
+.vsteps .done .bar{background:var(--primary)}
+.vsteps .cur .n{background:var(--primary);color:#fff}
+.vsteps .todo .n{border:1.5px solid #D4D4D4;color:var(--subtle)}
+.vsteps .todo .t1{font-weight:500;color:var(--muted-foreground)}
+.vsteps .todo .t2{color:var(--subtle)}
+.vsteps .err-s .t2{color:var(--destructive)}
+
+/* =========================================================================
+   MERCHANT (NBFC) THEME
+   ========================================================================= */
+.th-m{background:var(--m-bg);color:var(--m-ink)}
+.th-m .hd{border-bottom-color:var(--m-line)}
+.m-brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;letter-spacing:-.2px}
+.m-mk{width:26px;height:26px;border-radius:7px;background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.m-iconbtn{appearance:none;background:none;border:0;display:flex;width:44px;height:44px;align-items:center;margin-left:-10px;cursor:pointer;color:var(--m-ink)}
+.m-help{font-size:13px;font-weight:600;text-decoration:none;color:var(--brand);padding:12px 0}
+.m-col{width:100%;max-width:460px;min-height:calc(100dvh - var(--hd));display:flex;flex-direction:column}
+.m-track{display:flex;gap:6px;padding:14px 20px 0}
+.m-track span{flex:1;height:4px;border-radius:4px;background:var(--m-track)}
+.m-track span.on{background:var(--brand)}
+.m-main{padding:18px 20px 0;display:flex;flex-direction:column;gap:16px}
+.m-card{background:#fff;border:1px solid var(--m-line);border-radius:14px;padding:16px}
+.m-eyebrow{font-size:12px;font-weight:600;color:var(--m-muted);text-transform:uppercase;letter-spacing:.6px}
+.m-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.m-k{font-size:12px;color:var(--m-muted)} .m-v{font-size:15px;font-weight:600}
+.m-ft{padding:14px 20px 22px;background:#fff;border-top:1px solid var(--m-line);display:flex;flex-direction:column;gap:10px}
+.btn-brand{background:var(--brand)}
+.m-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:19px;color:#2D3633;cursor:pointer}
+.m-check input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--brand)}
+.m-banner{display:none;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#FFF7ED;border:1px solid #FED7AA;font-size:13px;line-height:19px;color:#7C2D12}
+.m-banner.show{display:flex}
+.docprev{width:560px;background:#fff;border:1px solid var(--m-line);border-radius:16px;padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.docpage{height:640px;border:1px solid var(--m-line);border-radius:8px;background:#FCFCFC;padding:36px 40px;display:flex;flex-direction:column;gap:12px}
+.docpage .ln{height:6px;border-radius:3px;background:#E2E6E4}
+.docpage .ln.h{background:#CBD1CE}
+.sigbox{border:1.5px dashed var(--brand);border-radius:6px;padding:14px 18px;font-size:12px;font-weight:600;color:var(--brand);background:var(--brand-soft)}
+.sigbox.signed{border-style:solid;background:#fff;font-family:"Segoe Script","Brush Script MT",cursive;font-size:18px;font-weight:400}
+@media (min-width:900px){
+  .th-m .body{padding:40px 32px;gap:40px}
+  .m-col{min-height:0}
+  .m-track{padding:0}
+  .m-main{padding:18px 0 0}
+  .m-ft{border:1px solid var(--m-line);border-radius:14px;margin-top:16px;padding:16px 20px}
+  .m-col .grow{display:none}
+}
+
+/* =========================================================================
+   LOADER
+   ========================================================================= */
+.ld-bar{height:3px;background:#F0F0F0;flex:none;overflow:hidden}
+.ld-bar i{display:block;height:3px;width:0;background:var(--primary)}
+.ld-bar i.run{animation:fill 5s linear forwards}
+@keyframes fill{to{width:100%}}
+.ld-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;gap:28px;text-align:center}
+.ld-ring{position:relative;width:88px;height:88px}
+.ld-ring svg{position:absolute;inset:0}
+.ld-ring .arc{animation:rot .9s linear infinite;transform-origin:50% 50%}
+.ld-list{list-style:none;margin:0;padding:16px;width:100%;border:1px solid var(--border-soft);border-radius:14px;display:flex;flex-direction:column;gap:14px;text-align:left}
+.ld-list li{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--subtle);transition:color .2s}
+.ld-list .dot{width:22px;height:22px;border-radius:50%;border:2px solid #D4D4D4;display:flex;align-items:center;justify-content:center;flex:none;transition:all .2s}
+.ld-list li.run{color:#404040}
+.ld-list li.run .dot{border-color:var(--primary);animation:pulse 1.2s ease-in-out infinite}
+.ld-list li.run .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.ld-list li.ok{color:var(--foreground)}
+.ld-list li.ok .dot{background:var(--primary);border-color:var(--primary)}
+.ld-list .dot svg{display:none;width:12px;height:12px;stroke:#fff}
+.ld-list li.ok .dot svg{display:block}
+@keyframes pulse{50%{opacity:.4}}
+
+/* =========================================================================
+   ESP — Decentro eSign, UIDAI colour language
+   ========================================================================= */
+.th-u{background:var(--u-bg);color:var(--u-ink)}
+.u-stripe{display:flex;height:4px;flex:none}
+.u-stripe i{flex:2;background:var(--u-red)} .u-stripe b{flex:1;background:var(--u-yellow)}
+.th-u .hd{height:64px;border-bottom-color:var(--u-line)}
+.u-id{display:flex;align-items:center;gap:12px}
+.u-d{width:40px;height:40px;border-radius:8px;flex:none;display:block}
+.u-name{font-size:15px;font-weight:700} .u-sub{font-size:12px;color:var(--u-grey)}
+.u-auth{display:none;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--u-grey)}
+.th-u .panel{min-height:calc(100dvh - 68px);max-width:500px}
+.th-u .panel-in{padding:18px 16px 0;gap:16px}
+.th-u .panel-ft{padding:14px 16px 20px;gap:6px;border-top:1px solid var(--u-line)}
+.u-req{background:var(--u-bg);border:1px solid var(--u-line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px 10px;font-size:12.5px;line-height:17px}
+.u-req .k{color:var(--u-grey)} .u-req .v{font-weight:600;overflow-wrap:anywhere}
+.u-h1{font-size:20px;line-height:26px}
+.u-lead{margin:0;font-size:13px;line-height:19px;color:var(--u-grey)}
+.u-consent{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--u-line);border-radius:8px;font-size:12.5px;line-height:18px;color:var(--u-ink-2);cursor:pointer}
+.u-consent input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--u-red)}
+.u-consent.invalid{border-color:var(--u-red);box-shadow:0 0 0 3px var(--u-red-ring)}
+.u-seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.u-seg label{display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:8px;border:1px solid var(--u-grey-2);background:#fff;font-size:13px;font-weight:500;color:var(--u-grey);cursor:pointer}
+.u-seg input{width:16px;height:16px;margin:0;accent-color:var(--u-red)}
+.u-seg label:has(input:checked){border:1.5px solid var(--u-red);color:var(--u-red);font-weight:600}
+.u-field{display:flex;align-items:center;height:50px;border:1.5px solid var(--u-grey);border-radius:8px;background:#fff;padding:0 4px 0 14px}
+.u-field:focus-within{border-color:var(--u-red);box-shadow:0 0 0 3px var(--u-red-ring)}
+.u-field.invalid{border-color:var(--u-red);box-shadow:0 0 0 3px var(--u-red-ring)}
+.u-field input{flex:1;min-width:0;border:0;outline:none;font-size:17px;letter-spacing:2px;color:var(--u-ink);background:transparent}
+.u-eye{appearance:none;background:none;border:0;display:flex;width:44px;height:44px;align-items:center;justify-content:center;color:var(--u-grey);cursor:pointer}
+.u-link{color:var(--u-red);font-weight:600}
+.u-btn{background:var(--u-red);border-radius:8px;height:50px;font-size:15px}
+.u-cancel{appearance:none;background:none;border:0;height:44px;font-size:13px;font-weight:600;color:var(--u-grey);cursor:pointer}
+.u-err{display:none;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--u-err-bg);border:1px solid var(--u-err-line);border-radius:8px;font-size:13px;line-height:19px;color:var(--u-err-ink)}
+.u-err.show{display:flex}
+.u-ferr{display:none;font-size:12.5px;font-weight:500;color:var(--u-red)}
+.u-ferr.show{display:block}
+.th-u .otp input{border-radius:8px;border-color:var(--u-grey);color:var(--u-ink)}
+.th-u .otp input:focus{border-color:var(--u-red);box-shadow:0 0 0 3px var(--u-red-ring)}
+.th-u .otp input.filled{border-color:var(--u-ink-2)}
+.th-u .otp.bad input{border-color:var(--u-red);background:#fff;color:var(--u-ink)}
+.u-note{margin:0;padding:12px 14px;background:var(--u-note-bg);border:1px solid var(--u-note-line);border-radius:8px;font-size:12px;line-height:18px;color:var(--u-ink-2)}
+.side-u{width:360px;display:flex;flex-direction:column;gap:24px}
+.u-card{background:#fff;border:1px solid var(--u-line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.u-card .u-req{background:none;border:0;padding:0;grid-template-columns:110px minmax(0,1fr);gap:10px 12px;font-size:13px;line-height:18px}
+.u-howto{display:flex;flex-direction:column;gap:12px;padding:0 4px}
+.u-howto ol,.u-howto ul{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:19px;color:var(--u-grey)}
+@media (min-width:900px){
+  .u-auth{display:flex}
+  .th-u .panel{min-height:0;border-color:var(--u-line);border-radius:12px}
+  .th-u .panel-in{padding:28px 28px 0;gap:18px}
+  .th-u .panel-ft{padding:14px 28px 24px}
+}
+
+/* Result screens */
+.res{display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 20px 0;text-align:center}
+.halo{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.halo i{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.halo.ok{background:var(--success-bg)} .halo.ok i{background:var(--success)}
+.halo.bad{background:var(--destructive-bg)} .halo.bad i{background:var(--destructive)}
+.halo svg{width:26px;height:26px;stroke:#fff;stroke-width:2.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.dl{margin:0;width:100%;border:1px solid var(--border-soft);border-radius:14px;padding:4px 16px;text-align:left}
+.dl div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #F2F2F2;font-size:13px}
+.dl div:last-child{border-bottom:0}
+.dl dt{color:var(--muted-foreground)} .dl dd{margin:0;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.tips{width:100%;border:1px solid var(--border-soft);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;text-align:left}
+.tips ul{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:19px;color:#404040}
+@media (min-width:900px){ .res{padding:40px 40px 0} }
+
+/* Merchant done timeline */
+.tl{display:flex;flex-direction:column}
+.tl .row{display:flex;gap:12px}
+.tl .rail{display:flex;flex-direction:column;align-items:center}
+.tl .n{width:22px;height:22px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+.tl .n.todo{background:#fff;border:2px solid var(--brand)}
+.tl .n svg{width:11px;height:11px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tl .bar{width:2px;flex:1;min-height:18px;background:var(--brand)}
+.tl .bar.todo{background:var(--m-track)}
+.tl .tx{display:flex;flex-direction:column;gap:2px;padding-bottom:14px}
+.tl .t1{font-size:14px;font-weight:600} .tl .t2{font-size:12px;line-height:17px;color:var(--m-muted)}
+
+/* =========================================================================
+   OVERLAYS, SMS TOAST, DEV CONSOLE
+   ========================================================================= */
+.ov{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.92);backdrop-filter:blur(2px)}
+.ov.show{display:flex;animation:fade .18s}
+.ov-box{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:24px}
+.ov-ring{width:44px;height:44px;border-radius:50%;border:3.5px solid #E5E5E5;border-top-color:var(--primary);animation:rot .8s linear infinite}
+.ov-ring.u{border-top-color:var(--u-red)}
+.ov-t{font-size:16px;font-weight:600}
+.ov-s{font-size:13px;color:var(--muted-foreground)}
+.modal{position:fixed;inset:0;z-index:70;display:none;background:rgba(10,10,10,.5);align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.modal-card{background:#fff;width:100%;max-width:640px;max-height:92dvh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--m-line);font-weight:600}
+.modal-bd{overflow:auto;padding:16px}
+.modal-bd .docpage{height:auto;min-height:520px;padding:28px 24px}
+@media (min-width:640px){ .modal{align-items:center} .modal-card{border-radius:18px} }
+
+.sms{position:fixed;left:50%;top:12px;z-index:80;width:min(380px,calc(100% - 24px));transform:translate(-50%,-140%);visibility:hidden;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),visibility 0s linear .35s;background:rgba(255,255,255,.98);border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.14);padding:12px 14px;display:flex;gap:12px;cursor:pointer;text-align:left;appearance:none;font:inherit;color:inherit}
+.sms.show{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),visibility 0s}
+.sms-ic{width:36px;height:36px;border-radius:10px;background:#16A34A;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
+.sms-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--subtle)}
+.sms-from{font-weight:600;color:var(--foreground)}
+.sms-body{font-size:13px;line-height:18px;color:#262626;margin-top:2px}
+.sms-cta{font-size:12px;font-weight:600;color:#2563EB;margin-top:6px}
+.sms-tag{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--subtle);border:1px solid var(--border);border-radius:4px;padding:0 4px}
+
+.dev-fab{position:fixed;z-index:90;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #262626;background:#0A0A0A;color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);
+  right:0;top:50%;transform:translateY(-50%);width:26px;height:56px;padding:0;border-radius:10px 0 0 10px;border-right:0;opacity:.85}
+.dev-fab .t{display:none}
+@media (min-width:900px){ .dev-fab{right:16px;top:auto;bottom:16px;transform:none;width:auto;height:40px;padding:0 14px;border-radius:999px;border-right:1px solid #262626;opacity:1} .dev-fab .t{display:inline} }
+.dev{position:fixed;z-index:95;background:#0B0B0C;color:#E5E5E5;display:flex;flex-direction:column;font-size:13px;transition:transform .25s ease;
+  left:0;right:0;bottom:0;height:min(72dvh,640px);border-radius:16px 16px 0 0;transform:translateY(105%)}
+.dev.open{transform:none}
+@media (min-width:900px){ .dev{left:auto;top:0;width:420px;height:auto;border-radius:0;transform:translateX(105%)} .dev.open{transform:none} }
+.dev-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #222}
+.dev-ttl{display:flex;align-items:center;gap:8px;font-weight:600;color:#fff}
+.dev-x{appearance:none;background:none;border:0;color:#A3A3A3;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px}
+.dev-x:hover{background:#1A1A1A;color:#fff}
+.dev-tabs{display:flex;gap:4px;padding:10px 12px 0;border-bottom:1px solid #222}
+.dev-tab{appearance:none;background:none;border:0;color:#A3A3A3;padding:8px 10px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent}
+.dev-tab[aria-selected="true"]{color:#fff;border-bottom-color:#0092FF}
+.dev-bd{flex:1;overflow:auto;padding:16px}
+.dev-pane{display:none;flex-direction:column;gap:16px}
+.dev-pane.on{display:flex}
+.dev-k{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px}
+.dev-own{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.own-m{background:#0E4F4733;color:#7FD4C6} .own-d{background:#0092FF26;color:#7CC4FF} .own-u{background:#CC292B26;color:#FF9C9D}
+.dev ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:#D4D4D4;line-height:1.5}
+.dev code,.dev pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.dev pre{margin:0;background:#141416;border:1px solid #222;border-radius:8px;padding:10px 12px;overflow:auto;color:#C7E3FF;white-space:pre-wrap;word-break:break-word}
+.dev-flag{font-size:11px;color:#E8B012}
+.ev{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid #222;border-radius:8px;background:#121214}
+.ev-top{display:flex;justify-content:space-between;gap:8px}
+.ev-n{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#7CC4FF}
+.ev-t{font-size:11px;color:#8A8A8A;font-variant-numeric:tabular-nums}
+.ev-p{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#A3A3A3;white-space:pre-wrap;word-break:break-word}
+.dev-btn{appearance:none;border:1px solid #2A2A2A;background:#161618;color:#E5E5E5;border-radius:8px;padding:9px 12px;font-size:13px;font-weight:500;cursor:pointer;text-align:left}
+.dev-btn:hover{background:#1E1E21;border-color:#3A3A3A}
+.dev-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dev-sw{display:flex;gap:8px}
+.dev-sw button{width:28px;height:28px;border-radius:50%;border:2px solid #333;cursor:pointer}
+.dev-sw button[aria-pressed="true"]{border-color:#fff}
+.dev-tog{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #222;border-radius:8px;background:#121214}
+.dev-tog input{width:18px;height:18px;accent-color:#0092FF}
+.dev-hint{font-size:12px;line-height:1.5;color:#A3A3A3}
+@media print{.dev,.dev-fab,.sms{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- Brand marks: Decentro wordmark and D mark, from the supplied SVGs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="decentro-logo" viewBox="110 110 2530 318"><polygon fill="#000000" points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><rect fill="#0092ff" x="120.6" y="357.11" width="60.28" height="60.28"/><path fill="#000000" d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path fill="#000000" d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path fill="#000000" d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon fill="#000000" points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path fill="#000000" d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon fill="#000000" points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon fill="#000000" points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></symbol>
+  <symbol id="decentro-d" viewBox="0 0 1200 1200"><rect width="1200" height="1200" fill="#000000"/><rect fill="#0092ff" x="293.039" y="785.37" width="126.8" height="126.8"/><path fill="#ffffff" d="M566.192,287.794h-272.941v370.775h126.424v-244.028h143.03c131.299,0,216.297,73.414,216.297,185.467s-84.998,185.461-216.297,185.461h-16.265v126.736h19.752c202.461,0,340.769-124.883,340.769-312.179s-138.349-312.232-340.769-312.232Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.9 9.9 0 004.4-1"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.4A8 8 0 1121 12z"/></symbol>
+</svg>
+
+<!-- =====================================================================
+@dev 01 · Merchant (NBFC) · Loan agreement
+Owner: merchant (white-label via --brand). Desktop shows the document preview beside the summary.
+States: CTA disabled until the consent checkbox is ticked · "e-Sign pending" banner after a failed attempt.
+API: merchant backend creates the eSign session with Decentro (document, signer mobile, redirect_url) and redirects here → 02.
+====================================================================== -->
+<section class="screen th-m" id="sc-merchant" aria-label="Kosmo Finance loan agreement">
+  <header class="hd">
+    <button class="m-iconbtn" type="button" aria-label="Back"><svg class="i" style="width:22px;height:22px"><use href="#i-back"/></svg></button>
+    <div class="m-brand"><span class="m-mk">K</span>Kosmo Finance</div>
+    <a href="#" class="m-help" onclick="return false">Help</a>
+  </header>
+  <div class="body">
+    <aside class="side" aria-label="Agreement preview"><div class="docprev">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Loan Agreement + KFS</span><span style="font-size:12px;color:var(--m-muted)">Page 1 of 6</span></div>
+      <div data-docpage></div>
+    </div></aside>
+
+    <div class="m-col">
+      <div class="m-track" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+      <main class="m-main">
+        <div class="stack" style="gap:6px">
+          <span class="m-eyebrow">Step 4 of 5 · Agreement</span>
+          <h1>Review and sign your loan agreement</h1>
+        </div>
+        <div class="m-banner" id="m-pending" role="status">
+          <svg class="i i-sm" style="margin-top:2px"><use href="#i-info"/></svg>
+          <span><strong>e-Sign not completed.</strong> Your agreement is still unsigned. Try again when you're ready.</span>
+        </div>
+        <section class="m-card" style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--m-muted)">Loan amount</span><span style="font-size:22px;font-weight:700;letter-spacing:-.3px">₹2,50,000</span></div>
+          <div style="height:1px;background:#EEF0EF"></div>
+          <div class="m-grid">
+            <div class="stack" style="gap:2px"><span class="m-k">Monthly EMI</span><span class="m-v">₹12,003</span></div>
+            <div class="stack" style="gap:2px"><span class="m-k">Tenure</span><span class="m-v">24 months</span></div>
+            <div class="stack" style="gap:2px"><span class="m-k">Interest rate</span><span class="m-v">14% p.a.</span></div>
+            <div class="stack" style="gap:2px"><span class="m-k">Processing fee</span><span class="m-v">₹2,950</span></div>
+          </div>
+        </section>
+        <section class="m-card" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex:none;color:var(--brand)"><svg class="i" style="width:20px;height:20px;stroke-width:1.8"><use href="#i-doc"/></svg></div>
+          <div style="flex:1;min-width:0" class="stack"><span style="font-size:14px;font-weight:600;line-height:1.3">Loan Agreement + KFS</span><span style="font-size:12px;color:var(--m-muted);line-height:1.3">KF-LA-2026-104823 · 6 pages · PDF</span></div>
+          <button type="button" class="link" style="color:var(--brand);text-decoration:none" onclick="openDoc()">View</button>
+        </section>
+        <label class="m-check">
+          <input type="checkbox" id="m-agree">
+          <span>I have read the Loan Agreement, Key Fact Statement and sanction terms, and agree to sign them electronically.</span>
+        </label>
+      </main>
+      <div class="grow"></div>
+      <footer class="m-ft">
+        <button class="btn btn-brand" id="m-cta" type="button" disabled onclick="startEsign()"><svg class="i"><use href="#i-pen"/></svg><span class="lbl">e-Sign with Aadhaar</span></button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--m-muted);text-align:center"><svg class="i i-sm"><use href="#i-lock"/></svg>Takes about 2 minutes · Keep your Aadhaar-linked mobile handy</div>
+      </footer>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 02 · Decentro · Loader
+Auto-advances to 03 after 5 s. Checklist ticks as the session is prepared.
+API: GET session (validate token, fetch document hash + merchant config).
+====================================================================== -->
+<section class="screen" id="sc-loader" aria-label="Setting up secure e-Sign">
+  <header class="hd"><svg class="logo" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg><span class="chip-m"><span class="mk">K</span>Kosmo Finance</span></header>
+  <div class="body">
+    <section class="panel" style="overflow:hidden">
+      <div class="ld-bar"><i id="ld-bar"></i></div>
+      <main class="ld-main">
+        <div class="ld-ring" aria-hidden="true">
+          <svg width="88" height="88" viewBox="0 0 88 88"><circle cx="44" cy="44" r="38" fill="none" stroke="#F0F0F0" stroke-width="6"/></svg>
+          <svg class="arc" width="88" height="88" viewBox="0 0 88 88"><path d="M44 6a38 38 0 0138 38" fill="none" stroke="#0A0A0A" stroke-width="6" stroke-linecap="round"/></svg>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="left:30px;top:30px;width:28px;height:28px"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9.5 12l2 2 3.5-4"/></svg>
+        </div>
+        <div class="stack" style="align-items:center">
+          <h1 style="font-size:22px">Setting up secure e-Sign</h1>
+          <p class="lead">Loan Agreement for Kosmo Finance.<br>Don't close or refresh this page.</p>
+        </div>
+        <ul class="ld-list" id="ld-list" aria-live="polite">
+          <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></span>Document received</li>
+          <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></span>Secure session created</li>
+          <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></span>Preparing signer verification</li>
+        </ul>
+      </main>
+      <footer class="panel-ft" style="padding-top:16px;border-top:1px solid var(--border-soft);gap:6px">
+        <span class="powered"><svg class="i i-xs"><use href="#i-lock"/></svg>256-bit encrypted session</span>
+        <span class="powered">Powered by <svg class="logo-sm" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 03 · Decentro · Mobile number (first-factor check)
+Validation: 10 digits, starts 6–9; consent required. Prefilled from the merchant's session payload, editable.
+API: POST otp/send {mobile, session_id}.
+====================================================================== -->
+<section class="screen" id="sc-mobile" aria-label="Verify mobile number">
+  <header class="hd"><svg class="logo" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg><span class="chip-m"><span class="mk">K</span>Kosmo Finance</span></header>
+  <div class="body">
+    <aside class="side"><div class="side-dc" data-side="1"></div></aside>
+    <section class="panel">
+      <nav class="mprog m-only" data-mprog="1" aria-label="Progress"></nav>
+      <main class="panel-in">
+        <div class="stack">
+          <h1>Verify your mobile number</h1>
+          <p class="lead">We'll send a one-time password to confirm it's you before you sign.</p>
+        </div>
+        <div class="stack">
+          <label for="mob" class="lbl-f">Mobile number</label>
+          <div class="field" id="mob-field"><span class="pre">+91</span><input id="mob" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="11" placeholder="98765 43210" aria-describedby="mob-help mob-err"></div>
+          <span class="help" id="mob-help">Use the number registered with Kosmo Finance.</span>
+          <span class="err" id="mob-err" role="alert"><svg class="i i-sm"><use href="#i-info"/></svg><span>Enter a valid 10-digit Indian mobile number.</span></span>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="mob-consent" checked>
+          <span>I authorise Decentro to verify this number for e-Signing my Kosmo Finance agreement, and agree to the <a href="#" onclick="return false" style="font-weight:600">Terms</a> and <a href="#" onclick="return false" style="font-weight:600">Privacy Policy</a>.</span>
+        </label>
+      </main>
+      <div class="grow"></div>
+      <footer class="panel-ft">
+        <button class="btn" id="mob-send" type="button" onclick="sendMobileOtp()"><span class="lbl">Send OTP</span><span class="spin"></span></button>
+        <span class="powered">Powered by <svg class="logo-sm" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 04 · Decentro · Mobile OTP   (E1 = error state on this screen)
+Validation: 6 digits · 3 attempts, then the flow ends on E3 · resend after 30 s, max 3 resends.
+Input: auto-advance, backspace-to-previous, paste fills all boxes, one-time-code autofill.
+API: POST otp/verify {otp, session_id}.
+====================================================================== -->
+<section class="screen" id="sc-motp" aria-label="Enter mobile OTP">
+  <header class="hd"><svg class="logo" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg><span class="chip-m"><span class="mk">K</span>Kosmo Finance</span></header>
+  <div class="body">
+    <aside class="side"><div class="side-dc" data-side="1b"></div></aside>
+    <section class="panel">
+      <nav class="mprog m-only" data-mprog="1" aria-label="Progress"></nav>
+      <main class="panel-in">
+        <div class="stack">
+          <h1>Enter the OTP</h1>
+          <p class="lead">Sent to <strong style="color:var(--foreground)" data-phone>+91 98765 43210</strong> · <button type="button" class="link" style="color:var(--foreground);font-size:14px;padding:0" onclick="go('sc-mobile')">Change</button></p>
+        </div>
+        <fieldset style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:12px">
+          <legend class="lbl-f" style="padding:0;margin-bottom:8px">6-digit OTP</legend>
+          <div class="otp" id="motp"></div>
+          <span class="err" id="motp-err" role="alert"><svg class="i i-sm"><use href="#i-info"/></svg><span></span></span>
+          <div class="otp-meta"><span>Didn't get it?</span><span id="motp-resend"></span></div>
+        </fieldset>
+        <div class="note"><svg class="i i-sm" style="margin-top:2px"><use href="#i-info"/></svg><span>This OTP only verifies your mobile. UIDAI sends a separate OTP in the Aadhaar step.</span></div>
+      </main>
+      <div class="grow"></div>
+      <footer class="panel-ft">
+        <button class="btn" id="motp-go" type="button" onclick="verifyMobileOtp()"><span class="lbl">Verify &amp; continue</span><span class="spin"></span></button>
+        <span class="powered">Powered by <svg class="logo-sm" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 05 · Decentro · Handoff to Aadhaar eSign
+No timer — the borrower continues manually. Sets expectations for the three Aadhaar steps.
+API: POST esign/initiate → returns the eSign page URL + txn_id.
+====================================================================== -->
+<section class="screen" id="sc-handoff" aria-label="Continue to Aadhaar e-Sign">
+  <header class="hd"><svg class="logo" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg><span class="chip-m"><span class="mk">K</span>Kosmo Finance</span></header>
+  <div class="body">
+    <aside class="side"><div class="side-dc" data-side="2"></div></aside>
+    <section class="panel">
+      <nav class="mprog m-only" data-mprog="2" aria-label="Progress"></nav>
+      <main class="panel-in">
+        <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--success-bg);color:var(--success);font-size:12px;font-weight:600"><svg class="i i-xs" style="stroke-width:3"><use href="#i-check"/></svg>Mobile verified</span>
+        <div class="stack">
+          <h1>Now sign with Aadhaar</h1>
+          <p class="lead">Next is Decentro's Aadhaar eSign page. UIDAI authenticates you there, then your signature is applied to the agreement.</p>
+        </div>
+        <ol style="list-style:none;margin:0;padding:4px 16px;border:1px solid var(--border-soft);border-radius:14px">
+          <li style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #F2F2F2"><span style="width:26px;height:26px;border-radius:8px;background:#F5F5F5;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">1</span><span class="stack" style="gap:2px"><span style="font-size:14px;font-weight:600">Give consent</span><span style="font-size:13px;line-height:19px;color:var(--muted-foreground)">Allow Aadhaar authentication for this document.</span></span></li>
+          <li style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #F2F2F2"><span style="width:26px;height:26px;border-radius:8px;background:#F5F5F5;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">2</span><span class="stack" style="gap:2px"><span style="font-size:14px;font-weight:600">Enter Aadhaar number or VID</span><span style="font-size:13px;line-height:19px;color:var(--muted-foreground)">12-digit Aadhaar or 16-digit Virtual ID.</span></span></li>
+          <li style="display:flex;gap:14px;padding:14px 0"><span style="width:26px;height:26px;border-radius:8px;background:#F5F5F5;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">3</span><span class="stack" style="gap:2px"><span style="font-size:14px;font-weight:600">Enter the Aadhaar OTP</span><span style="font-size:13px;line-height:19px;color:var(--muted-foreground)">UIDAI sends it to your Aadhaar-linked mobile.</span></span></li>
+        </ol>
+        <div class="note"><svg class="i i-sm" style="margin-top:2px"><use href="#i-shield"/></svg><span>Your Aadhaar number is used only to authenticate you with UIDAI. Kosmo Finance never sees it.</span></div>
+      </main>
+      <div class="grow"></div>
+      <footer class="panel-ft">
+        <button class="btn" type="button" onclick="toEsp()"><span class="lbl" style="display:flex;align-items:center;gap:8px">Continue to Aadhaar e-Sign<svg class="i" style="width:16px;height:16px"><use href="#i-arrow"/></svg></span></button>
+        <span class="powered">Powered by <svg class="logo-sm" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 06 · Decentro eSign (ESP) · Consent + Aadhaar / VID   — UIDAI colour language
+Validation: consent required · Aadhaar = any 12 digits · VID = any 16 digits (demo rule; production should add UIDAI's Verhoeff check).
+Input is masked by default (show/hide toggle). The number is never logged or shown back in full.
+API: ESP → UIDAI OTP request (Aadhaar or VID + txn_id).
+====================================================================== -->
+<section class="screen th-u" id="sc-esp-id" aria-label="Decentro eSign — Aadhaar consent">
+  <div class="u-stripe" aria-hidden="true"><i></i><b></b></div>
+  <header class="hd">
+    <div class="u-id"><svg class="u-d" role="img" aria-label="Decentro"><use href="#decentro-d"/></svg><div class="stack" style="gap:1px"><span class="u-name">Decentro eSign</span><span class="u-sub">Aadhaar based electronic signature</span></div></div>
+    <span class="u-auth"><svg class="i i-sm"><use href="#i-lock"/></svg>Authenticated by UIDAI</span>
+  </header>
+  <div class="body">
+    <aside class="side"><div class="side-u">
+      <section class="u-card"><span class="eyebrow" style="color:var(--u-grey)">Signing request</span><div class="u-req" data-ureq></div></section>
+      <section class="u-howto"><span style="font-size:14px;font-weight:600">How Aadhaar eSign works</span>
+        <ol><li>You consent and enter your Aadhaar number or VID.</li><li>UIDAI sends an OTP to your Aadhaar-linked mobile.</li><li>Once verified, a signature certificate is issued and applied to the document.</li></ol></section>
+    </div></aside>
+    <section class="panel">
+      <main class="panel-in">
+        <div class="u-req m-only" data-ureq-short></div>
+        <div class="stack" style="gap:6px"><h1 class="u-h1">Sign with Aadhaar</h1><p class="u-lead">Enter your Aadhaar number or Virtual ID to receive an OTP from UIDAI.</p></div>
+        <label class="u-consent" id="u-consent-box">
+          <input type="checkbox" id="u-consent">
+          <span>I authorise Decentro to use my Aadhaar number or VID to authenticate me with UIDAI for signing this document, and to use my eKYC details (name, gender, year of birth, pincode) only to create my signature certificate.</span>
+        </label>
+        <div class="u-seg" role="radiogroup" aria-label="ID type">
+          <label><input type="radio" name="idtype" value="aadhaar" checked>Aadhaar number</label>
+          <label><input type="radio" name="idtype" value="vid">Virtual ID (VID)</label>
+        </div>
+        <div class="stack" style="gap:6px">
+          <label for="aad" class="lbl-f" id="aad-lbl" style="color:var(--u-ink-2)">Aadhaar number</label>
+          <div class="u-field" id="aad-field">
+            <input id="aad" type="password" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="XXXX XXXX XXXX" aria-describedby="aad-err">
+            <button class="u-eye" type="button" id="aad-eye" aria-label="Show number" onclick="toggleEye()"><svg class="i"><use href="#i-eye"/></svg></button>
+          </div>
+          <span class="u-ferr" id="aad-err" role="alert"></span>
+          <span class="help" style="color:var(--u-grey)" id="vid-help">Don't have a VID? <a class="u-link" href="https://myaadhaar.uidai.gov.in/genricGenerateOrRetriveVID" target="_blank" rel="noopener">Generate one at UIDAI</a></span>
+        </div>
+      </main>
+      <div class="grow" style="min-height:20px"></div>
+      <footer class="panel-ft">
+        <button class="btn u-btn" id="u-send" type="button" onclick="sendAadhaarOtp()"><span class="lbl">Send OTP</span><span class="spin"></span></button>
+        <button class="u-cancel" type="button" onclick="fail('cancelled')">Cancel and return</button>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 07 · Decentro eSign (ESP) · Aadhaar OTP   (E2 = error state on this screen)
+Validation: 6 digits · 3 attempts, then return to Decentro (E3, reason invalid_otp) · resend after 45 s.
+API: ESP → UIDAI auth (OTP) → sign document hash → redirect to Decentro with signed response.
+====================================================================== -->
+<section class="screen th-u" id="sc-esp-otp" aria-label="Decentro eSign — Aadhaar OTP">
+  <div class="u-stripe" aria-hidden="true"><i></i><b></b></div>
+  <header class="hd">
+    <div class="u-id"><svg class="u-d" role="img" aria-label="Decentro"><use href="#decentro-d"/></svg><div class="stack" style="gap:1px"><span class="u-name">Decentro eSign</span><span class="u-sub">Aadhaar based electronic signature</span></div></div>
+    <span class="u-auth"><svg class="i i-sm"><use href="#i-lock"/></svg>Authenticated by UIDAI</span>
+  </header>
+  <div class="body">
+    <aside class="side"><div class="side-u">
+      <section class="u-card"><span class="eyebrow" style="color:var(--u-grey)">Signing request</span><div class="u-req" data-ureq="id"></div></section>
+      <section class="u-howto"><span style="font-size:14px;font-weight:600">Didn't get the OTP?</span>
+        <ul><li>It goes to the mobile linked with your Aadhaar, which may differ from the one you verified earlier.</li><li>Wait for the timer, then resend. OTP requests are limited per hour.</li></ul></section>
+    </div></aside>
+    <section class="panel">
+      <main class="panel-in">
+        <div class="u-err" id="uotp-alert" role="alert"><svg class="i i-sm" style="margin-top:2px;stroke-width:2.2"><use href="#i-info"/></svg><span></span></div>
+        <div class="stack" style="gap:6px">
+          <h1 class="u-h1">Enter Aadhaar OTP</h1>
+          <p class="u-lead">UIDAI sent a 6-digit OTP to the mobile linked with <span data-idmask>Aadhaar XXXX XXXX 9047</span>. <button type="button" class="link u-link" style="font-size:13px;padding:0;text-decoration:none" onclick="go('sc-esp-id')">Change</button></p>
+        </div>
+        <fieldset style="border:0;margin:0;padding:0"><legend class="sr">Aadhaar OTP</legend><div class="otp" id="uotp"></div></fieldset>
+        <div class="otp-meta" style="font-size:12.5px;color:var(--u-grey)"><span id="uotp-left">3 attempts remaining</span><span id="uotp-resend"></span></div>
+        <p class="u-note">Verifying the OTP applies your Aadhaar eSign to this document. You'll then return to Decentro.</p>
+      </main>
+      <div class="grow" style="min-height:20px"></div>
+      <footer class="panel-ft">
+        <button class="btn u-btn" id="uotp-go" type="button" onclick="verifyAadhaarOtp()"><span class="lbl">Verify OTP &amp; Sign</span><span class="spin"></span></button>
+        <button class="u-cancel" type="button" onclick="fail('cancelled')">Cancel and return</button>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 08 · Decentro · Agreement e-Signed
+No timer — "Return to Kosmo Finance" is manual. Decentro also fires the merchant webhook (esign.completed).
+API: webhook → merchant {session_id, status, signed_document_url, signer, signed_at, reference_id}.
+====================================================================== -->
+<section class="screen" id="sc-success" aria-label="Agreement e-Signed">
+  <header class="hd"><svg class="logo" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg><span class="chip-m"><span class="mk">K</span>Kosmo Finance</span></header>
+  <div class="body">
+    <section class="panel" style="max-width:520px">
+      <main class="res">
+        <div class="halo ok"><i><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></i></div>
+        <div class="stack" style="align-items:center"><h1>Agreement e-Signed</h1><p class="lead">Your Aadhaar eSign is applied and verified.<br>Kosmo Finance has the signed copy.</p></div>
+        <dl class="dl">
+          <div><dt>Signed by</dt><dd data-f="name">Ananya Rao</dd></div>
+          <div><dt><span data-f="idlabel">Aadhaar</span></dt><dd data-f="idmask">XXXX XXXX 9047</dd></div>
+          <div><dt>Document</dt><dd>Loan Agreement + KFS</dd></div>
+          <div><dt>Signed on</dt><dd data-f="signedAt">—</dd></div>
+          <div><dt>Reference ID</dt><dd data-f="ref">—</dd></div>
+        </dl>
+      </main>
+      <div class="grow" style="min-height:28px"></div>
+      <footer class="panel-ft">
+        <button class="btn" type="button" onclick="go('sc-merchant-done')"><span class="lbl">Return to Kosmo Finance</span></button>
+        <span class="powered">Powered by <svg class="logo-sm" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev 09 · Merchant (NBFC) · Agreement signed
+Merchant confirms from its own webhook/status call, not from the redirect alone.
+API: GET session status (merchant → Decentro) before showing success.
+====================================================================== -->
+<section class="screen th-m" id="sc-merchant-done" aria-label="Agreement signed">
+  <header class="hd" style="justify-content:center"><div class="m-brand"><span class="m-mk">K</span>Kosmo Finance</div></header>
+  <div class="body">
+    <div class="m-col">
+      <div class="m-track" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div>
+      <main class="m-main" style="padding-top:32px;gap:22px">
+        <div class="stack" style="align-items:center;text-align:center;gap:16px">
+          <div style="width:64px;height:64px;border-radius:18px;background:var(--brand);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></div>
+          <div class="stack"><h1>Agreement signed successfully</h1><p class="lead" style="color:var(--m-muted)">You e-Signed your loan agreement with Aadhaar on <span data-f="signedShort">—</span>.</p></div>
+        </div>
+        <section class="m-card">
+          <span class="m-eyebrow" style="display:block;margin-bottom:12px">What happens next</span>
+          <div class="tl">
+            <div class="row"><div class="rail"><span class="n"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span><span class="bar"></span></div><div class="tx"><span class="t1">KYC verified</span><span class="t2">Completed earlier</span></div></div>
+            <div class="row"><div class="rail"><span class="n"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span><span class="bar todo"></span></div><div class="tx"><span class="t1">Agreement e-Signed</span><span class="t2">Aadhaar eSign · just now</span></div></div>
+            <div class="row"><div class="rail"><span class="n todo"></span></div><div class="tx" style="padding-bottom:0"><span class="t1">Disbursal of ₹2,50,000</span><span class="t2">To your bank account ending 3391, within 24 hours</span></div></div>
+          </div>
+        </section>
+        <button type="button" class="m-card" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%" onclick="openDoc(true)">
+          <svg class="i" style="color:var(--brand);width:20px;height:20px;stroke-width:1.8"><use href="#i-down"/></svg>
+          <span style="flex:1" class="stack"><span style="font-size:14px;font-weight:600;line-height:1.3">Download signed agreement</span><span style="font-size:12px;color:var(--m-muted);line-height:1.3">PDF · also sent to your email</span></span>
+          <svg class="i i-sm" style="color:var(--m-muted)"><use href="#i-chev"/></svg>
+        </button>
+      </main>
+      <div class="grow"></div>
+      <footer class="m-ft"><button class="btn btn-brand" type="button" onclick="restart()"><span class="lbl">Go to my loan</span></button></footer>
+    </div>
+    <aside class="side" aria-label="Loan summary" style="padding-top:32px">
+      <div class="m-card" style="width:340px;padding:20px;display:flex;flex-direction:column;gap:14px;border-radius:16px">
+        <span class="m-eyebrow">Your loan</span>
+        <span style="font-size:28px;font-weight:700;letter-spacing:-.5px">₹2,50,000</span>
+        <div style="height:1px;background:#EEF0EF"></div>
+        <div class="sumrow"><span style="color:var(--m-muted)">Monthly EMI</span><span>₹12,003</span></div>
+        <div class="sumrow"><span style="color:var(--m-muted)">Tenure</span><span>24 months</span></div>
+        <div class="sumrow"><span style="color:var(--m-muted)">Interest rate</span><span>14% p.a.</span></div>
+        <div class="sumrow"><span style="color:var(--m-muted)">Loan ID</span><span>KF-LA-2026-104823</span></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- =====================================================================
+@dev E3 · Decentro · e-Sign not completed
+Every failure lands here with a reason code: invalid_otp · mobile_otp_failed · cancelled · esp_error.
+Nothing is signed. "Try again" re-enters at 05; "Return" goes back to the merchant with status = failed.
+API: webhook → merchant {status: failed, reason}.
+====================================================================== -->
+<section class="screen" id="sc-failed" aria-label="e-Sign not completed">
+  <header class="hd"><svg class="logo" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg><span class="chip-m"><span class="mk">K</span>Kosmo Finance</span></header>
+  <div class="body">
+    <section class="panel" style="max-width:520px">
+      <main class="res">
+        <div class="halo bad"><i><svg viewBox="0 0 24 24"><path d="M12 7v6M12 17h.01"/></svg></i></div>
+        <div class="stack" style="align-items:center"><h1>e-Sign not completed</h1><p class="lead" id="f-desc">Nothing was signed.</p></div>
+        <div class="tips"><span style="font-size:13px;font-weight:600">Before you try again</span><ul id="f-tips"></ul></div>
+        <span style="font-size:12px;color:var(--muted-foreground);font-variant-numeric:tabular-nums" id="f-ref"></span>
+      </main>
+      <div class="grow" style="min-height:28px"></div>
+      <footer class="panel-ft" style="gap:10px">
+        <button class="btn" type="button" id="f-retry" onclick="retry()"><span class="lbl">Try e-Sign again</span></button>
+        <button class="btn btn-ghost" type="button" onclick="backToMerchant()"><span class="lbl">Return to Kosmo Finance</span></button>
+        <span class="powered" style="padding-top:2px">Powered by <svg class="logo-sm" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg></span>
+      </footer>
+    </section>
+  </div>
+</section>
+
+<!-- Transition overlay -->
+<div class="ov" id="ov" role="status" aria-live="polite"><div class="ov-box"><div class="ov-ring" id="ov-ring"></div><div class="ov-t" id="ov-t">Please wait</div><div class="ov-s" id="ov-s"></div></div></div>
+
+<!-- Document viewer -->
+<div class="modal" id="doc-modal" role="dialog" aria-modal="true" aria-labelledby="doc-ttl">
+  <div class="modal-card">
+    <div class="modal-hd"><span id="doc-ttl">Loan Agreement + KFS</span><button class="dev-x" style="color:#525252" type="button" aria-label="Close" onclick="closeDoc()"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="modal-bd"><div data-docpage></div></div>
+  </div>
+</div>
+
+<!-- Simulated SMS -->
+<button class="sms" id="sms" type="button" aria-live="polite">
+  <span class="sms-ic"><svg class="i" style="stroke:#fff"><use href="#i-msg"/></svg></span>
+  <span style="flex:1;min-width:0">
+    <span class="sms-top"><span class="sms-from" id="sms-from">DECNTR</span><span style="display:flex;gap:6px;align-items:center"><span class="sms-tag">Simulated</span>now</span></span>
+    <span class="sms-body" id="sms-body" style="display:block"></span>
+    <span class="sms-cta" style="display:block">Tap to autofill</span>
+  </span>
+</button>
+
+<!-- Developer console -->
+<button class="dev-fab" id="dev-fab" type="button" aria-controls="dev" aria-expanded="false" onclick="toggleDev()" aria-label="Open developer console"><svg class="i i-sm"><use href="#i-code"/></svg><span class="t">Dev console</span></button>
+<aside class="dev" id="dev" aria-label="Developer console">
+  <div class="dev-hd">
+    <span class="dev-ttl"><svg class="i i-sm"><use href="#i-code"/></svg>Developer console</span>
+    <button class="dev-x" type="button" aria-label="Close developer console" onclick="toggleDev(false)"><svg class="i"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dev-tabs" role="tablist">
+    <button class="dev-tab" role="tab" aria-selected="true" data-tab="screen">Screen</button>
+    <button class="dev-tab" role="tab" aria-selected="false" data-tab="events">Events <span id="ev-count" style="color:#8A8A8A"></span></button>
+    <button class="dev-tab" role="tab" aria-selected="false" data-tab="controls">Controls</button>
+    <button class="dev-tab" role="tab" aria-selected="false" data-tab="spec">Spec</button>
+  </div>
+  <div class="dev-bd">
+    <div class="dev-pane on" data-pane="screen" id="dev-screen"></div>
+    <div class="dev-pane" data-pane="events"><div id="dev-events" style="display:flex;flex-direction:column;gap:8px"></div></div>
+    <div class="dev-pane" data-pane="controls">
+      <div><div class="dev-k">Jump to screen</div><div class="dev-grid" id="dev-jump"></div></div>
+      <div><div class="dev-k">Demo data</div>
+        <div class="dev-grid">
+          <button class="dev-btn" type="button" onclick="fillDemo()">Fill current screen</button>
+          <button class="dev-btn" type="button" onclick="restart()">Restart demo</button>
+        </div>
+        <p class="dev-hint" style="margin:8px 0 0">OTPs arrive as a simulated SMS; tap it to autofill. Any other 6 digits counts as a wrong OTP. Any 12-digit Aadhaar or 16-digit VID is accepted.</p>
+      </div>
+      <div><div class="dev-k">Simulate</div>
+        <label class="dev-tog"><span>Next Aadhaar verify returns an ESP error</span><input type="checkbox" id="sim-esp"></label>
+        <label class="dev-tog" style="margin-top:8px"><span>Skip the 5 s loader</span><input type="checkbox" id="sim-fast"></label>
+      </div>
+      <div><div class="dev-k">Merchant brand (--brand)</div><div class="dev-sw" id="dev-sw"></div></div>
+    </div>
+    <div class="dev-pane" data-pane="spec">
+      <p class="dev-hint" style="margin:0">The flow as data — screens, owners, transitions, validation and proposed API touchpoints. Endpoint names are placeholders for engineering to confirm.</p>
+      <button class="dev-btn" type="button" onclick="copySpec(this)">Copy flow spec (JSON)</button>
+      <pre id="dev-spec"></pre>
+    </div>
+  </div>
+</aside>
+
+<script>
+/* =========================================================================
+   STATE
+   ========================================================================= */
+const DEMO = { name:'Ananya Rao', phone:'9876543210', aadhaar:'534286179047', vid:'9182736450123454' };
+const S = {};
+function resetState(){
+  Object.assign(S,{ phone:DEMO.phone, idType:'aadhaar', id:'', mCode:'', uCode:'', mAttempts:0, uAttempts:0, mResends:0, uResends:0,
+    sessionId:'ses_'+rand(10), txnId:'', ref:'', signedAt:null, failReason:'', failedOnce:false });
+}
+const T = {};                 // timers by key
+const EVENTS = [];
+let current = null;
+
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+function rand(n,abc='abcdefghjkmnpqrstuvwxyz23456789'){let s='';for(let i=0;i<n;i++)s+=abc[Math.floor(Math.random()*abc.length)];return s}
+function code6(){return String(Math.floor(100000+Math.random()*900000))}
+function later(k,fn,ms){clearTimeout(T[k]);T[k]=setTimeout(fn,ms)}
+function every(k,fn,ms){clearInterval(T[k]);T[k]=setInterval(fn,ms)}
+function stopAll(){for(const k in T){clearTimeout(T[k]);clearInterval(T[k])}}
+const IST = new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const IST_SHORT = new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+const IST_TIME = new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const IST_DAY = new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'});
+function fmtPhone(d){d=d.slice(0,10);return d.length>5?d.slice(0,5)+' '+d.slice(5):d}
+function groups4(d){return d.replace(/(.{4})(?=.)/g,'$1 ')}
+function maskId(){const d=S.id;const last=d.slice(-4);return S.idType==='vid' ? 'XXXX XXXX XXXX '+last : 'XXXX XXXX '+last}
+
+/* Verhoeff checksum — UIDAI's check digit for Aadhaar numbers */
+const VD=[[0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]];
+const VP=[[0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],[8,9,1,6,0,4,3,5,2,7],[9,4,5,3,1,2,7,6,0,8],[4,2,8,6,5,7,3,9,0,1],[2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]];
+function verhoeff(s){let c=0;const a=s.split('').reverse().map(Number);for(let i=0;i<a.length;i++)c=VD[c][VP[i%8][a[i]]];return c===0}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+const enter = {};
+function go(id){
+  stopAll(); hideSms();
+  $$('.screen').forEach(s=>s.classList.toggle('active', s.id===id));
+  current = id; window.scrollTo(0,0);
+  (enter[id]||(()=>{}))();
+  log('screen.view',{screen:id});
+  renderDev();
+}
+function overlay(on,title,sub,u){
+  $('#ov').classList.toggle('show',!!on);
+  if(on){$('#ov-t').textContent=title;$('#ov-s').textContent=sub||'';$('#ov-ring').classList.toggle('u',!!u)}
+}
+function busy(btn,on){btn.classList.toggle('loading',on);btn.disabled=on}
+
+/* =========================================================================
+   EVENT LOG (developer console)
+   ========================================================================= */
+function log(name,payload){
+  EVENTS.unshift({name,payload,at:new Date()});
+  if(EVENTS.length>80)EVENTS.pop();
+  renderEvents();
+}
+
+/* =========================================================================
+   SHARED RENDERERS
+   ========================================================================= */
+function docPageHTML(signed){
+  const ln=(w,h)=>`<div class="ln${h?' h':''}" style="width:${w}%"></div>`;
+  return `<div class="docpage">
+    <span style="font-size:13px;font-weight:700;letter-spacing:1.5px;text-align:center;color:#2D3633">LOAN AGREEMENT</span>
+    <span style="font-size:11px;text-align:center;color:var(--m-muted);margin-bottom:10px">KF-LA-2026-104823 · ${IST_DAY.format(new Date())}</span>
+    ${ln(92)}${ln(98)}${ln(86)}${ln(60)}<div style="height:6px"></div>${ln(40,1)}${ln(96)}${ln(90)}${ln(94)}${ln(72)}<div style="height:6px"></div>${ln(36,1)}${ln(97)}${ln(88)}${ln(93)}${ln(54)}
+    <div style="flex:1;min-height:40px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div class="stack" style="gap:6px"><div style="width:150px;height:1px;background:#9AA6A1"></div><span style="font-size:11px;color:var(--m-muted)">For Kosmo Finance</span></div>
+      ${signed&&S.signedAt
+        ? `<div class="stack" style="gap:4px;align-items:flex-end"><div class="sigbox signed">${DEMO.name}</div><span style="font-size:10.5px;color:var(--m-muted);text-align:right">Digitally signed via Aadhaar eSign<br>${IST.format(S.signedAt)} IST</span></div>`
+        : `<div class="sigbox">Borrower signature</div>`}
+    </div></div>`;
+}
+function renderDocs(signed){$$('[data-docpage]').forEach(el=>el.innerHTML=docPageHTML(signed))}
+function openDoc(signed){renderDocs(!!signed);$('#doc-ttl').textContent=signed?'Signed Loan Agreement + KFS':'Loan Agreement + KFS';$('#doc-modal').classList.add('show');log(signed?'merchant.signed_document.view':'merchant.document.view',{})}
+function closeDoc(){$('#doc-modal').classList.remove('show');renderDocs(false)}
+
+const STEP_TXT = {
+  '1': [['cur','Verify mobile','In progress'],['todo','Sign with Aadhaar','Aadhaar or VID + OTP'],['todo','Back to Kosmo Finance','With your signed agreement']],
+  '1b':[['cur','Verify mobile','OTP sent to +91 {phone}'],['todo','Sign with Aadhaar','Aadhaar or VID + OTP'],['todo','Back to Kosmo Finance','With your signed agreement']],
+  '2': [['done','Verify mobile','+91 {phone} verified'],['cur','Sign with Aadhaar','Up next'],['todo','Back to Kosmo Finance','With your signed agreement']]
+};
+function renderSide(){
+  $$('[data-side]').forEach(el=>{
+    const rows=STEP_TXT[el.dataset.side];
+    const lis=rows.map((r,i)=>{
+      const [st,t1,t2]=r; const last=i===rows.length-1;
+      const n = st==='done' ? `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>` : (i+1);
+      return `<li class="${st}"><span class="rail"><span class="n">${n}</span>${last?'':'<span class="bar"></span>'}</span><span class="tx"${last?' style="padding-bottom:0"':''}><span class="t1">${t1}</span><span class="t2">${t2.replace('{phone}',fmtPhone(S.phone))}</span></span></li>`;
+    }).join('');
+    el.innerHTML=`<div class="stack" style="gap:10px"><span class="eyebrow">You're signing</span>
+      <div class="sumcard"><span style="font-size:16px;font-weight:600">Loan Agreement + KFS</span><span style="font-size:13px;color:var(--muted-foreground)">Kosmo Finance · KF-LA-2026-104823</span><div style="height:1px;background:#F0F0F0"></div><div class="sumrow"><span>Loan amount</span><span>₹2,50,000</span></div></div></div>
+      <ol class="vsteps">${lis}</ol>`;
+  });
+  $$('[data-mprog]').forEach(el=>{
+    const s=+el.dataset.mprog;
+    const one = s>1 ? `<span class="s on"><span class="n"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></span>Verify mobile</span>` : `<span class="s on"><span class="n">1</span>Verify mobile</span>`;
+    el.innerHTML = one + `<span class="ln${s>1?' on':''}"></span><span class="s ${s>1?'on':'off'}"><span class="n">2</span>Sign with Aadhaar</span>`;
+  });
+}
+function renderReq(){
+  const now=IST_SHORT.format(new Date())+' IST';
+  $$('[data-ureq]').forEach(el=>{
+    const withId = el.dataset.ureq==='id' && S.id;
+    el.innerHTML = `<span class="k">Requested by</span><span class="v">Kosmo Finance</span>
+      <span class="k">Document</span><span class="v">Loan Agreement + KFS</span>
+      <span class="k">Reference</span><span class="v">KF-LA-2026-104823</span>
+      ${withId?`<span class="k">${S.idType==='vid'?'VID':'Aadhaar'}</span><span class="v">${maskId()}</span>`:''}
+      <span class="k">Transaction ID</span><span class="v" style="font-variant-numeric:tabular-nums">${S.txnId||'—'}</span>
+      <span class="k">Requested at</span><span class="v">${now}</span>`;
+  });
+  $$('[data-ureq-short]').forEach(el=>{
+    el.innerHTML=`<span class="k">Requested by</span><span class="v">Kosmo Finance</span>
+      <span class="k">Document</span><span class="v">Loan Agreement · KF-LA-2026-104823</span>
+      <span class="k">Transaction ID</span><span class="v" style="font-variant-numeric:tabular-nums">${S.txnId||'—'}</span>`;
+  });
+}
+
+/* =========================================================================
+   OTP INPUT
+   ========================================================================= */
+function makeOtp(root,onDone){
+  root.innerHTML='';
+  for(let i=0;i<6;i++){
+    const inp=document.createElement('input');
+    inp.inputMode='numeric'; inp.maxLength=1; inp.setAttribute('aria-label','Digit '+(i+1));
+    inp.autocomplete = i===0 ? 'one-time-code' : 'off';
+    inp.addEventListener('input',e=>{
+      const v=inp.value.replace(/\D/g,'');
+      if(v.length>1){fillOtp(root,v);return}
+      inp.value=v; inp.classList.toggle('filled',!!v); root.classList.remove('bad');
+      if(v && inp.nextElementSibling) inp.nextElementSibling.focus();
+      if(otpVal(root).length===6) onDone&&onDone();
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace' && !inp.value && inp.previousElementSibling){inp.previousElementSibling.focus();inp.previousElementSibling.value='';inp.previousElementSibling.classList.remove('filled');e.preventDefault()}
+      if(e.key==='ArrowLeft' && inp.previousElementSibling){inp.previousElementSibling.focus();e.preventDefault()}
+      if(e.key==='ArrowRight' && inp.nextElementSibling){inp.nextElementSibling.focus();e.preventDefault()}
+      if(e.key==='Enter') onDone&&onDone(true);
+    });
+    inp.addEventListener('paste',e=>{const t=(e.clipboardData||window.clipboardData).getData('text');if(t){e.preventDefault();fillOtp(root,t)}});
+    inp.addEventListener('focus',()=>inp.select());
+    root.appendChild(inp);
+  }
+}
+function fillOtp(root,v){
+  const d=v.replace(/\D/g,'').slice(0,6).split('');
+  $$('input',root).forEach((inp,i)=>{inp.value=d[i]||'';inp.classList.toggle('filled',!!d[i])});
+  root.classList.remove('bad');
+  const nxt=$$('input',root)[Math.min(d.length,5)]; nxt&&nxt.focus();
+}
+function otpVal(root){return $$('input',root).map(i=>i.value).join('')}
+function otpBad(root){root.classList.remove('shake');void root.offsetWidth;root.classList.add('bad','shake');$$('input',root).forEach(i=>{i.value='';i.classList.remove('filled')});$('input',root).focus()}
+
+function resendTimer(el,secs,key,onResend,limitLeft){
+  let s=secs;
+  const draw=()=>{
+    if(s>0){el.innerHTML=`Resend in <strong style="color:inherit;font-variant-numeric:tabular-nums">00:${String(s).padStart(2,'0')}</strong>`}
+    else if(limitLeft()>0){el.innerHTML='';const b=document.createElement('button');b.type='button';b.className='link';b.textContent='Resend OTP';b.onclick=onResend;el.appendChild(b);clearInterval(T[key])}
+    else{el.textContent='Resend limit reached';clearInterval(T[key])}
+  };
+  draw(); every(key,()=>{s--;draw()},1000);
+}
+
+/* =========================================================================
+   SIMULATED SMS
+   ========================================================================= */
+let smsFill=null;
+function showSms(from,body,fill){
+  $('#sms-from').textContent=from; $('#sms-body').textContent=body; smsFill=fill;
+  $('#sms').classList.add('show'); later('smsHide',hideSms,9000);
+}
+function hideSms(){$('#sms').classList.remove('show')}
+$('#sms').addEventListener('click',()=>{smsFill&&smsFill();hideSms()});
+
+/* =========================================================================
+   01 MERCHANT
+   ========================================================================= */
+$('#m-agree').addEventListener('change',e=>{$('#m-cta').disabled=!e.target.checked;log('merchant.consent',{checked:e.target.checked})});
+enter['sc-merchant']=()=>{renderDocs(false);$('#m-pending').classList.toggle('show',S.failedOnce)};
+function startEsign(){
+  S.sessionId='ses_'+rand(10);
+  log('merchant.esign.session.create',{session_id:S.sessionId,document:'KF-LA-2026-104823',signer_mobile:'+91'+S.phone,redirect_url:'https://kosmo.example/loan/esign/return'});
+  go('sc-loader');
+}
+
+/* =========================================================================
+   02 LOADER — auto-advance after 5 s
+   ========================================================================= */
+enter['sc-loader']=()=>{
+  const items=$$('#ld-list li'); items.forEach(li=>li.className='');
+  const bar=$('#ld-bar'); bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run');
+  const total = $('#sim-fast').checked ? 600 : 5000;
+  bar.style.animationDuration = total+'ms';
+  const step=(i,ms)=>{later('ld'+i+'a',()=>items[i].className='run',ms[0]);later('ld'+i+'b',()=>items[i].className='ok',ms[1])};
+  const k=total/5000;
+  step(0,[0,900*k]); step(1,[900*k,2300*k]); step(2,[2300*k,4600*k]);
+  later('ldgo',()=>{log('session.ready',{session_id:S.sessionId});go('sc-mobile')},total);
+};
+
+/* =========================================================================
+   03 MOBILE
+   ========================================================================= */
+const mob=$('#mob');
+function mobDigits(){return mob.value.replace(/\D/g,'')}
+function mobValid(){const d=mobDigits();return /^[6-9]\d{9}$/.test(d)}
+mob.addEventListener('input',()=>{const d=mobDigits().slice(0,10);mob.value=fmtPhone(d);$('#mob-field').classList.remove('invalid');$('#mob-err').classList.remove('show')});
+mob.addEventListener('blur',()=>{if(mob.value&&!mobValid()){$('#mob-field').classList.add('invalid');$('#mob-err').classList.add('show')}});
+mob.addEventListener('keydown',e=>{if(e.key==='Enter')sendMobileOtp()});
+enter['sc-mobile']=()=>{mob.value=fmtPhone(S.phone);renderSide()};
+function sendMobileOtp(){
+  if(!mobValid()){$('#mob-field').classList.add('invalid');$('#mob-err').classList.add('show');mob.focus();return}
+  if(!$('#mob-consent').checked){$('#mob-consent').focus();log('validation.error',{field:'mobile_consent'});return}
+  S.phone=mobDigits(); S.mAttempts=0; S.mResends=0;
+  const b=$('#mob-send'); busy(b,true);
+  later('mobsend',()=>{busy(b,false);issueMobileOtp();go('sc-motp')},900);
+}
+function issueMobileOtp(){
+  S.mCode=code6();
+  log('otp.sent',{channel:'sms',mobile:'+91 XXXXX X'+S.phone.slice(-4),session_id:S.sessionId,expires_in:300});
+}
+
+/* =========================================================================
+   04 MOBILE OTP  (E1)
+   ========================================================================= */
+makeOtp($('#motp'),auto=>{ if(auto===true) verifyMobileOtp() });
+function mobileSms(){later('msms',()=>showSms('DECNTR',`${S.mCode} is your OTP to verify your mobile for e-Signing with Kosmo Finance. Valid for 5 minutes. Do not share it.`,()=>fillOtp($('#motp'),S.mCode)),1400)}
+enter['sc-motp']=()=>{
+  renderSide();
+  $$('[data-phone]').forEach(e=>e.textContent='+91 '+fmtPhone(S.phone));
+  fillOtp($('#motp'),''); $('#motp-err').classList.remove('show');
+  later('mf',()=>$('#motp input').focus(),60);
+  resendTimer($('#motp-resend'),30,'mres',resendMobile,()=>3-S.mResends);
+  mobileSms();
+};
+function resendMobile(){S.mResends++;issueMobileOtp();log('otp.resend',{count:S.mResends});fillOtp($('#motp'),'');$('#motp-err').classList.remove('show');resendTimer($('#motp-resend'),30,'mres',resendMobile,()=>3-S.mResends);mobileSms()}
+function verifyMobileOtp(){
+  const root=$('#motp'), v=otpVal(root), err=$('#motp-err');
+  if(v.length<6){$('span',err).textContent='Enter all 6 digits.';err.classList.add('show');return}
+  const b=$('#motp-go'); busy(b,true);
+  later('mver',()=>{
+    busy(b,false);
+    if(v===S.mCode){log('otp.verified',{session_id:S.sessionId});go('sc-handoff');return}
+    S.mAttempts++; const left=3-S.mAttempts;
+    log('otp.verify.failed',{attempt:S.mAttempts,remaining:left});
+    if(left<=0){fail('mobile_otp_failed');return}
+    otpBad(root); $('span',err).textContent=`Incorrect OTP. ${left} attempt${left>1?'s':''} left.`; err.classList.add('show');
+  },700);
+}
+
+/* =========================================================================
+   05 HANDOFF
+   ========================================================================= */
+enter['sc-handoff']=()=>renderSide();
+function toEsp(){
+  S.txnId=newTxn();
+  S.uAttempts=0; S.uResends=0;
+  log('esign.initiate',{session_id:S.sessionId,txn_id:S.txnId,auth_mode:'otp'});
+  overlay(true,'Opening Decentro eSign','Secure Aadhaar eSign page',true);
+  later('toesp',()=>{overlay(false);go('sc-esp-id')},1200);
+}
+
+/* =========================================================================
+   06 ESP — CONSENT + AADHAAR / VID
+   ========================================================================= */
+const aad=$('#aad');
+function idDigits(){return aad.value.replace(/\D/g,'')}
+function idMax(){return S.idType==='vid'?16:12}
+function setIdType(t){
+  S.idType=t; aad.value=''; clearIdErr();
+  $('#aad-lbl').textContent = t==='vid'?'Virtual ID (VID)':'Aadhaar number';
+  aad.placeholder = t==='vid'?'XXXX XXXX XXXX XXXX':'XXXX XXXX XXXX';
+  aad.maxLength = t==='vid'?19:14;
+  $('#vid-help').style.visibility = t==='vid' ? 'visible':'visible';
+  log('esp.id_type',{type:t});
+}
+$$('input[name="idtype"]').forEach(r=>r.addEventListener('change',()=>setIdType(r.value)));
+aad.addEventListener('input',()=>{const d=idDigits().slice(0,idMax());aad.value=groups4(d);clearIdErr()});
+aad.addEventListener('keydown',e=>{if(e.key==='Enter')sendAadhaarOtp()});
+$('#u-consent').addEventListener('change',e=>{$('#u-consent-box').classList.remove('invalid');log('esp.consent',{given:e.target.checked})});
+function clearIdErr(){$('#aad-field').classList.remove('invalid');$('#aad-err').classList.remove('show')}
+function idErr(msg){$('#aad-field').classList.add('invalid');const e=$('#aad-err');e.textContent=msg;e.classList.add('show');aad.focus()}
+function toggleEye(){const show=aad.type==='password';aad.type=show?'text':'password';$('#aad-eye').setAttribute('aria-label',show?'Hide number':'Show number');$('#aad-eye use').setAttribute('href',show?'#i-eyeoff':'#i-eye')}
+enter['sc-esp-id']=()=>{renderReq();if(!S.id){aad.value=''}else{aad.value=groups4(S.id)}aad.type='password';$('#aad-eye use').setAttribute('href','#i-eye')};
+function sendAadhaarOtp(){
+  if(!$('#u-consent').checked){$('#u-consent-box').classList.add('invalid');log('validation.error',{field:'esp_consent'});$('#u-consent').focus();return}
+  const d=idDigits();
+  if(S.idType==='aadhaar'){
+    if(d.length!==12) return idErr('Enter your 12-digit Aadhaar number.');
+  } else {
+    if(d.length!==16) return idErr('Enter your 16-digit Virtual ID.');
+  }
+  S.id=d;
+  const b=$('#u-send'); busy(b,true);
+  later('usend',()=>{busy(b,false);issueAadhaarOtp();go('sc-esp-otp')},1200);
+}
+function issueAadhaarOtp(){
+  S.uCode=code6();
+  log('esp.uidai.otp.request',{txn_id:S.txnId,id_type:S.idType,id_last4:S.id.slice(-4)});
+}
+
+/* =========================================================================
+   07 ESP — AADHAAR OTP  (E2)
+   ========================================================================= */
+makeOtp($('#uotp'),auto=>{ if(auto===true) verifyAadhaarOtp() });
+function uidaiSms(){later('usms',()=>showSms('UIDAI',`OTP for Aadhaar eSign (XX${S.id.slice(-4)}) is ${S.uCode}. Valid for 10 minutes. Do not share it with anyone.`,()=>fillOtp($('#uotp'),S.uCode)),1600)}
+enter['sc-esp-otp']=()=>{
+  renderReq();
+  $$('[data-idmask]').forEach(e=>e.textContent=(S.idType==='vid'?'VID ':'Aadhaar ')+maskId());
+  fillOtp($('#uotp'),''); $('#uotp-alert').classList.remove('show'); drawLeft();
+  later('uf',()=>$('#uotp input').focus(),60);
+  resendTimer($('#uotp-resend'),45,'ures',resendAadhaar,()=>3-S.uResends);
+  uidaiSms();
+};
+function drawLeft(){const l=3-S.uAttempts;$('#uotp-left').textContent=`${l} attempt${l===1?'':'s'} remaining`}
+function resendAadhaar(){S.uResends++;issueAadhaarOtp();log('esp.otp.resend',{count:S.uResends});fillOtp($('#uotp'),'');resendTimer($('#uotp-resend'),45,'ures',resendAadhaar,()=>3-S.uResends);uidaiSms()}
+function verifyAadhaarOtp(){
+  const root=$('#uotp'), v=otpVal(root), al=$('#uotp-alert');
+  if(v.length<6){$('span',al).innerHTML='<strong>Incomplete OTP.</strong> Enter all 6 digits.';al.classList.add('show');return}
+  const b=$('#uotp-go'); busy(b,true);
+  later('uver',()=>{
+    busy(b,false);
+    if($('#sim-esp').checked){$('#sim-esp').checked=false;log('esp.error',{code:'ESP-500',message:'Signing service unavailable'});fail('esp_error');return}
+    if(v===S.uCode){
+      log('esp.uidai.auth.success',{txn_id:S.txnId});
+      overlay(true,'Applying your eSign','Issuing signature certificate and signing the document',true);
+      later('sign',()=>{
+        S.signedAt=new Date(); S.ref='DEC-ES-'+rand(11,'0123456789');
+        log('esign.completed',{session_id:S.sessionId,txn_id:S.txnId,reference_id:S.ref,signed_at:S.signedAt.toISOString()});
+        log('webhook.merchant',{event:'esign.completed',session_id:S.sessionId,reference_id:S.ref,signer:DEMO.name,signed_document_url:'https://…/signed/'+S.ref+'.pdf'});
+        overlay(false); go('sc-success');
+      },1800);
+      return;
+    }
+    S.uAttempts++; drawLeft(); const left=3-S.uAttempts;
+    log('esp.otp.invalid',{attempt:S.uAttempts,remaining:left});
+    if(left<=0){fail('invalid_otp');return}
+    otpBad(root); $('span',al).innerHTML=`<strong>Invalid OTP.</strong> Enter the OTP you received. ${left} attempt${left>1?'s':''} remaining.`; al.classList.add('show');
+  },900);
+}
+
+/* =========================================================================
+   08 SUCCESS · 09 MERCHANT DONE
+   ========================================================================= */
+enter['sc-success']=()=>{
+  const f=k=>$$(`[data-f="${k}"]`);
+  f('name').forEach(e=>e.textContent=DEMO.name);
+  f('idlabel').forEach(e=>e.textContent=S.idType==='vid'?'VID':'Aadhaar');
+  f('idmask').forEach(e=>e.textContent=maskId());
+  f('signedAt').forEach(e=>e.textContent=IST.format(S.signedAt||new Date())+' IST');
+  f('ref').forEach(e=>e.textContent=S.ref||'—');
+};
+enter['sc-merchant-done']=()=>{
+  S.failedOnce=false;
+  $$('[data-f="signedShort"]').forEach(e=>e.textContent=IST_SHORT.format(S.signedAt||new Date())+' IST');
+  log('merchant.status.check',{session_id:S.sessionId,status:'signed'});
+};
+
+/* =========================================================================
+   E3 FAILED
+   ========================================================================= */
+const FAIL = {
+  invalid_otp:{desc:"The Aadhaar OTP couldn't be verified after 3 attempts. Nothing was signed.",tips:['Use the OTP from UIDAI, not the one Decentro sent for your mobile.','Check that your Aadhaar-linked mobile can receive SMS.',"If you've hit the OTP limit, retry after an hour."],label:'Invalid OTP'},
+  mobile_otp_failed:{desc:"We couldn't verify your mobile number after 3 attempts. Nothing was signed.",tips:['Check the number registered with Kosmo Finance.','Use the latest OTP — older ones stop working when you resend.'],label:'Mobile OTP failed'},
+  cancelled:{desc:'You left the Aadhaar eSign page before signing. Nothing was signed.',tips:['Keep your Aadhaar number or VID ready.','The OTP goes to the mobile linked with your Aadhaar.'],label:'Cancelled by signer'},
+  esp_error:{desc:"The signing service didn't respond. Nothing was signed, and you can retry now.",tips:['This is on our side, not yours.','Retry in a minute. Your mobile is still verified.'],label:'ESP error'}
+};
+function fail(reason){
+  S.failReason=reason; S.failedOnce=true;
+  log('esign.failed',{session_id:S.sessionId,reason});
+  log('webhook.merchant',{event:'esign.failed',session_id:S.sessionId,reason});
+  go('sc-failed');
+}
+enter['sc-failed']=()=>{
+  const f=FAIL[S.failReason]||FAIL.cancelled;
+  $('#f-desc').textContent=f.desc;
+  $('#f-tips').innerHTML=f.tips.map(t=>`<li>${t}</li>`).join('');
+  $('#f-ref').textContent=`Reference: ${S.sessionId} · Reason: ${f.label}`;
+  $('#f-retry').querySelector('.lbl').textContent = S.failReason==='mobile_otp_failed' ? 'Verify mobile again' : 'Try e-Sign again';
+};
+function retry(){const r=S.failReason;log('esign.retry',{reason:r});S.failReason='';S.ref='';S.signedAt=null;if(r==='mobile_otp_failed'){go('sc-mobile')}else{go('sc-handoff')}}
+function backToMerchant(){$('#m-agree').checked=true;$('#m-cta').disabled=false;go('sc-merchant')}
+function restart(){resetState();$('#m-agree').checked=false;$('#m-cta').disabled=true;$('#u-consent').checked=false;$$('input[name="idtype"]')[0].checked=true;setIdType('aadhaar');log('demo.restart',{});go('sc-merchant')}
+
+/* =========================================================================
+   DEVELOPER CONSOLE
+   ========================================================================= */
+const DEV = {
+  'sc-merchant':{n:'01',t:'Loan agreement',own:'m',owner:'NBFC (merchant)',
+    comp:['Document preview (desktop) / viewer sheet (mobile)','Summary card','Consent checkbox','Primary button'],
+    states:['CTA disabled until consent is ticked','"e-Sign not completed" banner after a failed attempt'],
+    api:'Merchant backend → Decentro: create eSign session {document (PDF/base64 or URL), signer_mobile, signer_name, reference_id, redirect_url, webhook_url} → returns session_id + hosted URL.'},
+  'sc-loader':{n:'02',t:'Loader',own:'d',owner:'Decentro',
+    comp:['Progress bar (5 s)','Checklist with ticking states'],
+    states:['Auto-advances to 03 after 5 s','Session invalid/expired → error page (not drawn)'],
+    api:'Decentro: validate session token, fetch document hash + merchant config.'},
+  'sc-mobile':{n:'03',t:'Mobile number',own:'d',owner:'Decentro',
+    comp:['Phone field with +91 prefix','Consent checkbox','Primary button'],
+    states:['Prefilled from session, editable','Invalid → red field + inline error'],
+    valid:['10 digits, first digit 6–9','Consent required'],
+    api:'POST otp/send {session_id, mobile} — first-factor check before Aadhaar.'},
+  'sc-motp':{n:'04',t:'Mobile OTP (E1 inside)',own:'d',owner:'Decentro',
+    comp:['6-box OTP input (paste, auto-advance, one-time-code)','Resend timer','Info note'],
+    states:['E1: wrong OTP → red boxes + "N attempts left"','3 wrong → E3 (mobile_otp_failed)','Resend after 30 s, max 3'],
+    valid:['Exactly 6 digits'],
+    api:'POST otp/verify {session_id, otp}.'},
+  'sc-handoff':{n:'05',t:'Handoff to Aadhaar eSign',own:'d',owner:'Decentro',
+    comp:['Verified chip','3-step explainer','Privacy note'],
+    states:['No auto-redirect — manual continue'],
+    api:'POST esign/initiate {session_id, auth_mode: otp} → txn_id + eSign page URL.'},
+  'sc-esp-id':{n:'06',t:'Consent + Aadhaar / VID',own:'u',owner:'Decentro eSign (ESP)',
+    comp:['Request summary','Consent (required)','Aadhaar / VID segmented control','Masked ID field with show/hide'],
+    states:['Consent missing → red outline','Invalid number → inline error'],
+    valid:['Aadhaar: any 12 digits (demo)','VID: any 16 digits (demo)','Never log or echo the full number'],
+    api:'ESP → UIDAI: OTP request {aadhaar|vid, txn_id}.'},
+  'sc-esp-otp':{n:'07',t:'Aadhaar OTP (E2 inside)',own:'u',owner:'Decentro eSign (ESP)',
+    comp:['6-box OTP input','Attempts counter','Resend timer','Signing note'],
+    states:['E2: invalid OTP → alert + attempts remaining','3 invalid → E3 (invalid_otp)','Resend after 45 s'],
+    valid:['Exactly 6 digits'],
+    api:'ESP → UIDAI auth (OTP) → eKYC → sign document hash → redirect to Decentro with signed response.'},
+  'sc-success':{n:'08',t:'Agreement e-Signed',own:'d',owner:'Decentro',
+    comp:['Success halo','Signature details list','Primary button'],
+    states:['No auto-redirect — manual return'],
+    api:'Webhook → merchant: esign.completed {session_id, reference_id, signer, signed_at, signed_document_url}.'},
+  'sc-merchant-done':{n:'09',t:'Agreement signed',own:'m',owner:'NBFC (merchant)',
+    comp:['Success header','Next-steps timeline','Download signed copy'],
+    states:['Shown only after status is confirmed server-side'],
+    api:'Merchant → Decentro: GET session status (do not trust the redirect alone).'},
+  'sc-failed':{n:'E3',t:'e-Sign not completed',own:'d',owner:'Decentro',
+    comp:['Error halo','Reason-specific tips','Retry + return buttons'],
+    states:['Reasons: invalid_otp · mobile_otp_failed · cancelled · esp_error','Retry re-enters at 05 (or 03 for mobile failure)'],
+    api:'Webhook → merchant: esign.failed {session_id, reason}.'}
+};
+const OWN={m:'own-m',d:'own-d',u:'own-u'};
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function renderDev(){
+  const d=DEV[current]; if(!d)return;
+  const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+  $('#dev-screen').innerHTML=`
+    <div><div class="dev-k">Screen</div><div style="font-size:16px;font-weight:600;color:#fff">${d.n} · ${esc(d.t)}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="dev-own ${OWN[d.own]}">${esc(d.owner)}</span><code style="color:#8A8A8A">#${current}</code></div></div>
+    <div><div class="dev-k">Components</div>${list(d.comp)}</div>
+    <div><div class="dev-k">States</div>${list(d.states)}</div>
+    ${d.valid?`<div><div class="dev-k">Validation</div>${list(d.valid)}</div>`:''}
+    <div><div class="dev-k">API touchpoint <span class="dev-flag">proposed</span></div><pre>${esc(d.api)}</pre></div>
+    <div><div class="dev-k">Session</div><pre>${esc(JSON.stringify({session_id:S.sessionId,txn_id:S.txnId||null,mobile:S.phone?'+91 XXXXX X'+S.phone.slice(-4):null,id_type:S.idType,id_last4:S.id?S.id.slice(-4):null,mobile_attempts:S.mAttempts,aadhaar_attempts:S.uAttempts,reference_id:S.ref||null,fail_reason:S.failReason||null},null,2))}</pre></div>`;
+  $$('#dev-jump .dev-btn').forEach(b=>b.style.borderColor=b.dataset.id===current?'#0092FF':'');
+}
+function renderEvents(){
+  const el=$('#dev-events'); if(!el)return;
+  $('#ev-count').textContent=EVENTS.length?`(${EVENTS.length})`:'';
+  el.innerHTML = EVENTS.length ? EVENTS.map(e=>`<div class="ev"><div class="ev-top"><span class="ev-n">${esc(e.name)}</span><span class="ev-t">${IST_TIME.format(e.at)} IST</span></div>${e.payload&&Object.keys(e.payload).length?`<div class="ev-p">${esc(JSON.stringify(e.payload))}</div>`:''}</div>`).join('') : '<p class="dev-hint">No events yet.</p>';
+}
+function toggleDev(force){
+  const el=$('#dev'); const open = typeof force==='boolean'?force:!el.classList.contains('open');
+  el.classList.toggle('open',open); $('#dev-fab').setAttribute('aria-expanded',open); $('#dev-fab').style.display=open?'none':'flex';
+  if(open) renderDev();
+}
+$$('.dev-tab').forEach(t=>t.addEventListener('click',()=>{
+  $$('.dev-tab').forEach(x=>x.setAttribute('aria-selected',x===t));
+  $$('.dev-pane').forEach(p=>p.classList.toggle('on',p.dataset.pane===t.dataset.tab));
+}));
+(function buildJump(){
+  const g=$('#dev-jump');
+  Object.entries(DEV).forEach(([id,d])=>{
+    const b=document.createElement('button');b.type='button';b.className='dev-btn';b.dataset.id=id;b.textContent=`${d.n} · ${d.t.replace(/ \(.*\)/,'')}`;
+    b.onclick=()=>{prep(id);go(id)};
+    g.appendChild(b);
+  });
+  const sw=$('#dev-sw');
+  ['#0E4F47','#1F3A8A','#7A2E0E','#6D28D9','#111111'].forEach((c,i)=>{
+    const b=document.createElement('button');b.type='button';b.style.background=c;b.setAttribute('aria-label','Brand '+c);b.setAttribute('aria-pressed',i===0);
+    b.onclick=()=>{document.documentElement.style.setProperty('--brand',c);$$('button',sw).forEach(x=>x.setAttribute('aria-pressed',x===b));log('dev.brand',{brand:c})};
+    sw.appendChild(b);
+  });
+})();
+/* Seed whatever a screen needs when it is opened directly (console jump or #hash link) */
+function newTxn(){return 'DES-'+rand(4,'0123456789ABCDEF')+'-'+rand(4,'0123456789ABCDEF')+'-'+rand(4,'0123456789ABCDEF')}
+function prep(id){
+  if(id==='sc-motp'&&!S.mCode) issueMobileOtp();
+  if((id==='sc-esp-id'||id==='sc-esp-otp'||id==='sc-success')&&!S.txnId) S.txnId=newTxn();
+  if((id==='sc-esp-otp'||id==='sc-success')&&!S.id) S.id=DEMO.aadhaar;
+  if(id==='sc-esp-otp'&&!S.uCode) issueAadhaarOtp();
+  if((id==='sc-success'||id==='sc-merchant-done')&&!S.ref){S.signedAt=new Date();S.ref='DEC-ES-'+rand(11,'0123456789')}
+  if(id==='sc-failed'&&!S.failReason) S.failReason='invalid_otp';
+}
+function fillDemo(){
+  switch(current){
+    case 'sc-merchant': $('#m-agree').checked=true;$('#m-cta').disabled=false;break;
+    case 'sc-mobile': mob.value=fmtPhone(DEMO.phone);$('#mob-consent').checked=true;break;
+    case 'sc-motp': fillOtp($('#motp'),S.mCode);break;
+    case 'sc-esp-id': $('#u-consent').checked=true;$('#u-consent-box').classList.remove('invalid');aad.value=groups4(S.idType==='vid'?DEMO.vid:DEMO.aadhaar);clearIdErr();break;
+    case 'sc-esp-otp': fillOtp($('#uotp'),S.uCode);break;
+  }
+  log('dev.fill',{screen:current});
+}
+const SPEC = {
+  flow:'Aadhaar e-Sign for NBFC merchants',
+  actors:{merchant:'NBFC (white-label --brand)',decentro:'Decentro (session, mobile OTP, status, webhooks)',esp:'Decentro eSign — ESP, UIDAI colour language'},
+  screens:Object.fromEntries(Object.entries(DEV).map(([id,d])=>[d.n,{id,title:d.t,owner:d.owner,states:d.states,validation:d.valid||[],api_proposed:d.api}])),
+  transitions:[
+    '01 → 02 on "e-Sign with Aadhaar" (consent ticked)',
+    '02 → 03 automatically after 5 s',
+    '03 → 04 on Send OTP (valid mobile + consent)',
+    '04 → 05 on correct OTP · 3 wrong → E3 (mobile_otp_failed)',
+    '05 → 06 on Continue (no timer)',
+    '06 → 07 on Send OTP (consent + valid Aadhaar/VID) · Cancel → E3 (cancelled)',
+    '07 → 08 on correct OTP · 3 invalid → E3 (invalid_otp) · ESP failure → E3 (esp_error)',
+    '08 → 09 on Return (no timer)',
+    'E3 → 05 Try again (03 for mobile failure) · E3 → 01 Return'
+  ],
+  events:['merchant.esign.session.create','session.ready','otp.sent','otp.verified','otp.verify.failed','esign.initiate','esp.uidai.otp.request','esp.uidai.auth.success','esp.otp.invalid','esign.completed','esign.failed','webhook.merchant'],
+  limits:{mobile_otp:{attempts:3,resend_after_s:30,max_resends:3},aadhaar_otp:{attempts:3,resend_after_s:45,max_resends:3},loader_s:5},
+  tokens:{decentro:{primary:'#0A0A0A',background:'#F5F5F5',border:'#E5E5E5'},esp_uidai:{red:'#CC292B',yellow_orange:'#E8B012',grey:'#5C5958',grey_light:'#A9A8A8',ink:'#1F1A17'},merchant:{brand:'#0E4F47'}},
+  pii_rules:['Never log or display the full Aadhaar/VID — last 4 only','Kosmo Finance never receives the Aadhaar number','Mobile shown masked in logs']
+};
+$('#dev-spec').textContent=JSON.stringify(SPEC,null,2);
+function copySpec(btn){
+  const txt=JSON.stringify(SPEC,null,2);
+  const done=()=>{const o=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=o,1400)};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(done,()=>fallbackCopy(txt,done))}else fallbackCopy(txt,done);
+}
+function fallbackCopy(t,done){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();done()}
+
+/* Keyboard: Esc closes overlays / console; Ctrl/Cmd + . toggles the console */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ if($('#doc-modal').classList.contains('show'))closeDoc(); else if($('#dev').classList.contains('open'))toggleDev(false); }
+  if((e.ctrlKey||e.metaKey)&&e.key==='.'){e.preventDefault();toggleDev()}
+});
+$('#doc-modal').addEventListener('click',e=>{if(e.target.id==='doc-modal')closeDoc()});
+
+/* Boot */
+resetState(); renderDocs(false); renderSide(); renderEvents();
+const startAt = (location.hash||'').replace('#','');
+if(DEV[startAt]){prep(startAt);go(startAt)}else go('sc-merchant');
+</script>
+</body>
+</html>
