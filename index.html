@@ -308,72 +308,72 @@ const DEMOS = [
   {slug:'ovse-aadhaar-app', group:'identity', tag:'OVSE', surface:'Mobile app',
    name:'OVSE Aadhaar App', meta:'7 screens · 9 use cases',
    desc:'Offline Aadhaar verification at the counter. Pick the use case — airport, hotel, clinic, rentals — scan the customer’s Aadhaar QR and confirm identity on the spot.',
-   file:'demos/ovse-aadhaar-app.html', view:'phone'},
+   file:'ovse-aadhaar-app.html', view:'phone'},
 
   {slug:'ovse-portal', group:'identity', tag:'OVSE', surface:'Operator web app',
    name:'OVSE Portal', meta:'6 screens · success / fail / expiry',
    desc:'Operator-assisted verification. The front-desk agent signs in once a day, enters the customer’s name, and the customer approves on their own Aadhaar app.',
-   file:'demos/ovse-portal.html', view:'full'},
+   file:'ovse-portal.html', view:'full'},
 
   {slug:'ovse-hospitality', group:'identity', tag:'OVSE', surface:'Front-desk console',
    name:'OVSE Hospitality', meta:'5 sections · Form C',
    desc:'The hotel front desk end to end: check-in queue, digital guest register, Form C filing for foreign guests, room keys and the PMS integration.',
-   file:'demos/ovse-hospitality.html', view:'full'},
+   file:'ovse-hospitality.html', view:'full'},
 
   {slug:'face-forensics', group:'identity', tag:'Farsight', surface:'Mobile journey + presenter',
    name:'Face Forensics', meta:'Presenter · outcome switcher',
    desc:'Passive image liveness and face match as the customer sees them, with a presenter panel to brand the journey and switch the outcome mid-pitch.',
-   file:'demos/face-forensics.html', view:'full'},
+   file:'face-forensics.html', view:'full'},
 
   {slug:'verification-sdk', group:'identity', tag:'Verification', surface:'In-app SDK',
    name:'Verification SDK', meta:'RPD · VerifyPay · VBA',
    desc:'One SDK for all three verification services in-app — bank account and UPI ID checks, including the network-loss and retry paths the frontend team has to build.',
-   file:'demos/verification-sdk.html', view:'full'},
+   file:'verification-sdk.html', view:'full'},
 
   {slug:'onboarding-pan-first', group:'identity', tag:'Onboarding', surface:'Mobile-first',
    name:'PAN-First Onboarding', meta:'4 screens · DigiLocker OTP',
    desc:'Non-regulated onboarding starting from a mobile number: PAN first, DigiLocker OTP, review and confirm — plus the no-record-found path.',
-   file:'demos/onboarding-pan-first.html', view:'full'},
+   file:'onboarding-pan-first.html', view:'full'},
 
   {slug:'omniscore', group:'risk', tag:'Omniscore', surface:'Web',
    name:'Mobile Risk Scoring', meta:'3 screens · signal breakdown',
    desc:'Score a customer from nothing but their mobile number, then show the signals behind the score and the decision it recommends.',
-   file:'demos/omniscore-risk-scoring.html', view:'full'},
+   file:'omniscore-risk-scoring.html', view:'full'},
 
   {slug:'aadhaar-esign', group:'risk', tag:'e-Sign', surface:'Mobile journey',
    name:'Aadhaar e-Sign', meta:'10 screens · merchant → ESP → merchant',
    desc:'An NBFC loan agreement signed end to end — merchant page, Decentro as the ESP, mobile OTP, the Aadhaar e-Sign screens, and the hand-back to the merchant.',
-   file:'demos/aadhaar-esign.html', view:'full'},
+   file:'aadhaar-esign.html', view:'full'},
 
   {slug:'checkout-builder', group:'payments', tag:'Checkout', surface:'Builder + live preview',
    name:'Checkout Builder', meta:'Drag, configure, open live',
    desc:'Assemble a hosted checkout on a canvas — brand header, payment options, custom fields, billing address — then open it live in web and mobile views.',
-   file:'demos/checkout-builder.html', view:'full'},
+   file:'checkout-builder.html', view:'full'},
 
   {slug:'netbanking', group:'payments', tag:'Banking Connect', surface:'Web + mobile',
    name:'Net Banking 2.0', meta:'3 surfaces · per-bank theming',
    desc:'QR-led net banking collection: the merchant page, the hand-off stage, and the payer’s own bank site themed per bank from a single screen.',
-   file:'demos/netbanking-connect.html', view:'full'},
+   file:'netbanking-connect.html', view:'full'},
 
   {slug:'autopay-lending', group:'payments', tag:'Autopay', surface:'Web',
    name:'UPI Autopay for Lending', meta:'4 screens · mandate + first debit',
    desc:'Mandate registration and the first collection in one chain, with the declined-mandate and insufficient-funds outcomes shown as they land.',
-   file:'demos/autopay-lending.html', view:'full'},
+   file:'autopay-lending.html', view:'full'},
 
   {slug:'ecollect-split', group:'payments', tag:'E-Collect', surface:'Web',
    name:'E-Collect with Splits', meta:'3 screens · split settlement',
    desc:'Configure a virtual collection account with a split rule, watch it provision, then see each collection split across beneficiaries as it arrives.',
-   file:'demos/ecollect-split.html', view:'full'},
+   file:'ecollect-split.html', view:'full'},
 
   {slug:'lrs-checkout', group:'crossborder', tag:'LRS', surface:'Mobile checkout · iFrame/SDK',
    name:'LRS Checkout', meta:'5 screens · 6 order states',
    desc:'The cross-border payer journey — details, bank, review, bank portal, status. Open the embed variant to see the same checkout as the iFrame/SDK surface.',
-   file:'demos/lrs-checkout.html', view:'phone', variants:[{label:'Embed (iFrame/SDK)', q:'?embed=1'}]},
+   file:'lrs-checkout.html', view:'phone', variants:[{label:'Embed (iFrame/SDK)', q:'?embed=1'}]},
 
   {slug:'overseas-investments', group:'crossborder', tag:'LRS', surface:'Web + mobile',
    name:'Overseas Investments', meta:'11 screens · fund + withdraw',
    desc:'Fund a US investing account and withdraw back again: checkout, the bank-linking walkthrough with OTP, and both money directions end to end.',
-   file:'demos/overseas-investments.html', view:'full'}
+   file:'overseas-investments.html', view:'full'}
 ];
 
 const SIZES = {full:null, tablet:[834,1112], phone:[390,844]};
