@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
 <title>Net Banking 2.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -567,6 +570,21 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stro
   .g-d{display:none}
 }
 @media (max-width:640px){ .demo-seg{display:none} .topbar{padding:0 12px;gap:10px} .g-next{padding:0 14px} .g-k .badge{display:none} }
+/* Real phone: the device IS the phone. Drop the mock bezel and use the whole viewport. */
+@media (max-width:560px){
+  .stage{padding:0 0 calc(var(--gh,96px) + 8px) 0!important;overflow:hidden!important;align-items:stretch!important;justify-items:stretch!important}
+  .devc{animation:none;width:100%;height:100%;min-width:0}
+  .devc-in{width:100%;height:100%}
+  .dev-cap{display:none}
+  .phone{width:100%;height:100%;border-radius:0;padding:0;background:none;box-shadow:none}
+  .scr{width:100%;height:100%;border-radius:0}
+  .guide{left:8px;right:8px;width:auto;transform:none;bottom:8px;padding:8px;gap:8px}
+  .g-tx{min-width:0;flex:1 1 auto;overflow:hidden}
+  .g-k{min-width:0;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px}
+  .g-t{font-size:12.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .g-next{height:40px;padding:0 12px;font-size:12.5px}
+  .g-back{flex:none}
+}
 .brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(140deg,var(--brand),var(--brand-2));display:grid;place-items:center;flex:none;color:#fff}
 .brand-mark svg{width:18px;height:18px}
 

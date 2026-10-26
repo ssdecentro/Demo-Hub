@@ -301,6 +301,11 @@
     }
   }
   .vis-hidden{display:none !important}
+
+/* phone input must be allowed to shrink — it was 6px past the right edge at 360 */
+.phone-wrap{min-width:0}
+.phone-wrap input{min-width:0;flex:1 1 auto;width:100%}
+@media (max-width:380px){ .phone-wrap .cc{padding-left:10px;padding-right:8px;font-size:13px} }
 </style>
 </head>
 <body>

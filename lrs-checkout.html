@@ -1119,6 +1119,10 @@ body.embed .page{padding-top:18px;}
   .paybar-v{font-size:15px;}
 }
 @media(max-width:480px){ .drawer{max-width:100vw;width:100%;} }
+
+/* the mock browser URL ran past the frame at 360 */
+.url-bar{min-width:0;overflow:hidden}
+#portalUrl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 </style>
 </head>
 <body>
@@ -2300,7 +2304,7 @@ function go(id){
    @dev postMessage uses '*' here for the demo. In production pin the host
    origin from the session token and validate event.origin on the way back.
 ════════════════════════════════════════════════════════════════ */
-const EMBED = new URLSearchParams(location.search).has('embed') || (window.self !== window.top);
+const EMBED = new URLSearchParams(location.search).has('embed'); /* hub: iframe alone no longer forces embed mode — use ?embed=1 */
 if (EMBED) document.body.classList.add('embed');
 
 function emit(type, payload){

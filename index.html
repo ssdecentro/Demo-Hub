@@ -25,6 +25,10 @@
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
   --r:14px;
   --bar:60px;
+  /* console: deliberately dark in both themes — this is a terminal, not a document */
+  --c-bg:#0D1117; --c-head:#11161D; --c-line:#222A34; --c-fg:#DCE3EC; --c-dim:#78839A;
+  --c-key:#7FC4FF; --c-str:#9BE3AE; --c-num:#F3C377; --c-pur:#C9A7FF;
+  --api-w:min(430px,92vw);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -163,21 +167,90 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 .viewer[hidden]{display:none!important}
 .stage{position:absolute;inset:0;overflow:hidden}
 .stage iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
-.exit{
-  position:fixed;z-index:60;display:inline-flex;align-items:center;overflow:hidden;
-  right:max(14px,env(safe-area-inset-right,0px));
-  bottom:calc(14px + env(safe-area-inset-bottom,0px));
-  width:38px;height:38px;padding:0;border-radius:100px;
-  background:var(--surface);color:var(--fg-muted);border:1px solid var(--border-strong);
-  box-shadow:0 2px 6px rgba(16,19,23,.12),0 14px 28px -16px rgba(16,19,23,.45);
-  opacity:.5;transition:opacity .18s,width .22s cubic-bezier(.2,.8,.3,1),color .18s,border-color .18s;
+.hud{
+  position:fixed;z-index:60;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:4px;border-radius:100px;
+  right:max(10px,env(safe-area-inset-right,0px));
+  top:50%;transform:translateY(-50%);
+  background:var(--surface);border:1px solid var(--border-strong);
+  box-shadow:0 2px 6px rgba(16,19,23,.12),0 16px 32px -18px rgba(16,19,23,.5);
+  opacity:.62;transition:opacity .15s,right .22s cubic-bezier(.2,.8,.3,1);
 }
-.exit svg{width:16px;height:16px;flex:none;margin:0 11px}
-.exit span{font-size:12.5px;font-weight:600;white-space:nowrap;padding-right:15px;opacity:0;transition:opacity .18s}
-.exit:hover,.exit:focus-visible{opacity:1;width:118px;color:var(--fg);border-color:var(--accent)}
-.exit:hover span,.exit:focus-visible span{opacity:1}
-.exit.idle{opacity:0;pointer-events:none}
-@media (hover:none){.exit{opacity:.85}}
+.hud:hover,.hud:focus-within{opacity:1}
+.hud button{
+  width:34px;height:34px;flex:none;background:none;border:0;border-radius:100px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--fg-muted);transition:background .15s,color .15s;
+}
+.hud button:hover{background:var(--accent-soft);color:var(--accent-ink)}
+.hud button:disabled{opacity:.35;pointer-events:none}
+.hud button svg{width:16px;height:16px;flex:none}
+.hud .home{background:var(--accent-soft);color:var(--accent-ink)}
+.hud .home:hover{background:var(--accent);color:#fff}
+.hud .api-t[aria-pressed="true"]{background:var(--accent);color:#fff}
+.hud .sep{width:18px;height:1px;background:var(--border);margin:3px 0;flex:none}
+.hud .tog svg{transform:rotate(90deg);transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+.hud.min .home,.hud.min .sep,.hud.min .step,.hud.min .reload,.hud.min .api-t{display:none}
+.hud.min .tog svg{transform:rotate(-90deg)}
+
+/* ---------- backend panel ---------- */
+.api{
+  position:fixed;z-index:58;top:0;bottom:0;right:0;width:var(--api-w);
+  display:flex;flex-direction:column;background:var(--c-bg);color:var(--c-fg);
+  border-left:1px solid var(--c-line);box-shadow:-24px 0 60px -30px rgba(0,0,0,.8);
+  font-family:var(--mono);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-right:env(safe-area-inset-right,0px);
+}
+.api[hidden]{display:none!important}
+.api-h{flex:none;display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--c-line);background:var(--c-head)}
+.api-h .ttl{min-width:0;flex:1}
+.api-h .ttl b{display:block;font-family:var(--sans);font-size:13px;font-weight:700;color:var(--c-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{display:inline-block;margin-top:3px;font-size:9.5px;font-weight:700;letter-spacing:.07em;padding:2px 6px;border-radius:4px}
+.badge.spec{background:rgba(155,227,174,.14);color:var(--c-str)}
+.badge.draft{background:rgba(243,195,119,.14);color:var(--c-num)}
+.api-h button{
+  flex:none;background:rgba(255,255,255,.05);border:1px solid var(--c-line);border-radius:7px;
+  color:var(--c-dim);height:28px;padding:0 9px;font-family:var(--sans);font-size:11.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;transition:background .15s,color .15s;
+}
+.api-h button:hover{background:rgba(255,255,255,.1);color:var(--c-fg)}
+.api-h button svg{width:12px;height:12px}
+.api-h button.on{background:rgba(127,196,255,.16);color:var(--c-key);border-color:rgba(127,196,255,.3)}
+.api-body{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px}
+.api-empty{margin:auto;padding:28px 18px;text-align:center;color:var(--c-dim);font-family:var(--sans);font-size:12.5px;line-height:1.65}
+.api-empty b{display:block;color:var(--c-fg);font-size:13.5px;font-weight:600;margin-bottom:6px}
+.call{border:1px solid var(--c-line);border-radius:9px;overflow:hidden;background:rgba(255,255,255,.015)}
+.call.live{border-color:rgba(127,196,255,.34)}
+.call-h{width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;background:none;border:0;text-align:left;color:inherit}
+.call-h:hover{background:rgba(255,255,255,.04)}
+.m{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,.07)}
+.m-POST{color:var(--c-key)}.m-GET{color:var(--c-str)}.m-PATCH{color:var(--c-num)}.m-HOOK{color:var(--c-pur)}.m-NOTE{color:var(--c-dim)}
+.call-h .pth{flex:1;min-width:0;font-size:11px;color:var(--c-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.call-h .st{flex:none;font-size:10px;color:var(--c-str);font-variant-numeric:tabular-nums}
+.call-h .lat{flex:none;font-size:10px;color:var(--c-dim);font-variant-numeric:tabular-nums}
+.call-b{padding:2px 10px 11px;border-top:1px solid var(--c-line)}
+.call-b[hidden]{display:none!important}
+.lbl{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--c-dim);margin:11px 0 5px}
+.call-b pre{margin:0;font-size:10.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;color:var(--c-fg)}
+.call-b pre i{font-style:normal}
+.call-b .k{color:var(--c-key)}.call-b .s{color:var(--c-str)}.call-b .n{color:var(--c-num)}.call-b .b{color:var(--c-pur)}
+.call-b .note{margin:11px 0 0;padding:9px 10px;border-radius:7px;background:rgba(243,195,119,.08);
+  font-family:var(--sans);font-size:11.5px;line-height:1.6;color:#E9D3A8}
+.api-f{flex:none;padding:9px 14px;border-top:1px solid var(--c-line);background:var(--c-head);font-size:10px;color:var(--c-dim);display:flex;gap:8px;align-items:center}
+.api-f b{color:var(--c-dim);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud.shift{right:calc(var(--api-w) + 10px)}
+@media (max-width:640px){
+  .api{top:auto;left:0;right:0;width:auto;height:62dvh;border-left:0;border-top:1px solid var(--c-line)}
+  .hud{flex-direction:row}
+  .hud .sep{width:1px;height:18px;margin:0 3px}
+  .hud .tog svg{transform:none}
+  .hud.min .tog svg{transform:rotate(180deg)}
+  .hud.shift{
+    right:max(10px,env(safe-area-inset-right,0px));
+    top:auto;bottom:calc(62dvh + 12px);transform:none;
+  }
+}
 
 .loading{
   position:absolute;inset:0;display:grid;place-items:center;gap:0;background:var(--stage);
@@ -229,15 +302,42 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 <div class="wrap filters" id="filters"></div>
 <main class="wrap" id="list"></main>
 <footer class="wrap">
-  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. <kbd>/</kbd> to search · <kbd>Esc</kbd> or the button at bottom-right to come back.</p>
+  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. <kbd>/</kbd> to search · <kbd>Esc</kbd> or Home to come back · <kbd>&lt;/&gt;</kbd> in the cluster shows the API calls behind each screen.</p>
 </footer>
 
 <section class="viewer" id="viewer" hidden aria-label="Demo viewer">
   <div class="stage" id="stage"><iframe id="frame" title="Demo" allow="clipboard-write"></iframe></div>
   <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
-  <button class="exit" id="back" title="Back to all demos (Esc)" aria-label="Back to all demos">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg><span>All demos</span>
-  </button>
+  <div class="hud" id="hud" role="toolbar" aria-label="Demo controls">
+    <button class="home" id="back" title="Back to all demos (Esc)" aria-label="Back to all demos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>
+    </button>
+    <span class="sep"></span>
+    <button class="step" id="prev" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="step" id="next" aria-label="Next flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
+    <button class="reload" id="restart" title="Restart this flow" aria-label="Restart this flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg></button>
+    <button class="api-t" id="apiTog" title="Backend: what the APIs are doing" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m8 6-5 6 5 6"/><path d="m16 6 5 6-5 6"/></svg>
+    </button>
+    <span class="sep"></span>
+    <button class="tog" id="hudTog" title="Hide controls" aria-label="Hide controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
+  </div>
+  <aside class="api" id="api" hidden aria-label="Backend API trace">
+    <header class="api-h">
+      <span class="ttl"><b id="apiFlow">—</b><span class="badge draft" id="apiBadge">DRAFT</span></span>
+      <button id="apiFill" title="Play the whole sequence without clicking through">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 4.5v15l12-7.5z"/></svg>Demo fill
+      </button>
+      <button id="apiClear" title="Clear the trace" aria-label="Clear the trace">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
+      </button>
+      <button id="apiClose" title="Close" aria-label="Close the backend panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </header>
+    <div class="api-body" id="apiBody"></div>
+    <footer class="api-f"><b id="apiHost"></b></footer>
+  </aside>
 </section>
 
 <script>
@@ -395,6 +495,219 @@ function renderList(){
 }
 $('q').addEventListener('input', e => { query = e.target.value.trim(); renderList(); });
 
+/* ---------- API traces ----------
+   v:1 = checked against the specs in this project. Everything else is a DRAFT for Sachin to correct.
+   host is the staging base used across the demos. */
+const API_HOST = 'https://staging.api.decentro.tech';
+
+const TRACES = {
+'autopay-lending': {v:1, screens:{
+  'screen-input':[{m:'NOTE', t:'No call yet', n:'The repayment account comes from the lender’s own loan record (the disbursal account). That is what makes TPV possible on collect without a mobile-to-account lookup.'}],
+  'screen-chain':[
+    {m:'POST', p:'/v3/payments/upi/autopay/mandate/link', s:200, ms:412, t:'Register the mandate',
+     req:{reference_id:'LN-48217734-MND', amount_rule:'MAX', amount:15000, default_amount:9840, frequency:'MONTHLY', start_date:'2026-11-05', end_date:'2028-10-26', is_first_txn_amount:true, first_txn_amount:14560, purpose:'Loan EMI collection'},
+     res:{decentro_txn_id:'7f2c9e14-55a1-4a9e-9d2b-0c8f1ab33e10', api_status:'SUCCESS', data:{mandate_status:'PENDING', decentro_mandate_id:'MND20261026000913', first_txn_amount_reference_id:'FTA20261026000913'}},
+     n:'Comes back PENDING, never ACTIVE. It only turns ACTIVE once the payer authorises with their UPI MPIN — so this step must not be shown as captured approval.'},
+    {m:'GET', p:'/v3/payments/upi/autopay/mandate/status?decentro_mandate_id=MND20261026000913', s:200, ms:188, t:'Confirm the payer approved',
+     res:{decentro_txn_id:'2b64d0aa-1c33-4f71-ae02-9d5c7b2104f8', api_status:'SUCCESS', message:'Mandate status fetched', data:{mandate_status:'ACTIVE', mandate_status_description:'Mandate approved by payer', decentro_mandate_id:'MND20261026000913'}, response_key:'success_mandate_status_fetched'},
+     n:'Query params only — no JSON body on this GET. ACTIVE here is the proof of MPIN approval, and a decline surfaces here as REJECTED.'},
+    {m:'GET', p:'/v3/payments/upi/autopay/presentation/status?presentation_sequence_id=PS20261026114702', s:200, ms:231, t:'First amount debited',
+     res:{decentro_txn_id:'9ad1f7c5-83be-42d0-b1aa-6e4409f2dd71', api_status:'SUCCESS', data:{presentation_detail:{status:'SUCCESS', status_description:'Debit successful', bank_reference_number:'HDFC2610261147021', npci_txn_id:'NPCI261026114702884', transaction_authentication_timestamp:'Oct 26, 2026 11:47:02 AM'}}, response_key:'success_presentation_status_fetched'},
+     n:'Not the generic UPI transaction-status route — that is a different product. Query params only here too.'}],
+  'screen-review':[{m:'NOTE', t:'Nothing on the wire', n:'Review renders what the two previous responses already returned. Tenure is not cosmetic — 24 months is what derived end_date 26 Oct 2028.'}],
+  'screen-success':[{m:'NOTE', t:'From EMI 2 onward', n:'A pre-debit notification must go out at least 24h before each later debit. That belongs to the collections scheduler, not to this setup journey.'}]
+}},
+
+'lrs-checkout': {v:1, screens:{
+  'sc-details':[{m:'POST', p:'/payments/lrs/customers', s:201, ms:356, t:'Create the LRS customer',
+     req:{first_name:'John', middle_name:'Alex', last_name:'Doe', date_of_birth:'1991-04-12', nationality:'IN', passport_number:'Z4821907', pan:'ABCDE1234F', email:'john.doe@example.com', mobile:'9876543210', address:'12 Residency Road', city:'Bengaluru', state:'KA', pincode:'560025', country_code:'IN'},
+     res:{lrs_customer_id:'cust_lrs_98765', status:'CREATED'},
+     n:'Field names here are the API contract — keep them byte-identical to the form.'}],
+  'sc-bank':[{m:'PATCH', p:'/payments/lrs/customers', s:200, ms:244, t:'Attach the funding account',
+     req:{lrs_customer_id:'cust_lrs_98765', bank_code:'UTIB', account_number:'XXXXXXXX0887', ifsc:'UTIB0000245', account_type:'SAVINGS', bank_customer_id:'CRN8821004', bank_mobile:'9876543210', bank_email:'john.doe@example.com'},
+     res:{lrs_customer_id:'cust_lrs_98765', bank_account_status:'REGISTERED'},
+     n:'Same-name debit is checked here, before the bank — not at it. Registered accounts read back from GET /payments/lrs/customers/:id.'}],
+  'sc-review':[
+    {m:'GET', p:'/payments/lrs/customers/cust_lrs_98765', s:200, ms:131, t:'Read the profile back',
+     res:{lrs_customer_id:'cust_lrs_98765', pan:'ABCDE1234F', accounts:[{bank_code:'UTIB', account_number:'XXXXXXXX0887', status:'REGISTERED'}]}},
+    {m:'POST', p:'/payments/lrs/orders/TXN_LRS_2026_8113/launch', s:200, ms:402, t:'Persist the order, then launch',
+     req:{amount:{value:100, currency:'USD'}, inr_estimate:8725, purpose_code:'S0001', beneficiary:'Vested Finance (DriveWealth LLC)', funding_account:'XXXXXXXX0887'},
+     res:{order_id:'TXN_LRS_2026_8113', state:'INITIATED', portal_url:'https://argo.axisbank.co.in/lrs/session/9f21c0'},
+     n:'Persist the order BEFORE opening the iFrame. Every INR figure stays estimated until the bank books the rate.'}],
+  'sc-portal':[{m:'NOTE', t:'Inside the bank, not us', n:'Five steps in the bank’s own portal: login and auth, transfer details, beneficiary, sender declaration, confirm booking. The A2 is signed inside the bank. No Decentro call on this screen.'}],
+  'sc-status':[
+    {m:'GET', p:'/payments/lrs/orders/TXN_LRS_2026_8113', s:200, ms:176, t:'Confirm the outcome',
+     res:{order_id:'TXN_LRS_2026_8113', state:'SUCCESS', bank_reference:'AXIS2610268113', utr:null},
+     n:'The frame’s completion event is a hint only — always confirm against this. Six states: SUCCESS, COMPLETED, FAILED, CANCELLED, EXPIRED, REJECTED. No callback in 15 minutes is EXPIRED, never FAILED.'},
+    {m:'HOOK', p:'lrs.order.status_updated', t:'Webhook',
+     res:{event:'lrs.order.status_updated', order_id:'TXN_LRS_2026_8113', state:'COMPLETED', utr:'AXISR52026102600887'},
+     n:'UTR is visible and editable on SUCCESS, read-only on COMPLETED, hidden on the four failure states. It is optional and must never look required.'}]
+}},
+
+'overseas-investments': {screens:{
+  'sc-checkout':[{m:'POST', p:'/payments/lrs/customers', s:201, ms:341, t:'Create the LRS customer',
+     req:{first_name:'John', last_name:'Doe', pan:'ABCDE1234F', email:'john.doe@example.com', mobile:'9876543210', nationality:'IN'},
+     res:{lrs_customer_id:'cust_lrs_44120', status:'CREATED'}, n:'Same LRS endpoints as the checkout flow — payloads below are adapted, not lifted from a spec.'}],
+  'sc-link':[{m:'PATCH', p:'/payments/lrs/customers', s:200, ms:262, t:'Link the bank account',
+     req:{lrs_customer_id:'cust_lrs_44120', bank_code:'HDFC', account_number:'XXXXXXXX4412', ifsc:'HDFC0001205', account_type:'SAVINGS'},
+     res:{bank_account_status:'PENDING_OTP'}}],
+  'sc-linkotp':[{m:'POST', p:'/payments/lrs/customers/accounts/verify', s:200, ms:198, t:'Verify with OTP',
+     req:{lrs_customer_id:'cust_lrs_44120', otp:'482913'}, res:{bank_account_status:'REGISTERED'}}],
+  'sc-success':[{m:'GET', p:'/payments/lrs/orders/TXN_LRS_2026_4412', s:200, ms:165, t:'Funding confirmed',
+     res:{order_id:'TXN_LRS_2026_4412', state:'SUCCESS', amount:{value:1000, currency:'USD'}, inr_debited:87250}}],
+  'sc-withdraw':[{m:'POST', p:'/payments/lrs/repatriations', s:201, ms:388, t:'Start the withdrawal',
+     req:{lrs_customer_id:'cust_lrs_44120', amount:{value:450, currency:'USD'}, credit_account:'XXXXXXXX4412', purpose_code:'S0001'},
+     res:{repatriation_id:'RPT_2026_0931', state:'INITIATED'}, n:'Inward leg — purpose code and the credit account are what the AD bank reports.'}],
+  'sc-wdsuccess':[{m:'HOOK', p:'lrs.repatriation.status_updated', t:'Webhook',
+     res:{event:'lrs.repatriation.status_updated', repatriation_id:'RPT_2026_0931', state:'COMPLETED', utr:'HDFCN52026102604412'}}]
+}},
+
+'aadhaar-esign': {screens:{
+  'sc-merchant':[{m:'POST', p:'/v3/esign/documents', s:201, ms:402, t:'Upload the agreement',
+     req:{reference_id:'LN-48217734-AGR', document_name:'Loan agreement', mime_type:'application/pdf', signers:[{name:'Rajesh Kumar Sharma', mobile:'9876543210', signature_position:{page:6, x:120, y:640}}]},
+     res:{document_id:'DOC20261026004412', status:'UPLOADED', page_count:6}}],
+  'sc-loader':[{m:'POST', p:'/v3/esign/requests', s:201, ms:318, t:'Create the e-Sign request',
+     req:{document_id:'DOC20261026004412', signer_mobile:'9876543210', esp:'DECENTRO', redirect_url:'https://kosmofinance.in/agreement/complete'},
+     res:{esign_request_id:'ESR20261026004412', status:'PENDING', esign_url:'https://esign.decentro.tech/s/9f21c0'},
+     n:'Decentro is the ESP in this flow — the Aadhaar screens are ours, in UIDAI colour language.'}],
+  'sc-motp':[{m:'POST', p:'/v3/esign/requests/ESR20261026004412/verify-mobile', s:200, ms:221, t:'Verify signer mobile',
+     req:{otp:'441207'}, res:{status:'MOBILE_VERIFIED'}}],
+  'sc-esp-otp':[{m:'POST', p:'/v3/esign/requests/ESR20261026004412/aadhaar-otp', s:200, ms:644, t:'Aadhaar OTP to UIDAI',
+     req:{aadhaar_last4:'4412', otp:'903118', consent:true}, res:{status:'SIGNED', signed_at:'Oct 26, 2026 07:14:52 PM'}}],
+  'sc-success':[{m:'GET', p:'/v3/esign/requests/ESR20261026004412', s:200, ms:143, t:'Fetch the signed document',
+     res:{esign_request_id:'ESR20261026004412', status:'COMPLETED', signed_document_url:'https://api.decentro.tech/esign/DOC20261026004412/signed.pdf', signature:{type:'AADHAAR_OTP', certificate_serial:'7A41C0', timestamp:'Oct 26, 2026 07:14:52 PM'}}}],
+  'sc-failed':[{m:'GET', p:'/v3/esign/requests/ESR20261026004412', s:200, ms:139, t:'Failure outcome',
+     res:{status:'FAILED', failure_reason:'AADHAAR_OTP_LIMIT_EXCEEDED'}}]
+}},
+
+'onboarding-pan-first': {screens:{
+  'screen-input':[{m:'POST', p:'/v3/kyc/pan/validate', s:200, ms:287, t:'Validate the PAN',
+     req:{reference_id:'ONB20261026001', pan:'ABCDE1234F', consent:true, purpose:'Customer onboarding'},
+     res:{api_status:'SUCCESS', data:{pan_status:'VALID', name:'RAKESH SHARMA', last_updated:'2026-03-14', aadhaar_seeded:true}}}],
+  'screen-chain':[
+    {m:'POST', p:'/v3/kyc/digilocker/session', s:201, ms:364, t:'Open a DigiLocker session',
+     req:{reference_id:'ONB20261026001', documents:['PAN','AADHAAR'], redirect_url:'https://merchant.example.in/onboard/return'},
+     res:{session_id:'DGL20261026001', url:'https://digilocker.decentro.tech/s/4a21e0', status:'PENDING'}},
+    {m:'GET', p:'/v3/kyc/digilocker/documents?session_id=DGL20261026001', s:200, ms:512, t:'Pull the documents',
+     res:{api_status:'SUCCESS', data:{status:'CONSENTED', documents:[{type:'AADHAAR', name:'Rakesh Sharma', dob:'1990-08-21', address:'Flat 402, Prestige Acropolis, Bengaluru 560047'},{type:'PAN', pan:'ABCDE1234F'}]}}}],
+  'screen-success':[{m:'POST', p:'/v3/onboarding/customers', s:201, ms:298, t:'Create the customer',
+     req:{reference_id:'ONB20261026001', mobile:'9876543210', pan:'ABCDE1234F', kyc_mode:'DIGILOCKER', entity_type:'INDIVIDUAL'},
+     res:{customer_id:'CUS20261026004412', status:'ACTIVE', kyc_level:'FULL'}}]
+}},
+
+'omniscore': {screens:{
+  'screen-input':[{m:'POST', p:'/v3/risk/omniscore', s:200, ms:734, t:'Score the mobile number',
+     req:{reference_id:'SCR20261026001', mobile:'9876543210', consent:true, purpose:'Credit underwriting'},
+     res:{api_status:'SUCCESS', data:{request_id:'OMN20261026001', status:'PROCESSING'}},
+     n:'The mobile number is the only input — no PAN, no bank statement, no document upload.'}],
+  'screen-chain':[{m:'GET', p:'/v3/risk/omniscore/OMN20261026001', s:200, ms:286, t:'Poll for the score',
+     res:{api_status:'SUCCESS', data:{status:'COMPLETED', score:742, band:'MEDIUM_LOW', signals:{vintage_months:84, telecom_status:'ACTIVE_PREPAID', digital_footprint:'HIGH', upi_activity:'FREQUENT', name_match:0.96}, recommendation:'APPROVE_WITH_LIMIT', suggested_limit:180000}}}],
+  'screen-result':[{m:'NOTE', t:'Decision is yours', n:'Decentro returns the score, the signals behind it and a recommendation. The lending policy that turns that into an approval stays on the lender side.'}]
+}},
+
+'ecollect-split': {screens:{
+  'screen-setup':[{m:'NOTE', t:'Configuration only', n:'Nothing on the wire until provisioning starts — this screen is building the request body below.'}],
+  'screen-provision':[
+    {m:'POST', p:'/v3/banking/virtual_account', s:201, ms:488, t:'Create the collection account',
+     req:{reference_id:'VA20261026001', bank_code:'YESB', purpose:'Marketplace collections', account_name:'Aurora Marketplace Escrow', auto_settle:false},
+     res:{api_status:'SUCCESS', data:{virtual_account_id:'VA20261026004412', account_number:'YESB0X4412009317', ifsc:'YESB0CMSNOC', status:'ACTIVE', upi_handle:'aurora.escrow@yesb'}}},
+    {m:'POST', p:'/v3/banking/virtual_account/VA20261026004412/split_rule', s:201, ms:265, t:'Attach the split rule',
+     req:{rule_type:'PERCENTAGE', splits:[{beneficiary_id:'BEN_SELLER_8821', share:88.5},{beneficiary_id:'BEN_PLATFORM_0001', share:9},{beneficiary_id:'BEN_TAX_ESCROW', share:2.5}], settlement:'T+1'},
+     res:{split_rule_id:'SPL20261026004412', status:'ACTIVE'},
+     n:'Shares must total 100. The rule is versioned — a credit settles against the rule that was live when it landed.'}],
+  'screen-runtime':[{m:'HOOK', p:'collection.credited', t:'Webhook on every credit',
+     res:{event:'collection.credited', virtual_account_id:'VA20261026004412', amount:45000, utr:'YESBN52026102600931', splits:[{beneficiary_id:'BEN_SELLER_8821', amount:39825},{beneficiary_id:'BEN_PLATFORM_0001', amount:4050},{beneficiary_id:'BEN_TAX_ESCROW', amount:1125}]}}]
+}},
+
+'netbanking': {screens:{
+  'sc-web':[{m:'POST', p:'/v3/payments/netbanking/intent', s:201, ms:372, t:'Create the payment intent',
+     req:{reference_id:'NB20261026001', amount:5189.64, currency:'INR', bank_code:'HDFC', customer:{name:'Rakesh Sharma', mobile:'9876543210'}, return_url:'https://aurora.co/checkout/return'},
+     res:{api_status:'SUCCESS', data:{payment_id:'PAY20261026004412', status:'CREATED', redirect_url:'https://netbanking.hdfcbank.com/session/4a21e0', qr_payload:'upi://pay?pa=aurora@hdfc&am=5189.64'}}}],
+  'sc-stage':[{m:'NOTE', t:'Hand-off', n:'The payer moves to their own bank. Decentro holds the intent open; the bank owns authentication from here.'}],
+  'sc-site':[{m:'GET', p:'/v3/payments/netbanking/status?payment_id=PAY20261026004412', s:200, ms:204, t:'Confirm settlement',
+     res:{api_status:'SUCCESS', data:{status:'SUCCESS', bank_reference_number:'HDFC2610264412', utr:'HDFCN52026102604412', settled_at:'Oct 26, 2026 07:21:08 PM'}},
+     n:'Confirm against this, never against the browser returning to your return_url.'}]
+}},
+
+'ovse-aadhaar-app': {screens:{
+  'sc-home':[{m:'NOTE', t:'Use case picked locally', n:'The use case only sets purpose and the data fields requested in the next call.'}],
+  'sc-scan':[{m:'POST', p:'/v3/kyc/aadhaar/ovse/session', s:201, ms:318, t:'Create a verification session',
+     req:{reference_id:'OVSE20261026001', purpose:'Hotel check-in', merchant_id:'MER_HOTELABC', fields:['name','dob_year','gender','address','photo'], face_authentication:true, consent:true},
+     res:{api_status:'SUCCESS', data:{session_id:'OVS20261026004412', qr_payload:'uidai://ovse/9f21c0', expires_in:180}},
+     n:'Offline verification — the QR is read by the resident’s own Aadhaar app; no Aadhaar number is ever typed at the counter.'}],
+  'sc-result':[{m:'GET', p:'/v3/kyc/aadhaar/ovse/status?session_id=OVS20261026004412', s:200, ms:241, t:'Read the verified identity',
+     res:{api_status:'SUCCESS', data:{status:'VERIFIED', name:'Vivek Sharma', dob_year:1992, gender:'M', address:'Shimla, Himachal Pradesh 171001', face_authentication:'PASSED', reference_id:'DEC-OVSE-004412', verified_at:'Oct 26, 2026 07:24:31 PM'}},
+     n:'Returns a share code and masked identity, not the Aadhaar number.'}]
+}},
+
+'ovse-portal': {screens:{
+  'screen-login':[{m:'POST', p:'/v3/auth/operator/token', s:200, ms:264, t:'Operator signs in',
+     req:{email:'reception@hotelabc.in', password:'••••••••••', merchant_id:'MER_HOTELABC'},
+     res:{access_token:'eyJhbGciOiJIUzI1NiIs…', expires_in:28800, operator:{id:'OPR_4412', name:'Front desk 1'}},
+     n:'One sign-in covers the shift. The customer never authenticates to the portal — only to their own Aadhaar app.'}],
+  'screen-qr':[{m:'POST', p:'/v3/kyc/aadhaar/ovse/session', s:201, ms:301, t:'Start the customer session',
+     req:{reference_id:'OVSE20261026777', customer_name:'Vivek Sharma', purpose:'KYC verification', face_authentication:true, language:'en', consent:true},
+     res:{api_status:'SUCCESS', data:{session_id:'OVS20261026000777', qr_payload:'uidai://ovse/4a21e0', expires_in:180}}}],
+  'screen-success':[{m:'GET', p:'/v3/kyc/aadhaar/ovse/status?session_id=OVS20261026000777', s:200, ms:233, t:'Verified',
+     res:{api_status:'SUCCESS', data:{status:'VERIFIED', name:'Vivek Sharma', face_authentication:'PASSED', reference_id:'DEC-OVSE-000777'}}}],
+  'screen-fail':[{m:'GET', p:'/v3/kyc/aadhaar/ovse/status?session_id=OVS20261026000777', s:200, ms:228, t:'Declined',
+     res:{api_status:'SUCCESS', data:{status:'FAILED', failure_reason:'AUTHENTICATION_DECLINED'}}}],
+  'screen-expired':[{m:'GET', p:'/v3/kyc/aadhaar/ovse/status?session_id=OVS20261026000777', s:200, ms:219, t:'Expired',
+     res:{api_status:'SUCCESS', data:{status:'EXPIRED', expired_at:'Oct 26, 2026 07:28:00 PM'}},
+     n:'180 seconds from creation. Expiry is its own state — not a failure.'}]
+}},
+
+'ovse-hospitality': {seq:[
+  {m:'GET', p:'/v3/kyc/aadhaar/ovse/verifications?status=PENDING&date=2026-10-26', s:200, ms:196, t:'Load the check-in queue',
+   res:{api_status:'SUCCESS', data:{count:6, verifications:[{reference_id:'DEC-OVSE-004412', name:'Vivek Sharma', status:'VERIFIED', room:'412'},{reference_id:'DEC-OVSE-004413', name:'Anna Kowalski', status:'VERIFIED', nationality:'PL', room:'408'}]}}},
+  {m:'POST', p:'/v3/compliance/form-c/submit', s:201, ms:587, t:'File Form C for a foreign guest',
+   req:{reference_id:'FRM20261026001', guest:{name:'Anna Kowalski', nationality:'PL', passport_number:'ZS8841207', visa_type:'TOURIST', arrival_date:'2026-10-26'}, property_id:'PRP_HOTELABC', room:'408'},
+   res:{api_status:'SUCCESS', data:{form_c_id:'FRC20261026004413', status:'SUBMITTED', bureau_ack:'FRRO/BLR/2026/88214'}},
+   n:'Form C is mandatory for foreign nationals within 24 hours of check-in. The bureau acknowledgement is what an audit asks for.'},
+  {m:'POST', p:'/v3/pms/reservations/RES4412/sync', s:200, ms:243, t:'Push back to the PMS',
+   req:{verification_reference:'DEC-OVSE-004412', room:'412', key_issued:true},
+   res:{api_status:'SUCCESS', data:{reservation_id:'RES4412', pms_status:'CHECKED_IN'}}}
+]},
+
+'face-forensics': {seq:[
+  {m:'POST', p:'/v3/kyc/face/liveness', s:200, ms:689, t:'Passive liveness',
+   req:{reference_id:'FF20261026001', image:'data:image/jpeg;base64,/9j/4AAQSkZJRg…', mode:'PASSIVE', consent:true},
+   res:{api_status:'SUCCESS', data:{liveness:'REAL', confidence:0.976, checks:{screen_replay:'PASS', print_attack:'PASS', mask:'PASS', depth:'PASS'}}},
+   n:'Passive — no blink, no head turn, no instructions to follow. One frame from the selfie camera.'},
+  {m:'POST', p:'/v3/kyc/face/match', s:200, ms:421, t:'Face match against the ID',
+   req:{reference_id:'FF20261026001', source_image:'data:image/jpeg;base64,/9j/4AAQSkZJRg…', target_image:'data:image/jpeg;base64,/9j/4AAQSkZJRg…'},
+   res:{api_status:'SUCCESS', data:{match:true, score:0.934, threshold:0.82}},
+   n:'Threshold is configurable per merchant. Below it the journey should route to manual review, not to a hard reject.'},
+  {m:'HOOK', p:'kyc.face.completed', t:'Webhook',
+   res:{event:'kyc.face.completed', reference_id:'FF20261026001', outcome:'PASS', liveness_confidence:0.976, match_score:0.934}}
+]},
+
+'verification-sdk': {seq:[
+  {m:'POST', p:'/v3/payments/vpa/validate', s:200, ms:312, t:'VerifyPay — validate a UPI ID',
+   req:{reference_id:'VS20261026001', upi_id:'rakesh.sharma@okhdfcbank'},
+   res:{api_status:'SUCCESS', data:{vpa_valid:true, name_at_bank:'RAKESH SHARMA', name_match:0.97}},
+   n:'No penny drop, no debit — a name lookup against the UPI handle.'},
+  {m:'POST', p:'/v3/banking/account/validate', s:200, ms:1840, t:'RPD — reverse penny drop',
+   req:{reference_id:'VS20261026002', purpose:'Account ownership check', amount:1},
+   res:{api_status:'SUCCESS', data:{status:'SUCCESS', account_number:'XXXXXXXX0887', ifsc:'UTIB0000245', name_at_bank:'RAKESH SHARMA', utr:'UTIBR52026102600887'}},
+   n:'The customer pays ₹1 from their own account, so ownership is proven by the debit itself. Slower by design — it waits on a real UPI transaction.'},
+  {m:'POST', p:'/v3/banking/account/validate/vba', s:200, ms:962, t:'VBA — validate bank account',
+   req:{reference_id:'VS20261026003', account_number:'50100412887201', ifsc:'HDFC0001205', name:'Rakesh Sharma'},
+   res:{api_status:'SUCCESS', data:{account_valid:true, name_at_bank:'RAKESH SHARMA', name_match:1.0, mode:'PENNY_DROP'}}}
+]},
+
+'checkout-builder': {seq:[
+  {m:'POST', p:'/v3/payments/checkout/sessions', s:201, ms:334, t:'Create the checkout session',
+   req:{reference_id:'CHK20261026001', amount:5189.64, currency:'INR', customer:{name:'Rakesh Sharma', email:'rakesh@example.in', mobile:'9876543210'}, line_items:[{name:'Aurora Desk Lamp — Brass', qty:1, amount:3499},{name:'Filament Bulb Set (×3)', qty:1, amount:899}], methods:['UPI','NETBANKING','CARD'], expires_in:600, branding:{name:'Aurora & Co.', colour:'#096EF2'}},
+   res:{api_status:'SUCCESS', data:{checkout_id:'CHK20261026004412', url:'https://checkout.decentro.tech/c/9f21c0', status:'CREATED', expires_at:'Oct 26, 2026 07:40:00 PM'}},
+   n:'Everything the builder configures — branding, methods, fields, timer — lands in this one body. The hosted page is rendered from it.'},
+  {m:'GET', p:'/v3/payments/checkout/sessions/CHK20261026004412', s:200, ms:171, t:'Poll the session',
+   res:{api_status:'SUCCESS', data:{status:'PAID', method:'UPI', payment_id:'PAY20261026004412', utr:'HDFCN52026102604412'}}},
+  {m:'HOOK', p:'checkout.session.completed', t:'Webhook',
+   res:{event:'checkout.session.completed', checkout_id:'CHK20261026004412', status:'PAID', amount:5189.64}}
+]}
+};
+
 /* ---------- viewer ---------- */
 let current = null, currentQ = '';
 
@@ -404,16 +717,7 @@ function load(d, q){
   $('loading').hidden = false;
   $('frame').src = d.file + currentQ;
 }
-let idleT = null, reachesFlow = false;
-function pokeExit(){
-  $('back').classList.remove('idle');
-  clearTimeout(idleT);
-  // on a mouse, get out of the way of the flow's own controls; on touch, stay put
-  // only hide if the flow can tell us the mouse moved — otherwise it could never come back
-  if(reachesFlow && matchMedia('(hover:hover)').matches) idleT = setTimeout(() => $('back').classList.add('idle'), 2600);
-}
-$('back').addEventListener('mouseenter', pokeExit);
-addEventListener('mousemove', pokeExit, {passive:true});
+let reachesFlow = false;
 
 $('frame').addEventListener('load', () => {
   if(!$('frame').src || /about:blank/.test($('frame').src)) return;
@@ -422,12 +726,11 @@ $('frame').addEventListener('load', () => {
   try{
     const d = $('frame').contentDocument;
     if(d){
-      d.addEventListener('mousemove', pokeExit, {passive:true});
       d.addEventListener('keydown', onKey);
       reachesFlow = true;
     }
   }catch(e){}
-  pokeExit();
+  startWatch();
 });
 
 function open(slug, q){
@@ -438,17 +741,127 @@ function open(slug, q){
   $('viewer').hidden = false;
   document.documentElement.style.overflow = 'hidden';
   if(location.hash.slice(1) !== slug) history.pushState({slug}, '', '#' + slug);
-  pokeExit();
+  const i = DEMOS.indexOf(d);
+  $('prev').title = 'Previous: ' + DEMOS[(i - 1 + DEMOS.length) % DEMOS.length].name;
+  $('next').title = 'Next: ' + DEMOS[(i + 1) % DEMOS.length].name;
+  stopFill(); stopWatch();
+  if(apiOn) syncPanel();
   $('back').focus();
 }
+function step(dir){
+  if(!current) return;
+  const i = DEMOS.indexOf(current);
+  open(DEMOS[(i + dir + DEMOS.length) % DEMOS.length].slug);
+}
 function close(){
+  stopFill(); stopWatch();
   $('viewer').hidden = true;
   $('frame').src = 'about:blank';
   current = null;
   document.documentElement.style.overflow = '';
   if(location.hash) history.pushState({}, '', location.pathname + location.search);
 }
+/* ---------- backend panel ---------- */
+let apiOn = false, watchT = null, lastScreen = null, fillT = null;
+$('apiHost').textContent = API_HOST;
+
+function trace(){ return current ? TRACES[current.slug] : null; }
+function flatSeq(t){ return t.seq ? t.seq.slice() : Object.values(t.screens).reduce((a, b) => a.concat(b), []); }
+
+function hl(o){
+  return JSON.stringify(o, null, 2)
+    .replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+    .replace(/"([^"]+)":/g, '<i class="k">"$1"</i>:')
+    .replace(/: "([^"]*)"/g, ': <i class="s">"$1"</i>')
+    .replace(/: (true|false|null)/g, ': <i class="b">$1</i>')
+    .replace(/: (-?\d+\.?\d*)/g, ': <i class="n">$1</i>');
+}
+function clearLog(){
+  const t = trace();
+  $('apiBody').innerHTML = `<div class="api-empty"><b>${t ? 'Step through the flow' : 'No trace for this flow yet'}</b>${
+    t ? 'Each screen adds the calls behind it. Or hit Demo fill to play the whole sequence.' : 'Tell me the endpoints and I will add them.'}</div>`;
+}
+function addEntry(c, live){
+  const empty = $('apiBody').querySelector('.api-empty'); if(empty) empty.remove();
+  $('apiBody').querySelectorAll('.call-b').forEach(b => b.hidden = true);
+  const el = document.createElement('article');
+  el.className = 'call' + (live ? ' live' : '');
+  const head = `<span class="m m-${c.m}">${c.m}</span><span class="pth">${c.p ? c.p.replace(/[<>]/g,'') : c.t}</span>` +
+    (c.s ? `<span class="st">${c.s}</span>` : '') + (c.ms ? `<span class="lat">${c.ms}ms</span>` : '');
+  const body = (c.p && c.t ? `<div class="lbl">${c.t}</div>` : '') +
+    (c.req ? `<div class="lbl">Request</div><pre>${hl(c.req)}</pre>` : '') +
+    (c.res ? `<div class="lbl">${c.m === 'HOOK' ? 'Payload' : 'Response'}</div><pre>${hl(c.res)}</pre>` : '') +
+    (c.n ? `<p class="note">${c.n}</p>` : '');
+  el.innerHTML = `<button class="call-h">${head}</button><div class="call-b">${body}</div>`;
+  el.querySelector('.call-h').addEventListener('click', () => {
+    const b = el.querySelector('.call-b'); b.hidden = !b.hidden;
+  });
+  $('apiBody').appendChild(el);
+  $('apiBody').scrollTop = $('apiBody').scrollHeight;
+}
+function stopFill(){ clearTimeout(fillT); fillT = null; $('apiFill').classList.remove('on'); }
+function demoFill(){
+  const t = trace(); if(!t) return;
+  if(fillT){ stopFill(); return; }
+  clearLog();
+  const seq = flatSeq(t); let i = 0;
+  $('apiFill').classList.add('on');
+  const tick = () => {
+    if(i >= seq.length){ stopFill(); return; }
+    addEntry(seq[i++], false);
+    fillT = setTimeout(tick, 700);
+  };
+  tick();
+}
+// no demo file was changed for this: the hub is same-origin, so it watches which screen is on show
+function stopWatch(){ clearInterval(watchT); watchT = null; lastScreen = null; }
+function startWatch(){
+  stopWatch();
+  const t = trace(); if(!t || !t.screens || !reachesFlow) return;
+  const ids = Object.keys(t.screens);
+  watchT = setInterval(() => {
+    let doc; try{ doc = $('frame').contentDocument; }catch(e){ return; }
+    if(!doc) return;
+    const id = ids.find(i => { const el = doc.getElementById(i); return el && el.getClientRects().length; });
+    if(id && id !== lastScreen){
+      lastScreen = id;
+      if(apiOn && !fillT) t.screens[id].forEach(c => addEntry(c, true));
+    }
+  }, 300);
+}
+function syncPanel(){
+  const t = trace();
+  $('apiFlow').textContent = current ? current.name : '\u2014';
+  const b = $('apiBadge');
+  b.className = 'badge ' + (t && t.v ? 'spec' : 'draft');
+  b.textContent = t && t.v ? 'VERIFIED AGAINST SPEC' : 'DRAFT \u00b7 VERIFY BEFORE SHOWING';
+  $('apiFill').disabled = !t;
+  clearLog();
+}
+function setApi(on){
+  apiOn = on;
+  $('api').hidden = !on;
+  $('hud').classList.toggle('shift', on);
+  $('apiTog').setAttribute('aria-pressed', String(on));
+  try{ localStorage.setItem('dhub-api', on ? '1' : '0'); }catch(e){}
+  if(on){ syncPanel(); startWatch(); } else { stopFill(); }
+}
+$('apiTog').addEventListener('click', () => setApi(!apiOn));
+$('apiClose').addEventListener('click', () => setApi(false));
+$('apiFill').addEventListener('click', demoFill);
+$('apiClear').addEventListener('click', () => { stopFill(); clearLog(); lastScreen = null; });
+
 $('back').addEventListener('click', close);
+$('prev').addEventListener('click', () => step(-1));
+$('next').addEventListener('click', () => step(1));
+$('restart').addEventListener('click', () => { if(!current) return; stopFill(); if(apiOn) clearLog(); lastScreen = null; load(current, currentQ); });
+$('hudTog').addEventListener('click', () => {
+  const min = $('hud').classList.toggle('min');
+  $('hudTog').title = min ? 'Show controls' : 'Hide controls';
+  try{ localStorage.setItem('dhub-hud', min ? 'min' : 'open'); }catch(e){}
+});
+try{ if(localStorage.getItem('dhub-api') === '1') setApi(true); }catch(e){}
+try{ if(localStorage.getItem('dhub-hud') === 'min'){ $('hud').classList.add('min'); $('hudTog').title = 'Show controls'; } }catch(e){}
 addEventListener('popstate', () => {
   const h = location.hash.slice(1);
   if(h && DEMOS.some(d => d.slug === h)) open(h); else close();

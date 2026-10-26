@@ -887,6 +887,20 @@ body.dev-mode .topbar{z-index:95;}
 @media (max-width:400px){
   .seg button span{display:none;}
 }
+/* The toolbar's right-hand button row could neither wrap nor scroll, so it forced the
+   page to 496px wide on a phone (106px over at 390, 136px at 360). Let it scroll instead,
+   and keep closed drawers from being reachable. */
+@media (max-width:860px){
+  .topbar,.tb{min-width:0}
+  .tb-right{
+    min-width:0;flex:1 1 auto;overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;justify-content:flex-end;
+  }
+  .tb-right::-webkit-scrollbar{display:none}
+  .tb-right>*{flex:none}
+  .palette:not(.open),.inspector:not(.open){visibility:hidden;pointer-events:none}
+  .palette.open,.inspector.open{visibility:visible;pointer-events:auto}
+}
 </style>
 </head>
 <body>
