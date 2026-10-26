@@ -5,7 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 /* Layout: sticky brand bar over a grouped launcher grid; launching a flow slides a full-bleed
-   viewer over the grid, with the demo running live in a resizable device stage. */
+   launching a flow hands the whole screen to it, with one floating control back to the grid. */
 :root{
   --bg:#F4F5F7;
   --surface:#FFFFFF;
@@ -158,53 +158,27 @@ footer{border-top:1px solid var(--border);padding-block:20px 28px;color:var(--fg
 footer p{margin:0}
 footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--fg-muted)}
 
-/* ---------- viewer ---------- */
-.viewer{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--stage)}
+/* ---------- viewer: the flow owns the whole screen ---------- */
+.viewer{position:fixed;inset:0;z-index:50;background:var(--surface)}
 .viewer[hidden]{display:none!important}
-.vbar{
-  flex:none;display:flex;align-items:center;gap:10px;background:var(--surface);
-  border-bottom:1px solid var(--border);
-  padding:9px max(12px,env(safe-area-inset-right,0px)) 9px max(12px,env(safe-area-inset-left,0px));
-  padding-top:calc(9px + env(safe-area-inset-top,0px));
+.stage{position:absolute;inset:0;overflow:hidden}
+.stage iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
+.exit{
+  position:fixed;z-index:60;display:inline-flex;align-items:center;overflow:hidden;
+  right:max(14px,env(safe-area-inset-right,0px));
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  width:38px;height:38px;padding:0;border-radius:100px;
+  background:var(--surface);color:var(--fg-muted);border:1px solid var(--border-strong);
+  box-shadow:0 2px 6px rgba(16,19,23,.12),0 14px 28px -16px rgba(16,19,23,.45);
+  opacity:.5;transition:opacity .18s,width .22s cubic-bezier(.2,.8,.3,1),color .18s,border-color .18s;
 }
-.vback{
-  display:inline-flex;align-items:center;gap:7px;flex-shrink:0;background:var(--surface-2);
-  border:1px solid var(--border);border-radius:9px;height:34px;padding:0 12px 0 9px;
-  font-size:13px;font-weight:600;transition:background .15s,border-color .15s;
-}
-.vback:hover{background:var(--accent-soft);border-color:var(--accent)}
-.vback svg{width:15px;height:15px}
-.vtitle{min-width:0;flex:1}
-.vtitle .n{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
-.vtitle .s{font-size:11px;color:var(--fg-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vtools{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.seg{display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px}
-.seg button{
-  background:none;border:0;border-radius:7px;height:28px;padding:0 11px;font-size:12px;font-weight:600;
-  color:var(--fg-muted);display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s;
-}
-.seg button:hover{color:var(--fg)}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(16,19,23,.1)}
-.seg button svg{width:14px;height:14px}
-.vtools .icon-btn{width:34px;height:34px;border-radius:9px}
-.nav{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:2px}
-.nav button{background:none;border:0;border-radius:7px;width:28px;height:28px;display:grid;place-items:center;color:var(--fg-muted)}
-.nav button:hover{background:var(--surface);color:var(--fg)}
-.nav svg{width:15px;height:15px}
+.exit svg{width:16px;height:16px;flex:none;margin:0 11px}
+.exit span{font-size:12.5px;font-weight:600;white-space:nowrap;padding-right:15px;opacity:0;transition:opacity .18s}
+.exit:hover,.exit:focus-visible{opacity:1;width:118px;color:var(--fg);border-color:var(--accent)}
+.exit:hover span,.exit:focus-visible span{opacity:1}
+.exit.idle{opacity:0;pointer-events:none}
+@media (hover:none){.exit{opacity:.85}}
 
-.stage{position:relative;flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;padding:0 0 env(safe-area-inset-bottom,0px)}
-.stage[data-view="phone"],.stage[data-view="tablet"]{padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
-.device{
-  position:relative;background:var(--surface);overflow:hidden;
-  width:100%;height:100%;transform-origin:center center;
-}
-.stage[data-view="phone"] .device,.stage[data-view="tablet"] .device{
-  width:var(--dw);height:var(--dh);flex:none;
-  border:1px solid var(--border-strong);border-radius:26px;
-  box-shadow:0 2px 4px rgba(0,0,0,.14),0 40px 70px -32px rgba(0,0,0,.5);
-  transform:scale(var(--s,1));
-}
-.device iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
 .loading{
   position:absolute;inset:0;display:grid;place-items:center;gap:0;background:var(--stage);
   transition:opacity .25s;pointer-events:none;
@@ -218,19 +192,12 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
   .search{flex:1 1 140px}
   .hero h1{max-width:none}
 }
-@media (max-width:720px){
-  .vtools .seg{display:none}
-  .vback span{display:none}
-  .vback{padding:0 9px}
-  .vtitle .s{display:none}
-}
 @media (max-width:520px){
   .bar-in{flex-wrap:wrap;row-gap:10px}
   .mark b{display:none}
   .rule{display:none}
   .search{flex:1 1 100%;order:3}
   .grid{grid-template-columns:1fr}
-  .nav{display:none}
 }
 </style>
 
@@ -251,7 +218,7 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 <div class="wrap hero">
   <div class="eyebrow">Product demos · Business showcase</div>
   <h1>Every Decentro flow, one tap away.</h1>
-  <p>Fourteen clickable product demos — identity, payments, lending and cross-border — running live inside one app. Pick a flow to present it; switch to the phone frame to show it the way the customer sees it.</p>
+  <p>Fourteen clickable product demos — identity, payments, lending and cross-border — running live inside one app. Each one opens full screen, exactly as the customer sees it — resize the window to show it on mobile.</p>
   <div class="stats">
     <span class="stat"><b>14</b> flows</span>
     <span class="stat"><b>4</b> product families</span>
@@ -262,35 +229,15 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 <div class="wrap filters" id="filters"></div>
 <main class="wrap" id="list"></main>
 <footer class="wrap">
-  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. <kbd>/</kbd> to search · <kbd>Esc</kbd> to come back · <kbd>←</kbd> <kbd>→</kbd> to move between flows.</p>
+  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. <kbd>/</kbd> to search · <kbd>Esc</kbd> or the button at bottom-right to come back.</p>
 </footer>
 
 <section class="viewer" id="viewer" hidden aria-label="Demo viewer">
-  <div class="vbar">
-    <button class="vback" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg><span>All demos</span></button>
-    <div class="vtitle"><div class="n" id="vname">—</div><div class="s" id="vsub">—</div></div>
-    <div class="vtools">
-      <div class="nav">
-        <button id="prev" title="Previous flow" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <button id="next" title="Next flow" aria-label="Next flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
-      </div>
-      <div class="seg" id="views" role="group" aria-label="Preview size">
-        <button data-view="full" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 20h8"/></svg>Web</button>
-        <button data-view="tablet" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Tablet</button>
-        <button data-view="phone" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.8h2"/></svg>Phone</button>
-      </div>
-      <button class="icon-btn" id="restart" title="Restart this flow" aria-label="Restart this flow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
-      </button>
-      <a class="icon-btn" id="pop" href="#" target="_blank" rel="noopener" title="Open in a new tab" aria-label="Open in a new tab">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
-      </a>
-    </div>
-  </div>
-  <div class="stage" id="stage" data-view="full">
-    <div class="device" id="device"><iframe id="frame" title="Demo" allow="clipboard-write"></iframe></div>
-    <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
-  </div>
+  <div class="stage" id="stage"><iframe id="frame" title="Demo" allow="clipboard-write"></iframe></div>
+  <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
+  <button class="exit" id="back" title="Back to all demos (Esc)" aria-label="Back to all demos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg><span>All demos</span>
+  </button>
 </section>
 
 <script>
@@ -367,8 +314,8 @@ const DEMOS = [
 
   {slug:'lrs-checkout', group:'crossborder', tag:'LRS', surface:'Mobile checkout · iFrame/SDK',
    name:'LRS Checkout', meta:'5 screens · 6 order states',
-   desc:'The cross-border payer journey — details, bank, review, bank portal, status. Open the embed variant to see the same checkout as the iFrame/SDK surface.',
-   file:'lrs-checkout.html', view:'phone', variants:[{label:'Embed (iFrame/SDK)', q:'?embed=1'}]},
+   desc:'The cross-border payer journey — details, bank, review, bank portal, status, with the six order states it can land in.',
+   file:'lrs-checkout.html'},
 
   {slug:'overseas-investments', group:'crossborder', tag:'LRS', surface:'Web + mobile',
    name:'Overseas Investments', meta:'11 screens · fund + withdraw',
@@ -376,7 +323,6 @@ const DEMOS = [
    file:'overseas-investments.html', view:'full'}
 ];
 
-const SIZES = {full:null, tablet:[834,1112], phone:[390,844]};
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -452,58 +398,48 @@ $('q').addEventListener('input', e => { query = e.target.value.trim(); renderLis
 /* ---------- viewer ---------- */
 let current = null, currentQ = '';
 
-function fitStage(){
-  const view = $('stage').dataset.view;
-  const size = SIZES[view];
-  if(!size) return;
-  const r = $('stage').getBoundingClientRect();
-  const pad = 36;
-  const s = Math.min(1, (r.width - pad) / size[0], (r.height - pad) / size[1]);
-  $('device').style.setProperty('--dw', size[0] + 'px');
-  $('device').style.setProperty('--dh', size[1] + 'px');
-  $('device').style.setProperty('--s', Math.max(0.25, s));
-}
-function setView(view){
-  $('stage').dataset.view = view;
-  $('views').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
-  fitStage();
-}
 function load(d, q){
   currentQ = q || '';
   $('lname').textContent = 'Loading ' + d.name + '…';
   $('loading').hidden = false;
   $('frame').src = d.file + currentQ;
-  $('pop').href = d.file + currentQ;
 }
-$('frame').addEventListener('load', () => { if($('frame').src && !/about:blank/.test($('frame').src)) $('loading').hidden = true; });
+let idleT = null, reachesFlow = false;
+function pokeExit(){
+  $('back').classList.remove('idle');
+  clearTimeout(idleT);
+  // on a mouse, get out of the way of the flow's own controls; on touch, stay put
+  // only hide if the flow can tell us the mouse moved — otherwise it could never come back
+  if(reachesFlow && matchMedia('(hover:hover)').matches) idleT = setTimeout(() => $('back').classList.add('idle'), 2600);
+}
+$('back').addEventListener('mouseenter', pokeExit);
+addEventListener('mousemove', pokeExit, {passive:true});
+
+$('frame').addEventListener('load', () => {
+  if(!$('frame').src || /about:blank/.test($('frame').src)) return;
+  $('loading').hidden = true;
+  // same-origin, so the flow can hand us Esc and tell us the mouse is moving
+  try{
+    const d = $('frame').contentDocument;
+    if(d){
+      d.addEventListener('mousemove', pokeExit, {passive:true});
+      d.addEventListener('keydown', onKey);
+      reachesFlow = true;
+    }
+  }catch(e){}
+  pokeExit();
+});
 
 function open(slug, q){
   const d = DEMOS.find(x => x.slug === slug);
   if(!d) return;
   current = d;
-  $('vname').textContent = d.name;
-  let sub = d.tag + ' · ' + d.surface;
-  const vs = d.variants || [];
-  $('vsub').textContent = sub;
   load(d, q);
   $('viewer').hidden = false;
-  setView(window.innerWidth <= 720 ? 'full' : (d.view || 'full'));
-  requestAnimationFrame(fitStage);
   document.documentElement.style.overflow = 'hidden';
   if(location.hash.slice(1) !== slug) history.pushState({slug}, '', '#' + slug);
+  pokeExit();
   $('back').focus();
-  // variant chip (e.g. LRS embed surface)
-  const old = document.getElementById('variant'); if(old) old.remove();
-  if(vs.length){
-    const b = document.createElement('button');
-    b.id = 'variant'; b.className = 'chip'; b.style.cssText = 'height:34px;font-size:12px;padding:0 13px';
-    const base = {label:'Standalone', q:''};
-    let modes = [base].concat(vs), i = 0;
-    b.textContent = modes[1].label;
-    b.title = 'Switch surface';
-    b.addEventListener('click', () => { i = (i + 1) % modes.length; load(current, modes[i].q); b.textContent = modes[(i + 1) % modes.length].label; });
-    $('viewer').querySelector('.vtools').insertBefore(b, $('restart'));
-  }
 }
 function close(){
   $('viewer').hidden = true;
@@ -512,31 +448,16 @@ function close(){
   document.documentElement.style.overflow = '';
   if(location.hash) history.pushState({}, '', location.pathname + location.search);
 }
-function step(dir){
-  if(!current) return;
-  const i = DEMOS.indexOf(current);
-  open(DEMOS[(i + dir + DEMOS.length) % DEMOS.length].slug);
-}
 $('back').addEventListener('click', close);
-$('restart').addEventListener('click', () => current && load(current, currentQ));
-$('prev').addEventListener('click', () => step(-1));
-$('next').addEventListener('click', () => step(1));
-$('views').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
-addEventListener('resize', () => {
-  if(window.innerWidth <= 720 && $('stage').dataset.view !== 'full') setView('full'); else fitStage();
-});
 addEventListener('popstate', () => {
   const h = location.hash.slice(1);
   if(h && DEMOS.some(d => d.slug === h)) open(h); else close();
 });
-addEventListener('keydown', e => {
+function onKey(e){
   if(e.key === 'Escape' && current){ close(); return; }
-  if(e.key === '/' && !current && document.activeElement !== $('q')){ e.preventDefault(); $('q').focus(); return; }
-  if(current && !e.metaKey && !e.ctrlKey){
-    if(e.key === 'ArrowRight') step(1);
-    if(e.key === 'ArrowLeft') step(-1);
-  }
-});
+  if(e.key === '/' && !current && document.activeElement !== $('q')){ e.preventDefault(); $('q').focus(); }
+}
+addEventListener('keydown', onKey);
 
 renderFilters();
 renderList();
