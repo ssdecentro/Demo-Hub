@@ -1,0 +1,545 @@
+<title>Decentro Demo Hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky brand bar over a grouped launcher grid; launching a flow slides a full-bleed
+   viewer over the grid, with the demo running live in a resizable device stage. */
+:root{
+  --bg:#F4F5F7;
+  --surface:#FFFFFF;
+  --surface-2:#FAFAFB;
+  --stage:#E8EAEE;
+  --fg:#101317;
+  --fg-muted:#5A6472;
+  --fg-dim:#8C95A3;
+  --border:#E3E6EB;
+  --border-strong:#CFD4DC;
+  --accent:#0092FF;
+  --accent-ink:#0071C7;
+  --accent-soft:#EAF5FF;
+  --shadow:0 1px 2px rgba(16,19,23,.04), 0 12px 28px -18px rgba(16,19,23,.22);
+  --shadow-lift:0 1px 2px rgba(16,19,23,.05), 0 20px 40px -22px rgba(16,19,23,.30);
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px;
+  --bar:60px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0E11; --surface:#14171B; --surface-2:#191D22; --stage:#07080A;
+    --fg:#F2F4F7; --fg-muted:#9BA5B4; --fg-dim:#6E7886;
+    --border:#242A31; --border-strong:#333B45;
+    --accent:#3BA9FF; --accent-ink:#8BCCFF; --accent-soft:#132536;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 32px -20px rgba(0,0,0,.8);
+    --shadow-lift:0 1px 2px rgba(0,0,0,.6), 0 24px 48px -24px rgba(0,0,0,.9);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0E11; --surface:#14171B; --surface-2:#191D22; --stage:#07080A;
+  --fg:#F2F4F7; --fg-muted:#9BA5B4; --fg-dim:#6E7886;
+  --border:#242A31; --border-strong:#333B45;
+  --accent:#3BA9FF; --accent-ink:#8BCCFF; --accent-soft:#132536;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 32px -20px rgba(0,0,0,.8);
+  --shadow-lift:0 1px 2px rgba(0,0,0,.6), 0 24px 48px -24px rgba(0,0,0,.9);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:var(--sans);background:var(--bg);color:var(--fg);
+  -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.55;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--surface)}
+.wrap{
+  width:100%;max-width:1180px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.02em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- brand bar ---------- */
+.bar{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:30;
+  background:var(--surface);border-bottom:1px solid var(--border);
+}
+.bar-in{display:flex;align-items:center;gap:14px;min-height:var(--bar);padding-block:10px}
+.mark{display:flex;align-items:center;gap:12px;min-width:0;flex-shrink:0}
+.mark svg{display:block;height:19px;width:auto}
+.mark svg path,.mark svg polygon{fill:var(--fg)}
+.mark svg rect{fill:var(--accent)}
+.rule{width:1px;height:20px;background:var(--border-strong)}
+.mark b{font-size:14px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+.bar-sp{flex:1}
+.search{position:relative;flex:0 1 260px;min-width:0}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--fg-dim);pointer-events:none}
+.search input{
+  width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);
+  color:var(--fg);font:inherit;font-size:13.5px;padding:0 12px 0 33px;
+}
+.search input::placeholder{color:var(--fg-dim)}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.icon-btn{
+  width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:10px;transition:background .15s,border-color .15s;
+}
+.icon-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
+.icon-btn svg{width:16px;height:16px}
+
+/* ---------- hero ---------- */
+.hero{padding-block:clamp(26px,5vw,46px) clamp(16px,2.6vw,22px)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink)}
+.hero h1{font-size:clamp(25px,4.4vw,38px);font-weight:800;line-height:1.1;margin-top:12px;max-width:17ch}
+.hero p{margin:12px 0 0;color:var(--fg-muted);font-size:clamp(14px,1.6vw,15.5px);max-width:58ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.stat{
+  display:inline-flex;align-items:baseline;gap:7px;background:var(--surface);border:1px solid var(--border);
+  border-radius:100px;padding:6px 14px;font-size:12.5px;color:var(--fg-muted);
+}
+.stat b{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* ---------- filters ---------- */
+.filters{
+  position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--bar));z-index:20;
+  background:var(--bg);padding-block:12px;
+  display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+}
+.filters::-webkit-scrollbar{display:none}
+.chip{
+  flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:100px;
+  padding:7px 15px;font-size:13px;font-weight:500;color:var(--fg-muted);white-space:nowrap;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.chip:hover{border-color:var(--border-strong);color:var(--fg)}
+.chip[aria-pressed="true"]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.chip span{font-family:var(--mono);font-size:11px;opacity:.6;margin-left:6px}
+
+/* ---------- groups + grid ---------- */
+main{padding-bottom:clamp(40px,7vw,72px)}
+.group{padding-top:clamp(22px,3.2vw,34px)}
+.group-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.group-head h2{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);white-space:nowrap}
+.group-head i{flex:1;height:1px;background:var(--border);display:block}
+.group-head em{font-family:var(--mono);font-style:normal;font-size:11px;color:var(--fg-dim);font-variant-numeric:tabular-nums}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.card{
+  display:flex;flex-direction:column;align-items:stretch;gap:10px;text-align:left;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 16px 14px;box-shadow:var(--shadow);min-width:0;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,border-color .18s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);border-color:var(--accent)}
+.card:active{transform:translateY(-1px)}
+.card-top{display:flex;align-items:center;gap:8px;min-width:0}
+.tag{
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:3px 7px;white-space:nowrap;
+}
+.surface-lbl{font-size:11.5px;color:var(--fg-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.card h3{font-size:16.5px;font-weight:700;line-height:1.25}
+.card p{margin:0;font-size:13px;color:var(--fg-muted);line-height:1.6}
+.card-foot{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;margin-top:auto;padding-top:11px;border-top:1px solid var(--border)}
+.card-foot .meta{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--fg-dim);letter-spacing:.01em;min-width:0;flex:1 1 auto}
+.launch{
+  margin-left:auto;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;
+  font-size:12px;font-weight:600;color:var(--accent-ink);
+}
+.launch svg{width:13px;height:13px}
+.card:hover .launch svg{transform:translateX(2px)}
+.launch svg{transition:transform .18s}
+.empty{padding:48px 0;text-align:center;color:var(--fg-muted)}
+.empty b{display:block;color:var(--fg);font-size:16px;margin-bottom:6px}
+
+footer{border-top:1px solid var(--border);padding-block:20px 28px;color:var(--fg-dim);font-size:12px}
+footer p{margin:0}
+footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--fg-muted)}
+
+/* ---------- viewer ---------- */
+.viewer{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--stage)}
+.viewer[hidden]{display:none!important}
+.vbar{
+  flex:none;display:flex;align-items:center;gap:10px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:9px max(12px,env(safe-area-inset-right,0px)) 9px max(12px,env(safe-area-inset-left,0px));
+  padding-top:calc(9px + env(safe-area-inset-top,0px));
+}
+.vback{
+  display:inline-flex;align-items:center;gap:7px;flex-shrink:0;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:9px;height:34px;padding:0 12px 0 9px;
+  font-size:13px;font-weight:600;transition:background .15s,border-color .15s;
+}
+.vback:hover{background:var(--accent-soft);border-color:var(--accent)}
+.vback svg{width:15px;height:15px}
+.vtitle{min-width:0;flex:1}
+.vtitle .n{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.vtitle .s{font-size:11px;color:var(--fg-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vtools{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px}
+.seg button{
+  background:none;border:0;border-radius:7px;height:28px;padding:0 11px;font-size:12px;font-weight:600;
+  color:var(--fg-muted);display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s;
+}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(16,19,23,.1)}
+.seg button svg{width:14px;height:14px}
+.vtools .icon-btn{width:34px;height:34px;border-radius:9px}
+.nav{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:2px}
+.nav button{background:none;border:0;border-radius:7px;width:28px;height:28px;display:grid;place-items:center;color:var(--fg-muted)}
+.nav button:hover{background:var(--surface);color:var(--fg)}
+.nav svg{width:15px;height:15px}
+
+.stage{position:relative;flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;padding:0 0 env(safe-area-inset-bottom,0px)}
+.stage[data-view="phone"],.stage[data-view="tablet"]{padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.device{
+  position:relative;background:var(--surface);overflow:hidden;
+  width:100%;height:100%;transform-origin:center center;
+}
+.stage[data-view="phone"] .device,.stage[data-view="tablet"] .device{
+  width:var(--dw);height:var(--dh);flex:none;
+  border:1px solid var(--border-strong);border-radius:26px;
+  box-shadow:0 2px 4px rgba(0,0,0,.14),0 40px 70px -32px rgba(0,0,0,.5);
+  transform:scale(var(--s,1));
+}
+.device iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
+.loading{
+  position:absolute;inset:0;display:grid;place-items:center;gap:0;background:var(--stage);
+  transition:opacity .25s;pointer-events:none;
+}
+.loading[hidden]{display:none!important}
+.loading div{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--fg-muted);font-size:12.5px}
+.spin{width:22px;height:22px;border:2px solid var(--border-strong);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(1turn)}}
+
+@media (max-width:860px){
+  .search{flex:1 1 140px}
+  .hero h1{max-width:none}
+}
+@media (max-width:720px){
+  .vtools .seg{display:none}
+  .vback span{display:none}
+  .vback{padding:0 9px}
+  .vtitle .s{display:none}
+}
+@media (max-width:520px){
+  .bar-in{flex-wrap:wrap;row-gap:10px}
+  .mark b{display:none}
+  .rule{display:none}
+  .search{flex:1 1 100%;order:3}
+  .grid{grid-template-columns:1fr}
+  .nav{display:none}
+}
+</style>
+
+<div class="bar">
+  <div class="wrap bar-in">
+    <span class="mark" id="mark"></span>
+    <span class="bar-sp"></span>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search flows" aria-label="Search flows" autocomplete="off">
+    </label>
+    <button class="icon-btn" id="theme" title="Switch theme" aria-label="Switch theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="wrap hero">
+  <div class="eyebrow">Product demos · Business showcase</div>
+  <h1>Every Decentro flow, one tap away.</h1>
+  <p>Fourteen clickable product demos — identity, payments, lending and cross-border — running live inside one app. Pick a flow to present it; switch to the phone frame to show it the way the customer sees it.</p>
+  <div class="stats">
+    <span class="stat"><b>14</b> flows</span>
+    <span class="stat"><b>4</b> product families</span>
+    <span class="stat"><b>₹</b> India-first · IST</span>
+  </div>
+</div>
+
+<div class="wrap filters" id="filters"></div>
+<main class="wrap" id="list"></main>
+<footer class="wrap">
+  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. <kbd>/</kbd> to search · <kbd>Esc</kbd> to come back · <kbd>←</kbd> <kbd>→</kbd> to move between flows.</p>
+</footer>
+
+<section class="viewer" id="viewer" hidden aria-label="Demo viewer">
+  <div class="vbar">
+    <button class="vback" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg><span>All demos</span></button>
+    <div class="vtitle"><div class="n" id="vname">—</div><div class="s" id="vsub">—</div></div>
+    <div class="vtools">
+      <div class="nav">
+        <button id="prev" title="Previous flow" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button id="next" title="Next flow" aria-label="Next flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="seg" id="views" role="group" aria-label="Preview size">
+        <button data-view="full" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 20h8"/></svg>Web</button>
+        <button data-view="tablet" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Tablet</button>
+        <button data-view="phone" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.8h2"/></svg>Phone</button>
+      </div>
+      <button class="icon-btn" id="restart" title="Restart this flow" aria-label="Restart this flow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
+      </button>
+      <a class="icon-btn" id="pop" href="#" target="_blank" rel="noopener" title="Open in a new tab" aria-label="Open in a new tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="stage" id="stage" data-view="full">
+    <div class="device" id="device"><iframe id="frame" title="Demo" allow="clipboard-write"></iframe></div>
+    <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
+  </div>
+</section>
+
+<script>
+const LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro"><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><rect x="120.6" y="357.11" width="60.28" height="60.28"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></svg>';
+document.getElementById('mark').innerHTML = LOGO + '<span class="rule"></span><b>Demo Hub</b>';
+
+const GROUPS = [
+  {id:'identity',  label:'Identity & KYC'},
+  {id:'risk',      label:'Risk & Agreements'},
+  {id:'payments',  label:'Payments & Collections'},
+  {id:'crossborder',label:'Cross-border'}
+];
+
+const DEMOS = [
+  {slug:'ovse-aadhaar-app', group:'identity', tag:'OVSE', surface:'Mobile app',
+   name:'OVSE Aadhaar App', meta:'7 screens · 9 use cases',
+   desc:'Offline Aadhaar verification at the counter. Pick the use case — airport, hotel, clinic, rentals — scan the customer’s Aadhaar QR and confirm identity on the spot.',
+   file:'demos/ovse-aadhaar-app.html', view:'phone'},
+
+  {slug:'ovse-portal', group:'identity', tag:'OVSE', surface:'Operator web app',
+   name:'OVSE Portal', meta:'6 screens · success / fail / expiry',
+   desc:'Operator-assisted verification. The front-desk agent signs in once a day, enters the customer’s name, and the customer approves on their own Aadhaar app.',
+   file:'demos/ovse-portal.html', view:'full'},
+
+  {slug:'ovse-hospitality', group:'identity', tag:'OVSE', surface:'Front-desk console',
+   name:'OVSE Hospitality', meta:'5 sections · Form C',
+   desc:'The hotel front desk end to end: check-in queue, digital guest register, Form C filing for foreign guests, room keys and the PMS integration.',
+   file:'demos/ovse-hospitality.html', view:'full'},
+
+  {slug:'face-forensics', group:'identity', tag:'Farsight', surface:'Mobile journey + presenter',
+   name:'Face Forensics', meta:'Presenter · outcome switcher',
+   desc:'Passive image liveness and face match as the customer sees them, with a presenter panel to brand the journey and switch the outcome mid-pitch.',
+   file:'demos/face-forensics.html', view:'full'},
+
+  {slug:'verification-sdk', group:'identity', tag:'Verification', surface:'In-app SDK',
+   name:'Verification SDK', meta:'RPD · VerifyPay · VBA',
+   desc:'One SDK for all three verification services in-app — bank account and UPI ID checks, including the network-loss and retry paths the frontend team has to build.',
+   file:'demos/verification-sdk.html', view:'full'},
+
+  {slug:'onboarding-pan-first', group:'identity', tag:'Onboarding', surface:'Mobile-first',
+   name:'PAN-First Onboarding', meta:'4 screens · DigiLocker OTP',
+   desc:'Non-regulated onboarding starting from a mobile number: PAN first, DigiLocker OTP, review and confirm — plus the no-record-found path.',
+   file:'demos/onboarding-pan-first.html', view:'full'},
+
+  {slug:'omniscore', group:'risk', tag:'Omniscore', surface:'Web',
+   name:'Mobile Risk Scoring', meta:'3 screens · signal breakdown',
+   desc:'Score a customer from nothing but their mobile number, then show the signals behind the score and the decision it recommends.',
+   file:'demos/omniscore-risk-scoring.html', view:'full'},
+
+  {slug:'aadhaar-esign', group:'risk', tag:'e-Sign', surface:'Mobile journey',
+   name:'Aadhaar e-Sign', meta:'10 screens · merchant → ESP → merchant',
+   desc:'An NBFC loan agreement signed end to end — merchant page, Decentro as the ESP, mobile OTP, the Aadhaar e-Sign screens, and the hand-back to the merchant.',
+   file:'demos/aadhaar-esign.html', view:'full'},
+
+  {slug:'checkout-builder', group:'payments', tag:'Checkout', surface:'Builder + live preview',
+   name:'Checkout Builder', meta:'Drag, configure, open live',
+   desc:'Assemble a hosted checkout on a canvas — brand header, payment options, custom fields, billing address — then open it live in web and mobile views.',
+   file:'demos/checkout-builder.html', view:'full'},
+
+  {slug:'netbanking', group:'payments', tag:'Banking Connect', surface:'Web + mobile',
+   name:'Net Banking 2.0', meta:'3 surfaces · per-bank theming',
+   desc:'QR-led net banking collection: the merchant page, the hand-off stage, and the payer’s own bank site themed per bank from a single screen.',
+   file:'demos/netbanking-connect.html', view:'full'},
+
+  {slug:'autopay-lending', group:'payments', tag:'Autopay', surface:'Web',
+   name:'UPI Autopay for Lending', meta:'4 screens · mandate + first debit',
+   desc:'Mandate registration and the first collection in one chain, with the declined-mandate and insufficient-funds outcomes shown as they land.',
+   file:'demos/autopay-lending.html', view:'full'},
+
+  {slug:'ecollect-split', group:'payments', tag:'E-Collect', surface:'Web',
+   name:'E-Collect with Splits', meta:'3 screens · split settlement',
+   desc:'Configure a virtual collection account with a split rule, watch it provision, then see each collection split across beneficiaries as it arrives.',
+   file:'demos/ecollect-split.html', view:'full'},
+
+  {slug:'lrs-checkout', group:'crossborder', tag:'LRS', surface:'Mobile checkout · iFrame/SDK',
+   name:'LRS Checkout', meta:'5 screens · 6 order states',
+   desc:'The cross-border payer journey — details, bank, review, bank portal, status. Open the embed variant to see the same checkout as the iFrame/SDK surface.',
+   file:'demos/lrs-checkout.html', view:'phone', variants:[{label:'Embed (iFrame/SDK)', q:'?embed=1'}]},
+
+  {slug:'overseas-investments', group:'crossborder', tag:'LRS', surface:'Web + mobile',
+   name:'Overseas Investments', meta:'11 screens · fund + withdraw',
+   desc:'Fund a US investing account and withdraw back again: checkout, the bank-linking walkthrough with OTP, and both money directions end to end.',
+   file:'demos/overseas-investments.html', view:'full'}
+];
+
+const SIZES = {full:null, tablet:[834,1112], phone:[390,844]};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- theme ---------- */
+(function(){
+  let saved = null;
+  try{ saved = localStorage.getItem('dhub-theme'); }catch(e){}
+  if(saved === 'dark' || saved === 'light') document.documentElement.setAttribute('data-theme', saved);
+  $('theme').addEventListener('click', () => {
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const cur = document.documentElement.getAttribute('data-theme') || (dark ? 'dark' : 'light');
+    const nxt = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nxt);
+    try{ localStorage.setItem('dhub-theme', nxt); }catch(e){}
+  });
+})();
+
+/* ---------- home ---------- */
+let filter = 'all', query = '';
+
+function counts(){
+  const c = {all: DEMOS.length};
+  GROUPS.forEach(g => c[g.id] = DEMOS.filter(d => d.group === g.id).length);
+  return c;
+}
+function renderFilters(){
+  const c = counts();
+  const items = [{id:'all', label:'All flows'}].concat(GROUPS);
+  $('filters').innerHTML = items.map(i =>
+    `<button class="chip" data-f="${i.id}" aria-pressed="${filter===i.id}">${esc(i.label)}<span>${c[i.id]}</span></button>`
+  ).join('');
+  $('filters').querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f; renderList(); renderFilters();
+  }));
+}
+function cardHTML(d){
+  return `<button class="card" data-slug="${d.slug}">
+    <span class="card-top"><span class="tag">${esc(d.tag)}</span><span class="surface-lbl">${esc(d.surface)}</span></span>
+    <h3>${esc(d.name)}</h3>
+    <p>${esc(d.desc)}</p>
+    <span class="card-foot"><span class="meta">${esc(d.meta)}</span>
+      <span class="launch">Launch<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+    </span></button>`;
+}
+function matches(d){
+  if(filter !== 'all' && d.group !== filter) return false;
+  if(!query) return true;
+  const hay = (d.name + ' ' + d.desc + ' ' + d.tag + ' ' + d.surface + ' ' + d.meta).toLowerCase();
+  return query.toLowerCase().split(/\s+/).every(t => hay.includes(t));
+}
+function renderList(){
+  const shown = DEMOS.filter(matches);
+  const el = $('list');
+  if(!shown.length){
+    el.innerHTML = `<div class="empty"><b>No flow matches “${esc(query)}”.</b>Try “Aadhaar”, “checkout”, “LRS” or “mandate”.</div>`;
+    return;
+  }
+  if(query || filter !== 'all'){
+    el.innerHTML = `<div class="group"><div class="group-head"><h2>${shown.length} ${shown.length===1?'flow':'flows'}</h2><i></i></div>
+      <div class="grid">${shown.map(cardHTML).join('')}</div></div>`;
+  }else{
+    el.innerHTML = GROUPS.map(g => {
+      const items = shown.filter(d => d.group === g.id);
+      if(!items.length) return '';
+      return `<section class="group"><div class="group-head"><h2>${esc(g.label)}</h2><i></i><em>${items.length}</em></div>
+        <div class="grid">${items.map(cardHTML).join('')}</div></section>`;
+    }).join('');
+  }
+  el.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => open(c.dataset.slug)));
+}
+$('q').addEventListener('input', e => { query = e.target.value.trim(); renderList(); });
+
+/* ---------- viewer ---------- */
+let current = null, currentQ = '';
+
+function fitStage(){
+  const view = $('stage').dataset.view;
+  const size = SIZES[view];
+  if(!size) return;
+  const r = $('stage').getBoundingClientRect();
+  const pad = 36;
+  const s = Math.min(1, (r.width - pad) / size[0], (r.height - pad) / size[1]);
+  $('device').style.setProperty('--dw', size[0] + 'px');
+  $('device').style.setProperty('--dh', size[1] + 'px');
+  $('device').style.setProperty('--s', Math.max(0.25, s));
+}
+function setView(view){
+  $('stage').dataset.view = view;
+  $('views').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  fitStage();
+}
+function load(d, q){
+  currentQ = q || '';
+  $('lname').textContent = 'Loading ' + d.name + '…';
+  $('loading').hidden = false;
+  $('frame').src = d.file + currentQ;
+  $('pop').href = d.file + currentQ;
+}
+$('frame').addEventListener('load', () => { if($('frame').src && !/about:blank/.test($('frame').src)) $('loading').hidden = true; });
+
+function open(slug, q){
+  const d = DEMOS.find(x => x.slug === slug);
+  if(!d) return;
+  current = d;
+  $('vname').textContent = d.name;
+  let sub = d.tag + ' · ' + d.surface;
+  const vs = d.variants || [];
+  $('vsub').textContent = sub;
+  load(d, q);
+  $('viewer').hidden = false;
+  setView(window.innerWidth <= 720 ? 'full' : (d.view || 'full'));
+  requestAnimationFrame(fitStage);
+  document.documentElement.style.overflow = 'hidden';
+  if(location.hash.slice(1) !== slug) history.pushState({slug}, '', '#' + slug);
+  $('back').focus();
+  // variant chip (e.g. LRS embed surface)
+  const old = document.getElementById('variant'); if(old) old.remove();
+  if(vs.length){
+    const b = document.createElement('button');
+    b.id = 'variant'; b.className = 'chip'; b.style.cssText = 'height:34px;font-size:12px;padding:0 13px';
+    const base = {label:'Standalone', q:''};
+    let modes = [base].concat(vs), i = 0;
+    b.textContent = modes[1].label;
+    b.title = 'Switch surface';
+    b.addEventListener('click', () => { i = (i + 1) % modes.length; load(current, modes[i].q); b.textContent = modes[(i + 1) % modes.length].label; });
+    $('viewer').querySelector('.vtools').insertBefore(b, $('restart'));
+  }
+}
+function close(){
+  $('viewer').hidden = true;
+  $('frame').src = 'about:blank';
+  current = null;
+  document.documentElement.style.overflow = '';
+  if(location.hash) history.pushState({}, '', location.pathname + location.search);
+}
+function step(dir){
+  if(!current) return;
+  const i = DEMOS.indexOf(current);
+  open(DEMOS[(i + dir + DEMOS.length) % DEMOS.length].slug);
+}
+$('back').addEventListener('click', close);
+$('restart').addEventListener('click', () => current && load(current, currentQ));
+$('prev').addEventListener('click', () => step(-1));
+$('next').addEventListener('click', () => step(1));
+$('views').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+addEventListener('resize', () => {
+  if(window.innerWidth <= 720 && $('stage').dataset.view !== 'full') setView('full'); else fitStage();
+});
+addEventListener('popstate', () => {
+  const h = location.hash.slice(1);
+  if(h && DEMOS.some(d => d.slug === h)) open(h); else close();
+});
+addEventListener('keydown', e => {
+  if(e.key === 'Escape' && current){ close(); return; }
+  if(e.key === '/' && !current && document.activeElement !== $('q')){ e.preventDefault(); $('q').focus(); return; }
+  if(current && !e.metaKey && !e.ctrlKey){
+    if(e.key === 'ArrowRight') step(1);
+    if(e.key === 'ArrowLeft') step(-1);
+  }
+});
+
+renderFilters();
+renderList();
+const start = location.hash.slice(1);
+if(start && DEMOS.some(d => d.slug === start)) open(start);
+</script>
