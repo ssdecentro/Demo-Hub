@@ -168,15 +168,14 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 .stage{position:absolute;inset:0;overflow:hidden}
 .stage iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
 .hud{
-  position:fixed;z-index:60;display:flex;flex-direction:column;align-items:center;gap:2px;
+  position:fixed;z-index:60;display:flex;flex-direction:row;align-items:center;gap:2px;
   padding:4px;border-radius:100px;
-  right:max(10px,env(safe-area-inset-right,0px));
-  top:50%;transform:translateY(-50%);
+  top:calc(10px + env(safe-area-inset-top,0px));
+  left:50%;transform:translateX(-50%);
   background:var(--surface);border:1px solid var(--border-strong);
-  box-shadow:0 2px 6px rgba(16,19,23,.12),0 16px 32px -18px rgba(16,19,23,.5);
-  opacity:.62;transition:opacity .15s,right .22s cubic-bezier(.2,.8,.3,1);
+  box-shadow:0 2px 6px rgba(16,19,23,.14),0 14px 30px -16px rgba(16,19,23,.45);
+  transition:left .22s cubic-bezier(.2,.8,.3,1);
 }
-.hud:hover,.hud:focus-within{opacity:1}
 .hud button{
   width:34px;height:34px;flex:none;background:none;border:0;border-radius:100px;padding:0;
   display:inline-flex;align-items:center;justify-content:center;
@@ -185,13 +184,21 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 .hud button:hover{background:var(--accent-soft);color:var(--accent-ink)}
 .hud button:disabled{opacity:.35;pointer-events:none}
 .hud button svg{width:16px;height:16px;flex:none}
-.hud .home{background:var(--accent-soft);color:var(--accent-ink)}
+.hud .home{width:auto;padding:0 12px 0 10px;gap:7px;font-size:12.5px;font-weight:600;background:var(--accent-soft);color:var(--accent-ink)}
 .hud .home:hover{background:var(--accent);color:#fff}
 .hud .api-t[aria-pressed="true"]{background:var(--accent);color:#fff}
-.hud .sep{width:18px;height:1px;background:var(--border);margin:3px 0;flex:none}
-.hud .tog svg{transform:rotate(90deg);transition:transform .22s cubic-bezier(.2,.8,.3,1)}
-.hud.min .home,.hud.min .sep,.hud.min .step,.hud.min .reload,.hud.min .api-t{display:none}
-.hud.min .tog svg{transform:rotate(-90deg)}
+.hud .sep{width:1px;height:18px;background:var(--border);margin:0 3px;flex:none}
+.hud .tog svg{transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+.hud.min .home,.hud.min .sep,.hud.min .step,.hud.min .reload,.hud.min .fill,.hud.min .api-t{display:none}
+.hud.min .tog svg{transform:rotate(180deg)}
+.hud .fill.on{background:var(--accent);color:#fff}
+/* small confirmation for Demo fill */
+.hudtoast{
+  position:fixed;z-index:61;top:calc(54px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-6px);
+  background:var(--fg);color:var(--bg);font-size:12px;font-weight:600;padding:7px 14px;border-radius:100px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;
+}
+.hudtoast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ---------- backend panel ---------- */
 .api{
@@ -239,17 +246,12 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
   font-family:var(--sans);font-size:11.5px;line-height:1.6;color:#E9D3A8}
 .api-f{flex:none;padding:9px 14px;border-top:1px solid var(--c-line);background:var(--c-head);font-size:10px;color:var(--c-dim);display:flex;gap:8px;align-items:center}
 .api-f b{color:var(--c-dim);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hud.shift{right:calc(var(--api-w) + 10px)}
+.hud.shift{left:calc(50% - (var(--api-w) / 2))}
 @media (max-width:640px){
   .api{top:auto;left:0;right:0;width:auto;height:62dvh;border-left:0;border-top:1px solid var(--c-line)}
-  .hud{flex-direction:row}
-  .hud .sep{width:1px;height:18px;margin:0 3px}
-  .hud .tog svg{transform:none}
-  .hud.min .tog svg{transform:rotate(180deg)}
-  .hud.shift{
-    right:max(10px,env(safe-area-inset-right,0px));
-    top:auto;bottom:calc(62dvh + 12px);transform:none;
-  }
+  .hud.shift{left:50%}
+  .hud .home span{display:none}
+  .hud .home{width:34px;padding:0}
 }
 
 .loading{
@@ -310,11 +312,14 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
   <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
   <div class="hud" id="hud" role="toolbar" aria-label="Demo controls">
     <button class="home" id="back" title="Back to all demos (Esc)" aria-label="Back to all demos">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg><span>Home</span>
     </button>
     <span class="sep"></span>
     <button class="step" id="prev" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
     <button class="step" id="next" aria-label="Next flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
+    <button class="fill" id="fillBtn" title="Demo fill — fill every empty field on this screen" aria-label="Demo fill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5h16"/><path d="M4 11h10"/><path d="M4 16.5h7"/><path d="m15.5 19 2.2 2.2L22 16.8"/></svg>
+    </button>
     <button class="reload" id="restart" title="Restart this flow" aria-label="Restart this flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg></button>
     <button class="api-t" id="apiTog" title="Backend: what the APIs are doing" aria-pressed="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m8 6-5 6 5 6"/><path d="m16 6 5 6-5 6"/></svg>
@@ -322,11 +327,12 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
     <span class="sep"></span>
     <button class="tog" id="hudTog" title="Hide controls" aria-label="Hide controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
   </div>
+  <div class="hudtoast" id="hudToast" role="status" aria-live="polite"></div>
   <aside class="api" id="api" hidden aria-label="Backend API trace">
     <header class="api-h">
       <span class="ttl"><b id="apiFlow">—</b><span class="badge draft" id="apiBadge">DRAFT</span></span>
-      <button id="apiFill" title="Play the whole sequence without clicking through">
-        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 4.5v15l12-7.5z"/></svg>Demo fill
+      <button id="apiFill" title="Play the whole API sequence without clicking through">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 4.5v15l12-7.5z"/></svg>Play trace
       </button>
       <button id="apiClear" title="Clear the trace" aria-label="Clear the trace">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
@@ -850,6 +856,106 @@ $('apiTog').addEventListener('click', () => setApi(!apiOn));
 $('apiClose').addEventListener('click', () => setApi(false));
 $('apiFill').addEventListener('click', demoFill);
 $('apiClear').addEventListener('click', () => { stopFill(); clearLog(); lastScreen = null; });
+
+/* ---------- Demo fill: put plausible values in every empty field on the screen ----------
+   Same-origin, so the hub can fill the flow without each demo having to implement it. */
+let hudToastT = null;
+function hudToast(msg){
+  const el = $('hudToast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(hudToastT); hudToastT = setTimeout(() => el.classList.remove('on'), 2200);
+}
+const FILL_RULES = [
+  [/otp|passcode/i,                 '482913'],
+  [/mobile|phone|contact|msisdn/i,  '9876543210'],
+  [/e-?mail/i,                      'rakesh.sharma@example.in'],
+  [/\bpan\b/i,                      'ABCDE1234F'],
+  [/ifsc/i,                         'HDFC0001205'],
+  [/upi|vpa|handle/i,               'rakesh.sharma@okhdfcbank'],
+  [/account.*(number|no)|acc.*num/i,'50100412887201'],
+  [/passport/i,                     'Z4821907'],
+  [/aadhaar|uid/i,                  '9821'],
+  [/pin ?code|postal|zip/i,         '560025'],
+  [/first.*name|given/i,            'Rakesh'],
+  [/middle/i,                       'Kumar'],
+  [/last.*name|surname|family/i,    'Sharma'],
+  [/company|business|merchant|entity/i, 'Aurora & Co.'],
+  [/\bcity\b/i,                     'Bengaluru'],
+  [/\bstate\b/i,                    'Karnataka'],
+  [/address|street|line ?1/i,       '12 Residency Road'],
+  [/amount|value|price/i,           '100'],
+  [/\bname\b/i,                     'Rakesh Sharma'],
+  [/reference|ref ?id|order/i,      'DEC20261027001'],
+];
+function fieldHint(el, doc){
+  let t = [el.id, el.name, el.getAttribute('placeholder') || '', el.getAttribute('aria-label') || ''].join(' ');
+  try{
+    const lab = (el.id && doc.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
+    if(lab) t += ' ' + lab.textContent;
+  }catch(e){}
+  return t;
+}
+function valueFor(el, doc){
+  const type = (el.getAttribute('type') || 'text').toLowerCase();
+  if(type === 'date') return '1991-04-12';
+  if(type === 'email') return 'rakesh.sharma@example.in';
+  if(type === 'tel') return '9876543210';
+  const hint = fieldHint(el, doc);
+  for(const [re, v] of FILL_RULES) if(re.test(hint)) return v;
+  // a placeholder that is itself a sample is the demo's own best answer
+  const ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
+  if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
+  if(type === 'number') return '100';
+  return 'Demo value';
+}
+function fillOnce(){
+  let doc; try{ doc = $('frame').contentDocument; }catch(e){ doc = null; }
+  if(!doc){ hudToast('Cannot reach this flow'); return null; }
+  const W = doc.defaultView;
+  const visible = el => { const r = el.getBoundingClientRect(); return r.width > 8 && r.height > 6; };
+  const setVal = (el, v) => {
+    const proto = el.tagName === 'TEXTAREA' ? W.HTMLTextAreaElement.prototype : W.HTMLInputElement.prototype;
+    const d = Object.getOwnPropertyDescriptor(proto, 'value');
+    if(d && d.set) d.set.call(el, v); else el.value = v;
+    el.dispatchEvent(new W.Event('input', {bubbles:true}));
+    el.dispatchEvent(new W.Event('change', {bubbles:true}));
+  };
+  let n = 0;
+  doc.querySelectorAll('input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select')
+    .forEach(el => {
+      if(el.disabled || el.readOnly || !visible(el)) return;
+      const type = (el.getAttribute('type') || '').toLowerCase();
+      if(type === 'checkbox' || type === 'radio'){
+        if(!el.checked){ el.click(); n++; }     // consent boxes gate the primary action
+        return;
+      }
+      if(el.tagName === 'SELECT'){
+        if(el.selectedIndex > 0) return;
+        const opt = [...el.options].find(o => o.value && !o.disabled);
+        if(opt){ el.value = opt.value; el.dispatchEvent(new W.Event('change', {bubbles:true})); n++; }
+        return;
+      }
+      if((el.value || '').trim()) return;
+      setVal(el, valueFor(el, doc)); n++;
+    });
+  // demos that expose their own prefill know their persona better than we do
+  if(!n && typeof W.prefill === 'function'){ try{ W.prefill(true); n = -1; }catch(e){} }
+  return n;
+}
+function fillFields(){
+  const first = fillOnce();
+  if(first === null) return;
+  $('fillBtn').classList.add('on'); setTimeout(() => $('fillBtn').classList.remove('on'), 500);
+  /* some screens re-render on input (the Checkout Builder repaints its canvas), which
+     recreates fields empty — a second pass a beat later catches those. */
+  setTimeout(() => {
+    const more = fillOnce();
+    const n = (first < 0 || more < 0) ? -1 : first + (more > 0 ? more : 0);
+    hudToast(n < 0 ? 'Filled from the flow’s own demo data'
+           : n ? n + (n === 1 ? ' field filled' : ' fields filled')
+               : 'Nothing empty on this screen');
+  }, 280);
+}
+$('fillBtn').addEventListener('click', fillFields);
 
 $('back').addEventListener('click', close);
 $('prev').addEventListener('click', () => step(-1));

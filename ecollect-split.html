@@ -946,5 +946,12 @@
 
 })();
 </script>
+
+<script>/* decentro-demo-prefill — the suite's other flows ship with their fields
+   already populated; these started empty, which stalled the demo at step one. */
+window.addEventListener('load', function(){ setTimeout(function(){
+  const el=document.getElementById('customer');
+  if(el && !el.value){ el.value='aarav-mehta-90418'; el.dispatchEvent(new Event('input',{bubbles:true})); }
+}, 80); });</script>
 </body>
 </html>

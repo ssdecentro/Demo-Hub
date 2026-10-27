@@ -976,5 +976,12 @@
 
 })();
 </script>
+
+<script>/* decentro-demo-prefill — the suite's other flows ship with their fields
+   already populated; these started empty, which stalled the demo at step one. */
+window.addEventListener('load', function(){ setTimeout(function(){
+  const el=document.getElementById('mobile');
+  if(el && !el.value){ el.value='9876543210'; el.dispatchEvent(new Event('input',{bubbles:true})); }
+}, 80); });</script>
 </body>
 </html>

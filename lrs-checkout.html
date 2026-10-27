@@ -1719,7 +1719,7 @@ body.embed .page{padding-top:18px;}
               <span class="stat-ref-k">Bank reference</span>
               <span class="stat-ref-v" id="statUrn">AXIS-7QM24B-LRS</span>
             </span>
-            <button class="icon-btn ghost" onclick="toast('Bank reference copied')" title="Copy bank reference" aria-label="Copy bank reference">
+            <button class="icon-btn ghost" onclick="copyFrom(this,'Bank reference')" title="Copy bank reference" aria-label="Copy bank reference">
               <svg width="13" height="13"><use href="#i-copy"/></svg></button>
           </div>
         </div>
@@ -1754,7 +1754,7 @@ body.embed .page{padding-top:18px;}
               <div class="sum-row"><span class="sum-label">Decentro Transaction ID</span>
                 <span class="sum-value id-cell">
                   <span class="id-val">TXN_LRS_2026_8113</span>
-                  <button class="icon-btn" onclick="toast('Transaction ID copied')" title="Copy transaction ID" aria-label="Copy transaction ID">
+                  <button class="icon-btn" onclick="copyFrom(this,'Transaction ID')" title="Copy transaction ID" aria-label="Copy transaction ID">
                     <svg width="13" height="13"><use href="#i-copy"/></svg></button>
                 </span></div>
               <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-value rail-amt">$100.00</span></div>
@@ -2094,7 +2094,37 @@ function confirmBooking(){
 }
 function finishAtBank(){
   overlay('Checking with '+BANKS[BANK].name,'This takes a few seconds');
-  setTimeout(function(){hideOverlay();go('sc-status');setState('SUCCESS');},1700);
+  setTimeout(function(){
+    hideOverlay();go('sc-status');setState('SUCCESS');
+    /* SUCCESS means the payer finished; the bank settles a moment later and the webhook
+       moves the order to COMPLETED. Without this the demo parked on step 2 of 4 and read
+       as an unfinished journey. Only on the natural run — the state simulator still wins. */
+    AUTO_SETTLE = setTimeout(function(){
+      if(SCREEN === 'sc-status' && STATE === 'SUCCESS') setState('COMPLETED');
+    }, 4200);
+  },1700);
+}
+var AUTO_SETTLE = null;
+
+/* Copy for real. The buttons used to raise "copied" without writing anything to the
+   clipboard, so the paste never arrived. Only claim success once it actually worked;
+   otherwise select the text so the tester can copy it by hand. */
+function copyFrom(btn, label){
+  const row = btn.closest('.stat-ref, .sum-row, .sum-value, div') || btn.parentElement;
+  const val = row && (row.querySelector('.stat-ref-v, .sum-value, .mono') || row);
+  const text = (val ? val.textContent : '').trim();
+  if(!text){ toast(label + ' not available yet'); return; }
+  const ok = () => toast(label + ' copied');
+  const manual = () => {
+    try{
+      const r = document.createRange(); r.selectNodeContents(val);
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast('Press \u2318C / Ctrl+C to copy the ' + label.toLowerCase());
+    }catch(e){ toast('Could not copy the ' + label.toLowerCase()); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok).catch(manual);
+  } else manual();
 }
 
 /* ── order status. One state, one message, one UTR rule. ── */
@@ -2132,7 +2162,10 @@ const STATES={
     spec:'Bank rejected after review. UTR hidden; refund messaging shown.'}
 };
 const SIM_ORDER=['SUCCESS','FAILED','CANCELLED','EXPIRED','REJECTED','COMPLETED'];
-function setState(k){
+/* Any state chosen by hand cancels the pending auto-settle, so the simulator always wins.
+   finishAtBank() arms the timer AFTER calling this, so the natural run is unaffected. */
+function setState(k){ clearTimeout(AUTO_SETTLE); AUTO_SETTLE = null; return _setState(k); }
+function _setState(k){
   STATE=k; const s=STATES[k], b=BANKS[BANK];
   $('statCard').className='stat-card sw-status '+s.card;
   $('statIco').innerHTML='<svg width="24" height="24"><use href="#'+s.ico+'"/></svg>';
@@ -2351,5 +2384,11 @@ showTip();
 emit('ready',{embedded:EMBED, amount:{value:AMT,currency:'USD'}});
 emitResize();
 </script>
+
+<script>/* decentro-demo-prefill — the suite's other flows ship with their fields
+   already populated; these started empty, which stalled the demo at step one. */
+window.addEventListener('load', function(){ setTimeout(function(){
+  if(typeof prefill==='function'){ try{ prefill(true); }catch(e){} }
+}, 80); });</script>
 </body>
 </html>
