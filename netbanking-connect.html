@@ -570,6 +570,9 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stro
   .g-d{display:none}
 }
 @media (max-width:640px){ .demo-seg{display:none} .topbar{padding:0 12px;gap:10px} .g-next{padding:0 14px} .g-k .badge{display:none} }
+/* The dev drawer parks off-canvas to the right, which stretched the document to twice
+   the viewport width at every size. Clip the axis; the drawer still slides in normally. */
+#app{position:relative;overflow-x:clip}
 /* Real phone: the device IS the phone. Drop the mock bezel and use the whole viewport. */
 @media (max-width:560px){
   .stage{padding:0 0 calc(var(--gh,96px) + 8px) 0!important;overflow:hidden!important;align-items:stretch!important;justify-items:stretch!important}

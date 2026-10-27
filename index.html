@@ -1,5 +1,6 @@
 <title>Decentro Demo Hub</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -162,39 +163,77 @@ footer{border-top:1px solid var(--border);padding-block:20px 28px;color:var(--fg
 footer p{margin:0}
 footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--fg-muted)}
 
-/* ---------- viewer: the flow owns the whole screen ---------- */
-.viewer{position:fixed;inset:0;z-index:50;background:var(--surface)}
+/* ---------- viewer: flow on top, dock below it ----------
+   The dock is a row in the viewer's flex column, not an overlay, so it can never sit on
+   top of a flow's own buttons the way a floating control did. */
+.viewer{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--surface)}
 .viewer[hidden]{display:none!important}
-.stage{position:absolute;inset:0;overflow:hidden}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden}
 .stage iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
-.hud{
-  position:fixed;z-index:60;display:flex;flex-direction:row;align-items:center;gap:2px;
-  padding:4px;border-radius:100px;
-  top:calc(10px + env(safe-area-inset-top,0px));
-  left:50%;transform:translateX(-50%);
-  background:var(--surface);border:1px solid var(--border-strong);
-  box-shadow:0 2px 6px rgba(16,19,23,.14),0 14px 30px -16px rgba(16,19,23,.45);
-  transition:left .22s cubic-bezier(.2,.8,.3,1);
+
+.dock{
+  position:relative;flex:none;display:flex;align-items:center;gap:3px;
+  background:var(--c-head);border-top:1px solid var(--c-line);color:var(--c-fg);
+  padding:5px max(10px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
 }
-.hud button{
-  width:34px;height:34px;flex:none;background:none;border:0;border-radius:100px;padding:0;
-  display:inline-flex;align-items:center;justify-content:center;
-  color:var(--fg-muted);transition:background .15s,color .15s;
+.dock button{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;
+  height:32px;padding:0 11px;border:0;border-radius:9px;background:transparent;
+  color:var(--c-dim);font-family:var(--sans);font-size:12px;font-weight:600;line-height:1;
+  transition:background .14s,color .14s,transform .06s;
 }
-.hud button:hover{background:var(--accent-soft);color:var(--accent-ink)}
-.hud button:disabled{opacity:.35;pointer-events:none}
-.hud button svg{width:16px;height:16px;flex:none}
-.hud .home{width:auto;padding:0 12px 0 10px;gap:7px;font-size:12.5px;font-weight:600;background:var(--accent-soft);color:var(--accent-ink)}
-.hud .home:hover{background:var(--accent);color:#fff}
-.hud .api-t[aria-pressed="true"]{background:var(--accent);color:#fff}
-.hud .sep{width:1px;height:18px;background:var(--border);margin:0 3px;flex:none}
-.hud .tog svg{transition:transform .22s cubic-bezier(.2,.8,.3,1)}
-.hud.min .home,.hud.min .sep,.hud.min .step,.hud.min .reload,.hud.min .fill,.hud.min .api-t{display:none}
-.hud.min .tog svg{transform:rotate(180deg)}
-.hud .fill.on{background:var(--accent);color:#fff}
-/* small confirmation for Demo fill */
+.dock .dlbl{font-size:12px;font-weight:600;line-height:1;letter-spacing:.005em;text-transform:none}
+.dock button:hover{background:rgba(255,255,255,.11);color:var(--c-fg)}
+.dock button:active{background:rgba(255,255,255,.2);color:#fff;transform:translateY(1px)}
+.dock button:disabled{opacity:.4;pointer-events:none}
+.dock button svg{width:15px;height:15px;flex:none}
+.dock .home{color:var(--c-fg)}
+.dock .home:hover{background:var(--accent);color:#fff}
+/* Demo fill nudges only while this screen actually has blank fields. A breathing ring
+   rather than a solid fill, so it never reads as a button stuck in a pressed state. */
+@keyframes fillnudge{
+  0%,100%{box-shadow:0 0 0 0 rgba(127,196,255,0)}
+  50%{box-shadow:0 0 0 4px rgba(127,196,255,.2)}
+}
+.dock .fill.ready{color:var(--c-key);background:rgba(127,196,255,.13);animation:fillnudge 2.4s ease-in-out infinite}
+.dock .fill.ready:hover{background:rgba(127,196,255,.22);color:#fff}
+.dock .fill.ready::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--c-key);flex:none}
+.dock .fill.on{background:var(--accent);color:#fff;animation:none}
+.dock .fill.on::after{background:#fff}
+.dock .api-t[aria-pressed="true"]{background:var(--accent);color:#fff}
+.dock .spacer{flex:1 1 auto;min-width:0}
+.dock .now{
+  min-width:0;font-size:11.5px;font-weight:600;color:var(--c-dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px;
+}
+.dock .now b{color:var(--c-fg);font-weight:700}
+.dock-rest{display:flex;align-items:center;gap:4px}
+.dock .more{display:none}
+.dock .more svg{transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+.dock .more[aria-expanded="true"] svg{transform:rotate(180deg)}
+
+/* Phone: the dock stays slim and the rest of the actions come up from it as a sheet. */
+@media (max-width:720px){
+  .dock{gap:2px;padding-top:6px}
+  .dock .now{display:none}
+  .dock button{padding:0 11px}
+  .dock .home .dlbl,.dock .fill .dlbl{display:none}
+  .dock .more{display:inline-flex;margin-left:auto}
+  .dock-rest{
+    position:absolute;left:0;right:0;bottom:100%;flex-direction:column;align-items:stretch;gap:4px;
+    background:var(--c-head);border-top:1px solid var(--c-line);
+    padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));
+    transform:translateY(10px);opacity:0;visibility:hidden;
+    transition:transform .24s cubic-bezier(.2,.8,.3,1),opacity .2s,visibility .24s;
+    box-shadow:0 -18px 40px -24px rgba(0,0,0,.8);
+  }
+  .dock-rest.on{transform:none;opacity:1;visibility:visible}
+  .dock-rest button{width:100%;justify-content:flex-start;height:42px;padding:0 14px;font-size:13px}
+  .dock button{height:34px}
+  .dock-rest .dlbl{display:inline}
+}
 .hudtoast{
-  position:fixed;z-index:61;top:calc(54px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-6px);
+  position:absolute;z-index:61;left:50%;bottom:14px;transform:translateX(-50%) translateY(6px);
   background:var(--fg);color:var(--bg);font-size:12px;font-weight:600;padding:7px 14px;border-radius:100px;
   opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;
 }
@@ -202,7 +241,7 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 
 /* ---------- backend panel ---------- */
 .api{
-  position:fixed;z-index:58;top:0;bottom:0;right:0;width:var(--api-w);
+  position:absolute;z-index:58;top:0;bottom:0;right:0;width:var(--api-w);
   display:flex;flex-direction:column;background:var(--c-bg);color:var(--c-fg);
   border-left:1px solid var(--c-line);box-shadow:-24px 0 60px -30px rgba(0,0,0,.8);
   font-family:var(--mono);
@@ -246,12 +285,8 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
   font-family:var(--sans);font-size:11.5px;line-height:1.6;color:#E9D3A8}
 .api-f{flex:none;padding:9px 14px;border-top:1px solid var(--c-line);background:var(--c-head);font-size:10px;color:var(--c-dim);display:flex;gap:8px;align-items:center}
 .api-f b{color:var(--c-dim);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hud.shift{left:calc(50% - (var(--api-w) / 2))}
 @media (max-width:640px){
   .api{top:auto;left:0;right:0;width:auto;height:62dvh;border-left:0;border-top:1px solid var(--c-line)}
-  .hud.shift{left:50%}
-  .hud .home span{display:none}
-  .hud .home{width:34px;padding:0}
 }
 
 .loading{
@@ -308,42 +343,45 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 </footer>
 
 <section class="viewer" id="viewer" hidden aria-label="Demo viewer">
-  <div class="stage" id="stage"><iframe id="frame" title="Demo" allow="clipboard-write"></iframe></div>
-  <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
-  <div class="hud" id="hud" role="toolbar" aria-label="Demo controls">
-    <button class="home" id="back" title="Back to all demos (Esc)" aria-label="Back to all demos">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg><span>Home</span>
-    </button>
-    <span class="sep"></span>
-    <button class="step" id="prev" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <button class="step" id="next" aria-label="Next flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
-    <button class="fill" id="fillBtn" title="Demo fill — fill every empty field on this screen" aria-label="Demo fill">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5h16"/><path d="M4 11h10"/><path d="M4 16.5h7"/><path d="m15.5 19 2.2 2.2L22 16.8"/></svg>
-    </button>
-    <button class="reload" id="restart" title="Restart this flow" aria-label="Restart this flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg></button>
-    <button class="api-t" id="apiTog" title="Backend: what the APIs are doing" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m8 6-5 6 5 6"/><path d="m16 6 5 6-5 6"/></svg>
-    </button>
-    <span class="sep"></span>
-    <button class="tog" id="hudTog" title="Hide controls" aria-label="Hide controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
+  <div class="stage" id="stage">
+    <iframe id="frame" title="Demo" allow="clipboard-write"></iframe>
+    <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
+    <aside class="api" id="api" hidden aria-label="Backend API trace">
+      <header class="api-h">
+        <span class="ttl"><b id="apiFlow">—</b><span class="badge draft" id="apiBadge">DRAFT</span></span>
+        <button id="apiFill" title="Play the whole API sequence without clicking through">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 4.5v15l12-7.5z"/></svg>Play trace
+        </button>
+        <button id="apiClear" title="Clear the trace" aria-label="Clear the trace">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
+        </button>
+        <button id="apiClose" title="Close" aria-label="Close the backend panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </header>
+      <div class="api-body" id="apiBody"></div>
+      <footer class="api-f"><b id="apiHost"></b></footer>
+    </aside>
+    <div class="hudtoast" id="hudToast" role="status" aria-live="polite"></div>
   </div>
-  <div class="hudtoast" id="hudToast" role="status" aria-live="polite"></div>
-  <aside class="api" id="api" hidden aria-label="Backend API trace">
-    <header class="api-h">
-      <span class="ttl"><b id="apiFlow">—</b><span class="badge draft" id="apiBadge">DRAFT</span></span>
-      <button id="apiFill" title="Play the whole API sequence without clicking through">
-        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 4.5v15l12-7.5z"/></svg>Play trace
-      </button>
-      <button id="apiClear" title="Clear the trace" aria-label="Clear the trace">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
-      </button>
-      <button id="apiClose" title="Close" aria-label="Close the backend panel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </button>
-    </header>
-    <div class="api-body" id="apiBody"></div>
-    <footer class="api-f"><b id="apiHost"></b></footer>
-  </aside>
+
+  <nav class="dock" id="dock" aria-label="Demo controls">
+    <button class="home" id="back" title="Back to all demos (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg><span class="dlbl">All demos</span>
+    </button>
+    <button class="fill" id="fillBtn" title="Demo fill — fill every empty field on this screen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M4 5.5h16"/><path d="M4 11h10"/><path d="M4 16.5h7"/><path d="m15.5 19 2.2 2.2L22 16.8"/></svg><span class="dlbl">Demo fill</span>
+    </button>
+    <span class="spacer"></span>
+    <span class="now" id="dockNow"></span>
+    <div class="dock-rest" id="dockRest">
+      <button class="step" id="prev" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M15 18l-6-6 6-6"/></svg><span class="dlbl">Previous flow</span></button>
+      <button class="step" id="next" aria-label="Next flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M9 6l6 6-6 6"/></svg><span class="dlbl">Next flow</span></button>
+      <button class="reload" id="restart" title="Restart this flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg><span class="dlbl">Restart</span></button>
+      <button class="api-t" id="apiTog" title="Backend: what the APIs are doing" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="m8 6-5 6 5 6"/><path d="m16 6 5 6-5 6"/></svg><span class="dlbl">Backend</span></button>
+    </div>
+    <button class="more" id="moreBtn" aria-expanded="false" aria-label="More controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="m6 15 6-6 6 6"/></svg></button>
+  </nav>
 </section>
 
 <script>
@@ -752,6 +790,8 @@ function open(slug, q){
   $('next').title = 'Next: ' + DEMOS[(i + 1) % DEMOS.length].name;
   stopFill(); stopWatch();
   if(apiOn) syncPanel();
+  fillable = 0; startFillWatch(); closeMore();
+  $('dockNow').innerHTML = '<b>' + esc(d.name) + '</b> \u00b7 ' + esc(d.tag);
   $('back').focus();
 }
 function step(dir){
@@ -760,7 +800,7 @@ function step(dir){
   open(DEMOS[(i + dir + DEMOS.length) % DEMOS.length].slug);
 }
 function close(){
-  stopFill(); stopWatch();
+  stopFill(); stopWatch(); clearInterval(fillPoll); closeMore();
   $('viewer').hidden = true;
   $('frame').src = 'about:blank';
   current = null;
@@ -961,13 +1001,43 @@ $('back').addEventListener('click', close);
 $('prev').addEventListener('click', () => step(-1));
 $('next').addEventListener('click', () => step(1));
 $('restart').addEventListener('click', () => { if(!current) return; stopFill(); if(apiOn) clearLog(); lastScreen = null; load(current, currentQ); });
-$('hudTog').addEventListener('click', () => {
-  const min = $('hud').classList.toggle('min');
-  $('hudTog').title = min ? 'Show controls' : 'Hide controls';
-  try{ localStorage.setItem('dhub-hud', min ? 'min' : 'open'); }catch(e){}
+/* Demo fill readiness: the button lights up when this screen actually has empty fields,
+   so the dock shows at a glance whether it is worth pressing. */
+let fillable = 0, fillPoll = null;
+function closeMore(){ $('dockRest').classList.remove('on'); $('moreBtn').setAttribute('aria-expanded','false'); }
+$('moreBtn').addEventListener('click', () => {
+  const on = $('dockRest').classList.toggle('on');
+  $('moreBtn').setAttribute('aria-expanded', String(on));
 });
+$('stage').addEventListener('click', closeMore);
+
+function countFillable(){
+  let doc; try{ doc = $('frame').contentDocument; }catch(e){ return 0; }
+  if(!doc) return 0;
+  let n = 0;
+  doc.querySelectorAll('input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea')
+    .forEach(el => {
+      if(el.disabled || el.readOnly || (el.value || '').trim()) return;
+      const t = (el.getAttribute('type') || '').toLowerCase();
+      if(t === 'checkbox' || t === 'radio') return;
+      const r = el.getBoundingClientRect();
+      if(r.width > 8 && r.height > 6) n++;
+    });
+  return n;
+}
+function startFillWatch(){
+  clearInterval(fillPoll);
+  fillPoll = setInterval(() => {
+    if(!current || $('viewer').hidden) return;
+    fillable = countFillable();
+    $('fillBtn').classList.toggle('ready', fillable > 0);
+    $('fillBtn').title = fillable > 0
+      ? 'Demo fill \u2014 ' + fillable + (fillable === 1 ? ' empty field here' : ' empty fields here')
+      : 'Demo fill \u2014 nothing empty on this screen';
+  }, 500);
+}
 try{ if(localStorage.getItem('dhub-api') === '1') setApi(true); }catch(e){}
-try{ if(localStorage.getItem('dhub-hud') === 'min'){ $('hud').classList.add('min'); $('hudTog').title = 'Show controls'; } }catch(e){}
+
 addEventListener('popstate', () => {
   const h = location.hash.slice(1);
   if(h && DEMOS.some(d => d.slug === h)) open(h); else close();

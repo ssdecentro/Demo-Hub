@@ -2271,7 +2271,7 @@ function closeDrawer(){ $('drawer').classList.remove('open'); $('dvBackdrop').cl
 function toggleAnno(){ document.body.classList.toggle('anno-on'); $('annoSwitch').classList.toggle('on'); }
 
 /* ── shell ── */
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show'); setTimeout(function(){ const t=document.querySelector('.devtip'); if(t) t.classList.remove('show'); }, 6000);setTimeout(function(){t.classList.remove('show');},2400);}
 function overlay(a,b){set('ovText',a);set('ovSub',b);$('overlay').classList.add('show');}
 function hideOverlay(){$('overlay').classList.remove('show');}
 const BACKTO={'sc-bank':'sc-details','sc-review':'sc-bank','sc-portal':'sc-review'};
@@ -2295,6 +2295,9 @@ function finishFlow(){
 }
 function restart(){ UTR=''; STATE='SUCCESS'; resetPortal(); closeDrawer(); go('sc-details'); toast('Demo reset'); }
 function go(id){
+  /* The developer coach mark is anchored to the app bar, and on wide screens it landed on
+     top of the portal screen's primary CTA. It has done its job by the time you move on. */
+  (function(){ const t=document.querySelector('.devtip'); if(t) t.classList.remove('show'); })();
   /* @dev demo only: jumping ahead from the drawer fills the profile so the
      downstream screens have something real to render. */
   if(id!=='sc-details' && !readProfile().pan) prefill(true);
