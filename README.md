@@ -8,7 +8,7 @@ Open `index.html` to run it locally, or host the folder as-is.
 
 ```
 index.html          the hub shell (homescreen + viewer)
-*.html              the 14 prototypes, each self-contained (flat, as GitHub Pages serves them)
+demos/*.html        the 14 prototypes, each self-contained
 ```
 
 Each demo runs live in an iframe. The viewer gives Web / Tablet / Phone frames,
@@ -30,7 +30,7 @@ Keyboard: `/` search · `Esc` back to the homescreen · `←` `→` between flow
 
 ## Adding a demo
 
-Drop the file beside index.html, then add one entry to the `DEMOS` array in `index.html`:
+Drop the file in `demos/`, then add one entry to the `DEMOS` array in `index.html`:
 
 ```js
 {slug:'my-flow', group:'payments', tag:'Product', surface:'Web',
