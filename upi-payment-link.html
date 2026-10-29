@@ -1,0 +1,1354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Decentro · UPI Payment Link</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: presenter bar + one fluid stage holding five screens. Design language:
+   Surface C (hosted checkout) for the payer page, Surface E (decentro.tech) for
+   the merchant side. Responsive per Decentro-Demo.MD §6 — no device frame of its
+   own: the Demo Hub supplies the iPad / iPhone frames. */
+
+/* ─────────────────────────── tokens ─────────────────────────── */
+:root{
+  --brand:#096EF2; --brand2:#0092FF; --brand-ink:#fff;
+  --tint:#EFF5FF; --soft:#F8FBFF; --field:#FAFBFC;
+  --ink:#0B0F14; --ink-2:#1C2024; --grey:#5F6872; --dim:#8794A8;
+  --line:#E2E8F0; --line-2:#CBD5E1; --bg:#F0F2F6; --white:#fff;
+  --ok:#10B981; --warn:#F59E0B; --bad:#E11D48; --hold:#6366F1;
+  --r:12px; --r-lg:18px; --r-pill:100px;
+  --shadow:0 18px 50px rgba(9,9,11,.13);
+  --shadow-sm:0 2px 12px rgba(16,24,40,.05);
+  --fs-h:clamp(19px,2.6vh,25px);
+  --fs-t:clamp(14px,1.75vh,16px);
+  --fs-b:clamp(13px,1.6vh,14.5px);
+  --fs-s:clamp(11.5px,1.35vh,12.5px);
+  --fs-xs:clamp(10.5px,1.2vh,11.5px);
+  --bar:52px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* every component below sets its own display, which would otherwise beat the
+   UA rule for [hidden] — so state this once, loudly, and use hidden freely */
+[hidden]{display:none!important}
+html,body{max-width:100%;overflow-x:hidden}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Montserrat',system-ui,sans-serif;color:var(--ink-2);background:var(--bg);
+  min-height:100dvh;display:flex;flex-direction:column;position:relative;isolation:isolate;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg,canvas{max-width:100%}
+button,input,select{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+b,strong{font-weight:700}
+.num{font-variant-numeric:tabular-nums}
+.vis{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* decorative backdrop — grid + brand glow, same family as the checkout page */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(148,158,182,.16) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(148,158,182,.16) 1px,transparent 1px);
+  background-size:48px 48px;
+  -webkit-mask-image:radial-gradient(ellipse 85% 90% at 30% 30%,#000 35%,transparent 100%);
+          mask-image:radial-gradient(ellipse 85% 90% at 30% 30%,#000 35%,transparent 100%)}
+body::after{content:"";position:fixed;z-index:0;pointer-events:none;width:720px;height:720px;
+  right:-250px;top:-280px;background:radial-gradient(closest-side,rgba(0,212,255,.10),transparent)}
+
+/* ─────────────────────────── presenter bar ─────────────────────────── */
+.top{
+  flex:none;position:sticky;top:0;z-index:30;height:var(--bar);
+  display:flex;align-items:center;gap:10px;
+  padding:0 max(14px,env(safe-area-inset-right,0px)) 0 max(14px,env(safe-area-inset-left,0px));
+  background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);
+}
+.top .mk{display:flex;align-items:center;gap:9px;min-width:0}
+.top .mk svg{height:15px;width:auto;flex:none}
+.top .mk i{width:1px;height:16px;background:var(--line-2);flex:none}
+.top .mk b{font-size:var(--fs-s);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{flex:1 1 auto;min-width:0}
+.tbtn{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:9px;
+  background:var(--white);border:1px solid var(--line);color:var(--grey);
+  font-size:var(--fs-s);font-weight:600;transition:border-color .15s,color .15s,background .15s;
+}
+.tbtn:hover{border-color:var(--line-2);color:var(--ink-2)}
+.tbtn[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.tbtn svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pick{position:relative;display:inline-flex;align-items:center}
+.pick select{
+  appearance:none;height:34px;padding:0 30px 0 12px;border-radius:9px;
+  background:var(--white);border:1px solid var(--line);color:var(--ink-2);
+  font-size:var(--fs-s);font-weight:600;max-width:200px;
+}
+.pick::after{content:"";position:absolute;right:12px;width:7px;height:7px;pointer-events:none;
+  border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);transform:translateY(-2px) rotate(45deg)}
+
+/* ─────────────────────────── stage / screens ─────────────────────────── */
+.stage{flex:1 1 auto;min-height:0;position:relative;z-index:1;display:flex;flex-direction:column}
+.screen{display:none;flex:1 1 auto;min-height:0;flex-direction:column}
+.screen.on{display:flex;animation:fade .26s var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.wrap{
+  width:100%;max-width:1040px;margin:0 auto;flex:1 1 auto;min-height:0;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(16px,3vw,28px) clamp(14px,3vw,28px) clamp(20px,3vw,30px);
+}
+.wrap.narrow{max-width:560px}
+
+/* ─────────────────────────── cards & bits ─────────────────────────── */
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.pad{padding:clamp(18px,3.2vw,30px)}
+.eyebrow{font-size:var(--fs-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand)}
+h1{font-size:var(--fs-h);font-weight:700;line-height:1.25;letter-spacing:-.01em}
+h2{font-size:var(--fs-t);font-weight:700;line-height:1.35}
+.sub{font-size:var(--fs-b);color:var(--grey);line-height:1.6}
+.hint{font-size:var(--fs-s);color:var(--dim);line-height:1.55}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.row>.grow{flex:1 1 0;min-width:0}
+.stack{display:flex;flex-direction:column}
+.gap-s{gap:8px}.gap{gap:14px}.gap-l{gap:20px}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  height:48px;padding:0 22px;border-radius:var(--r);font-size:var(--fs-t);font-weight:700;
+  background:var(--brand);color:var(--brand-ink);transition:filter .15s,transform .06s;
+  width:100%;
+}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.ghost{background:var(--white);border:1px solid var(--line-2);color:var(--ink-2)}
+.btn.ghost:hover{border-color:var(--brand);color:var(--brand);filter:none}
+.btn.sm{height:40px;font-size:var(--fs-b);padding:0 16px;width:auto}
+.btn svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld label{font-size:var(--fs-s);font-weight:600;color:var(--grey)}
+.fld input,.fld select{
+  height:46px;border:1px solid var(--line);border-radius:var(--r);background:var(--field);
+  padding:0 14px;font-size:16px;font-weight:500;width:100%;transition:border-color .15s,box-shadow .15s;
+}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(9,110,242,.14);background:var(--white)}
+.fld input::placeholder{color:var(--dim)}
+.fld.bad input{border-color:var(--bad)}
+.err{font-size:var(--fs-xs);font-weight:600;color:var(--bad);min-height:0}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:var(--r-pill);
+  font-size:var(--fs-xs);font-weight:700;background:var(--tint);color:var(--brand)}
+.chip.ok{background:rgba(16,185,129,.12);color:#047857}
+.chip.warn{background:rgba(245,158,11,.14);color:#B45309}
+.chip svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.trust{display:flex;align-items:center;justify-content:center;gap:8px;font-size:var(--fs-xs);font-weight:600;color:var(--dim);margin-top:16px;flex-wrap:wrap}
+.trust svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.powered{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:var(--fs-xs);font-weight:600;color:var(--dim)}
+.powered svg{height:11px;width:auto;opacity:.85}
+
+/* ─────────── screen 1 · merchant creates the link ─────────── */
+.mk-head{display:flex;flex-direction:column;gap:7px;margin-bottom:22px}
+.amt-in{position:relative}
+.amt-in span{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--grey);pointer-events:none}
+.amt-in input{padding-left:30px;font-weight:700}
+
+/* ─────────── screen 2 · link generated + share ─────────── */
+.linkbox{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--soft);padding:10px 10px 10px 14px}
+.linkbox code{flex:1 1 0;min-width:0;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:var(--fs-s);
+  color:var(--brand);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.share button{display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 6px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--white);font-size:var(--fs-xs);font-weight:700;color:var(--grey);
+  transition:border-color .14s,color .14s,transform .06s}
+.share button:hover{border-color:var(--brand);color:var(--brand)}
+.share button:active{transform:translateY(1px)}
+.share .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--tint);color:var(--brand)}
+.share .ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wa{border:1px solid var(--line);border-radius:var(--r);background:#E6F3EA;padding:14px;position:relative}
+.wa::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:#25D366}
+.wa p{font-size:var(--fs-s);line-height:1.65;color:#1F3D2B;white-space:pre-line}
+
+/* ─────────── screen 3 · the payer's hosted link page ─────────── */
+.pay{display:grid;grid-template-columns:minmax(0,1fr)}
+.pay-sum{background:var(--tint);padding:clamp(20px,3vw,30px);display:flex;flex-direction:column;gap:16px;min-width:0}
+.pay-opt{padding:clamp(18px,3vw,28px);display:flex;flex-direction:column;gap:16px;min-width:0}
+.mrch{display:flex;align-items:center;gap:12px;min-width:0}
+.mrch .av{width:42px;height:42px;min-width:42px;border-radius:12px;display:grid;place-items:center;
+  background:var(--brand);color:#fff;font-size:15px;font-weight:800}
+.mrch .mn{font-size:var(--fs-t);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrch .ms{font-size:var(--fs-xs);color:var(--grey);font-weight:600}
+.big{font-size:clamp(30px,5.2vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.meta{display:flex;flex-direction:column;gap:9px;border-top:1px solid rgba(9,110,242,.16);padding-top:14px}
+.meta .mr{display:flex;align-items:baseline;justify-content:space-between;gap:14px;font-size:var(--fs-s)}
+.meta .mr span{color:var(--grey);font-weight:600}
+.meta .mr b{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.timer{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;height:28px;padding:0 12px;border-radius:var(--r-pill);
+  background:rgba(225,29,72,.1);color:var(--bad);font-size:var(--fs-xs);font-weight:800}
+.timer svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.app{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r);
+  padding:11px 13px;min-height:56px;cursor:pointer;transition:border-color .13s,box-shadow .13s;text-align:left;width:100%}
+.app:hover{border-color:var(--brand)}
+.app.sel{border-color:var(--brand);box-shadow:0 0 0 2.5px rgba(9,110,242,.18)}
+.app .lg{width:30px;height:30px;min-width:30px;border-radius:9px;display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:800}
+.app .nm{flex:1 1 0;min-width:0;font-size:var(--fs-b);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.app .rd{width:17px;height:17px;min-width:17px;border-radius:50%;border:1.8px solid var(--line-2);transition:.13s}
+.app.sel .rd{border-width:5.5px;border-color:var(--brand)}
+.app.wide{grid-column:1/-1}
+.app .lg.b{background:var(--brand)}
+.app .lg svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+
+.vpa{display:flex;flex-direction:column;gap:9px;padding:14px;border:1px dashed var(--line-2);border-radius:var(--r);background:var(--soft)}
+.vpa .vr{display:flex;gap:9px;align-items:flex-start}
+.vpa .vr .fld{flex:1 1 0}
+.vname{display:flex;align-items:center;gap:8px;font-size:var(--fs-s);font-weight:700;color:#047857}
+.vname svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+.qrwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--soft)}
+.qrbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;line-height:0;flex:none}
+.qrbox svg{width:clamp(132px,34vw,164px);height:clamp(132px,34vw,164px);display:block;shape-rendering:crispEdges}
+.qrside{flex:1 1 190px;min-width:0;display:flex;flex-direction:column;gap:8px}
+
+.sep{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:var(--fs-xs);font-weight:700}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ─────────── screen 4 · awaiting approval ─────────── */
+.await{display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px}
+.pulse{position:relative;width:92px;height:92px;display:grid;place-items:center;flex:none}
+.pulse i{position:absolute;inset:0;border-radius:50%;background:rgba(9,110,242,.16);animation:ring 2s var(--ease) infinite}
+.pulse i:nth-child(2){animation-delay:.65s}
+.pulse i:nth-child(3){animation-delay:1.3s}
+@keyframes ring{0%{transform:scale(.55);opacity:.85}100%{transform:scale(1.25);opacity:0}}
+.pulse .core{position:relative;width:56px;height:56px;border-radius:18px;display:grid;place-items:center;
+  background:var(--brand);color:#fff;box-shadow:0 10px 26px rgba(9,110,242,.35)}
+.pulse .core svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.steps{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
+.stp{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;font-size:var(--fs-s);font-weight:600;color:var(--dim)}
+.stp.on{background:var(--tint);color:var(--ink-2)}
+.stp.done{color:var(--grey)}
+.stp .dot{width:17px;height:17px;min-width:17px;border-radius:50%;border:2px solid var(--line-2);display:grid;place-items:center}
+.stp.on .dot{border-color:var(--brand);border-right-color:transparent;animation:spin .8s linear infinite}
+.stp.done .dot{border-color:var(--ok);background:var(--ok)}
+.stp.done .dot::after{content:"";width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+@keyframes spin{to{transform:rotate(1turn)}}
+
+/* ─────────── screen 5 · outcome ─────────── */
+.out{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.out .ic{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;flex:none}
+.out .ic svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.out.success .ic{background:rgba(16,185,129,.13);color:var(--ok)}
+.out.pending .ic,.out.hold .ic{background:rgba(245,158,11,.15);color:#B45309}
+.out.failed .ic,.out.expired .ic,.out.invalid .ic{background:rgba(225,29,72,.11);color:var(--bad)}
+.out.refund .ic{background:rgba(99,102,241,.13);color:var(--hold)}
+.recpt{width:100%;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:4px}
+.recpt .rr{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 14px;font-size:var(--fs-s);border-bottom:1px solid var(--line);text-align:left}
+.recpt .rr:last-child{border-bottom:0}
+.recpt .rr span{color:var(--grey);font-weight:600;flex:none}
+.recpt .rr b{font-weight:700;text-align:right;overflow-wrap:anywhere;min-width:0}
+.note{width:100%;padding:11px 13px;border-radius:10px;background:var(--field);border:1px dashed var(--line-2);
+  font-size:var(--fs-s);line-height:1.6;color:var(--grey);text-align:left}
+.redir{font-size:var(--fs-s);color:var(--grey);font-weight:600}
+
+/* ─────────── developer console ─────────── */
+.dev{
+  position:fixed;z-index:60;top:0;right:0;bottom:0;width:min(440px,100vw);
+  display:flex;flex-direction:column;background:#0C0E11;color:#E6E8EB;
+  border-left:1px solid #22262C;box-shadow:-24px 0 60px -30px rgba(0,0,0,.85);
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  transform:translateX(100%);transition:transform .26s var(--ease);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.dev.on{transform:none}
+.dev-h{flex:none;display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid #22262C;background:#14171B}
+.dev-h b{flex:1;min-width:0;font-family:'Montserrat',sans-serif;font-size:var(--fs-s);font-weight:700;color:#fff}
+.dev-h button{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.06);color:#9BA3AE;display:grid;place-items:center}
+.dev-h button:hover{background:rgba(255,255,255,.12);color:#fff}
+.dev-h button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.dev-b{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.dev-empty{margin:auto;text-align:center;color:#6B7280;font-family:'Montserrat',sans-serif;font-size:var(--fs-s);line-height:1.6;padding:30px 18px}
+.call{border:1px solid #22262C;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.015)}
+.call.live{border-color:rgba(127,196,255,.34)}
+.call-h{width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;text-align:left;color:inherit}
+.call-h:hover{background:rgba(255,255,255,.04)}
+.call-h .m{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,.07)}
+.m-POST{color:#7FC4FF}.m-GET{color:#9BE3AE}.m-HOOK{color:#C9A6F5}.m-NOTE{color:#6B7280}
+.call-h .p{flex:1;min-width:0;font-size:10.5px;color:#E6E8EB;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.call-h .s{flex:none;font-size:10px;color:#9BE3AE}
+.call-b{padding:2px 10px 11px;border-top:1px solid #22262C}
+.call-b[hidden]{display:none}
+.call-b .lb{font-family:'Montserrat',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#6B7280;margin:10px 0 5px}
+.call-b pre{font-size:10.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.call-b .k{color:#7FC4FF}.call-b .v{color:#9BE3AE}.call-b .n{color:#F3C377}.call-b .bo{color:#C9A6F5}
+.call-b .nt{margin-top:10px;padding:9px 10px;border-radius:7px;background:rgba(243,195,119,.08);
+  font-family:'Montserrat',sans-serif;font-size:11px;line-height:1.6;color:#E9D3A8}
+.dev-f{flex:none;padding:9px 14px;border-top:1px solid #22262C;background:#14171B;font-size:10px;color:#6B7280}
+.scrim{position:fixed;inset:0;z-index:55;background:rgba(5,8,12,.46);opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}
+.scrim.on{opacity:1;visibility:visible}
+
+.toast{position:fixed;z-index:70;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);
+  background:var(--ink);color:#fff;font-size:var(--fs-s);font-weight:600;padding:9px 16px;border-radius:var(--r-pill);
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ═══════════════════ responsive · Decentro-Demo.MD §6 ═══════════════════ */
+
+/* ≥641: the card is a rounded panel, so clip the two panes to its corners.
+   Below that the card is full-bleed and must NOT clip — the mobile pay bar
+   is position:sticky, and an overflow:hidden ancestor would kill it. */
+@media (min-width:641px){ .pay{overflow:hidden} }
+/* ≥900: the payer page becomes a true two-pane laptop layout */
+@media (min-width:900px){
+  .pay{grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr)}
+  .pay-sum{border-right:1px solid rgba(9,110,242,.14)}
+}
+/* ≤1000: dev console narrows but stays a drawer */
+@media (max-width:1000px){ .dev{width:min(420px,100vw)} }
+/* ≤768: inputs already 16px; stack the share grid 2-up */
+@media (max-width:768px){
+  .share{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .wrap{justify-content:flex-start}
+}
+/* ≤640: full-bleed card, no page gutters, sticky action bar */
+@media (max-width:640px){
+  :root{--bar:48px}
+  .wrap{padding:0}
+  .wrap.narrow{max-width:none}
+  .card{border-radius:0;border-left:0;border-right:0;box-shadow:none;min-height:calc(100dvh - var(--bar))}
+  .pad{padding:18px 16px 22px}
+  .pay-sum,.pay-opt{padding:18px 16px}
+  .top .mk b{display:none}
+  .tbtn .lbl{display:none}
+  .tbtn{padding:0 10px}
+  .trust,.powered{padding:0 16px}
+  .trust{margin-top:14px}
+  .dev{width:100vw;border-left:0}
+  .apps{grid-template-columns:minmax(0,1fr)}
+  /* §6.7 — the one primary action rides the bottom of the screen on phones,
+     clear of the home indicator, instead of sitting under the QR block */
+  .pay-opt{padding-bottom:92px}
+  #b-pay{position:fixed;left:12px;right:12px;width:auto;z-index:20;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 12px 34px rgba(9,110,242,.34)}
+  #b-pay[disabled]{box-shadow:0 8px 24px rgba(15,23,42,.14)}
+  .pay-opt>.trust{margin-top:16px}
+}
+/* ≤480: tighter gutters, QR shrinks with the viewport */
+@media (max-width:480px){
+  .pad{padding:16px 14px 20px}
+  .pay-sum,.pay-opt{padding:16px 14px}
+  .qrwrap{padding:14px;justify-content:center;text-align:center}
+  .qrside{flex-basis:100%;align-items:center}
+}
+/* short laptops / landscape phones: drop narration, never the mechanism */
+@media (max-height:700px){
+  .mk-head{margin-bottom:16px}
+  .await{gap:13px}
+  .pulse{width:74px;height:74px}
+  .pulse .core{width:48px;height:48px}
+}
+@media (max-height:560px){
+  .hint.drop,.sub.drop{display:none}
+  .pulse{display:none}
+}
+@media (hover:none),(pointer:coarse){
+  .btn,.app,.share button,.tbtn{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
+<style>
+/* ══ Decentro-Demo.MD §6 responsive baseline — appended 29 Oct 2026 ══
+   Four guarantees: no sideways scroll at any width from 320 up, nothing
+   clipped, one primary action reachable by thumb, readable without zoom. */
+html,body{overflow-x:hidden}
+img,svg,video,canvas{max-width:100%}
+/* iOS zooms any input under 16px on focus — inside an iFrame that reads as the
+   page breaking, so this one is loud on purpose. */
+@media (max-width:768px){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select,textarea{font-size:16px!important}
+}
+/* Touch ergonomics: only lifts controls that have not set their own height. */
+@media (pointer:coarse){
+  button,[role="button"],summary{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ── scrollbars: hidden everywhere, scrolling untouched ──────────────────
+   No visible bar on any surface. !important because several flows style
+   their own (.zone-body, .pane, .steps…) with a higher specificity than a
+   universal selector, and those would otherwise keep painting. Hiding the
+   bar does not affect wheel, trackpad, touch, keyboard or programmatic
+   scrolling — only the indicator is gone. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+</style>
+
+<style>
+/* The lockup is a brand mark, not muted label text. On these light footers the
+   words "Powered by" stay quiet but the logo itself is the full black lockup —
+   white on dark, black on light, never a washed-out grey in between. */
+.powered svg[viewBox="0 0 2749.67 538.23"],
+.sticky-powered svg[viewBox="0 0 2749.67 538.23"],
+.pow-strip svg[viewBox="0 0 2749.67 538.23"]{fill:#0B0F14;opacity:1}
+</style>
+
+<style>
+/* -- closed drawers must not cast a shadow --
+   These panels park off-canvas with translateX of about 102%, which clears the
+   edge by only ~7px. Their box-shadow (20px offset plus 40px blur) reached back
+   over the content, painting a grey smudge down the side of every screen. The
+   shadow now belongs to the open state only. */
+.dev{box-shadow:none!important}
+.dev.on{box-shadow:-24px 0 60px -30px rgba(0,0,0,.85)!important}
+</style>
+</head>
+<body>
+<!-- ============================================================
+  @dev  UPI Payment Link — interactive prototype
+  Decentro's standard payment link: the merchant creates one, shares it, and the
+  payer settles it over UPI (app intent · any UPI ID · QR).
+  All data is mock; times pinned to IST. Endpoints follow the collections spec
+  shape (/v3/payments/upi/...) and are ILLUSTRATIVE until confirmed.
+============================================================= -->
+
+<header class="top">
+  <span class="mk" id="mk"></span>
+  <span class="sp"></span>
+  <span class="pick">
+    <label class="vis" for="outSel">Outcome to demo</label>
+    <select id="outSel">
+      <option value="success">Outcome · Payment Successful</option>
+      <option value="pending">Outcome · Payment Pending</option>
+      <option value="failed">Outcome · Payment Failed</option>
+      <option value="refund">Outcome · Refund Initiated</option>
+      <option value="hold">Outcome · Unconfirmed Status</option>
+      <option value="expired">Outcome · Link Expired</option>
+      <option value="invalid">Outcome · Invalid Link</option>
+    </select>
+  </span>
+  <button class="tbtn" id="restart" title="Restart this flow">
+    <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg><span class="lbl">Restart</span>
+  </button>
+  <button class="tbtn" id="devTog" aria-pressed="false" title="Developer console">
+    <svg viewBox="0 0 24 24"><path d="m8 6-5 6 5 6"/><path d="m16 6 5 6-5 6"/></svg><span class="lbl">Backend</span>
+  </button>
+</header>
+
+<main class="stage">
+
+  <!-- @dev Screen 1 · Merchant creates the link
+       shadcn: Card, Input, Button · states: default, validation-error
+       API: POST /v3/payments/upi/payment_link -->
+  <section class="screen on" id="sc-create">
+    <div class="wrap narrow">
+      <div class="card pad">
+        <div class="mk-head">
+          <span class="eyebrow">Merchant · Decentro dashboard</span>
+          <h1>Create a UPI payment link</h1>
+          <p class="sub drop">One link, any UPI app. Share it on WhatsApp, SMS or email and the money
+            settles straight into your collection account.</p>
+        </div>
+        <div class="stack gap">
+          <div class="fld" id="f-amt">
+            <label for="i-amt">Amount to collect</label>
+            <div class="amt-in"><span>₹</span><input id="i-amt" inputmode="decimal" value="2499.00" autocomplete="off"></div>
+          </div>
+          <div class="grid2">
+            <div class="fld" id="f-name">
+              <label for="i-name">Customer name</label>
+              <input id="i-name" value="Rohan Mehta" autocomplete="name">
+            </div>
+            <div class="fld" id="f-mob">
+              <label for="i-mob">Mobile</label>
+              <input id="i-mob" inputmode="numeric" value="9876543210" autocomplete="tel" maxlength="10">
+            </div>
+          </div>
+          <div class="fld" id="f-note">
+            <label for="i-note">What is this for</label>
+            <input id="i-note" value="Order CM-48213" autocomplete="off">
+          </div>
+          <div class="fld">
+            <label for="i-exp">Link expires in</label>
+            <select id="i-exp">
+              <option value="15">15 minutes</option>
+              <option value="60" selected>1 hour</option>
+              <option value="1440">24 hours</option>
+              <option value="10080">7 days</option>
+            </select>
+          </div>
+          <p class="err" id="e-create"></p>
+          <button class="btn" id="b-create">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+            Generate payment link
+          </button>
+        </div>
+      </div>
+      <div class="powered" id="pw1"></div>
+    </div>
+  </section>
+
+  <!-- @dev Screen 2 · Link generated, merchant shares it
+       shadcn: Card, Button · API: none (share is client-side) -->
+  <section class="screen" id="sc-share">
+    <div class="wrap narrow">
+      <div class="card pad">
+        <div class="mk-head">
+          <span class="chip ok"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg>Link is live</span>
+          <h1>Share it with <span id="sh-name">Rohan Mehta</span></h1>
+          <p class="sub drop">The link stays open until it is paid or it expires. Every open, attempt and
+            settlement lands on your webhook.</p>
+        </div>
+        <div class="stack gap">
+          <div class="linkbox">
+            <code id="sh-url">https://pay.decentro.tech/l/9f21c0</code>
+            <button class="btn ghost sm" id="b-copy">Copy</button>
+          </div>
+          <div class="share">
+            <button data-share="wa"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.7-5.2A8.5 8.5 0 1 1 21 11.5Z"/></svg></span>WhatsApp</button>
+            <button data-share="sms"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5H4l2-3.2A8.5 8.5 0 1 1 21 11.5Z"/></svg></span>SMS</button>
+            <button data-share="mail"><span class="ic"><svg viewBox="0 0 24 24"><rect x="2.5" y="4.5" width="19" height="15" rx="2.4"/><path d="m3 7 9 6 9-6"/></svg></span>Email</button>
+            <button data-share="qr"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><path d="M14 14h3v3h-3zM19.5 14H21v1.5M19.5 19.5H21V21M14 19.5h1.5V21"/></svg></span>QR</button>
+          </div>
+          <div class="wa"><p id="wa-msg"></p></div>
+          <button class="btn" id="b-open">
+            <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M21 3 10 14"/><path d="M19 13.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5.5"/></svg>
+            Open it as the customer
+          </button>
+          <p class="hint drop" style="text-align:center">This is what Rohan sees when he taps the link on his phone.</p>
+        </div>
+      </div>
+      <div class="powered" id="pw2"></div>
+    </div>
+  </section>
+
+  <!-- @dev Screen 3 · Payer's hosted link page
+       shadcn: Card, RadioGroup, Input · states: default, vpa-entered, qr
+       API: GET /v3/payments/upi/payment_link/{id} · POST /v3/payments/upi/collect -->
+  <section class="screen" id="sc-link">
+    <div class="wrap">
+      <div class="card pay">
+        <div class="pay-sum">
+          <div class="mrch">
+            <span class="av">CM</span>
+            <span class="grow">
+              <div class="mn">Cobalt Mart</div>
+              <div class="ms">COBALT RETAIL PRIVATE LIMITED</div>
+            </span>
+          </div>
+          <div>
+            <div class="hint" style="margin-bottom:4px">Amount payable</div>
+            <div class="big num" id="pl-amt">₹2,499.00</div>
+          </div>
+          <span class="timer"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Expires in <b class="num" id="pl-clock">59:00</b></span>
+          <div class="meta">
+            <div class="mr"><span>Paying for</span><b id="pl-note">Order CM-48213</b></div>
+            <div class="mr"><span>Link ID</span><b class="num" id="pl-id">PLNK2026102900913</b></div>
+            <div class="mr"><span>Customer</span><b id="pl-cust">Rohan Mehta · +91 98XXX XX210</b></div>
+          </div>
+          <div class="trust" style="justify-content:flex-start;margin-top:auto">
+            <svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.1 7.5-9.5V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Secured by Decentro · NPCI-licensed rails
+          </div>
+        </div>
+
+        <div class="pay-opt">
+          <h2>Pay with any UPI app</h2>
+          <div class="apps">
+            <button class="app" data-app="gpay"><span class="lg" style="background:#4285F4">GP</span><span class="nm">Google Pay</span><span class="rd"></span></button>
+            <button class="app" data-app="phonepe"><span class="lg" style="background:#5F259F">Pe</span><span class="nm">PhonePe</span><span class="rd"></span></button>
+            <button class="app" data-app="paytm"><span class="lg" style="background:#00B9F1">Pt</span><span class="nm">Paytm</span><span class="rd"></span></button>
+            <button class="app" data-app="cred"><span class="lg" style="background:#1A1A1A">CR</span><span class="nm">CRED</span><span class="rd"></span></button>
+            <button class="app wide" data-app="vpa"><span class="lg b"><svg viewBox="0 0 24 24"><path d="M7 11 12 3l5 8-5 8-5-8Z"/><path d="M12 3v16"/></svg></span><span class="nm">Pay using a UPI ID</span><span class="rd"></span></button>
+          </div>
+
+          <div class="vpa" id="vpaBox" hidden>
+            <div class="vr">
+              <div class="fld" id="f-vpa">
+                <label for="i-vpa">Enter your UPI ID</label>
+                <input id="i-vpa" placeholder="name@bank" autocomplete="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <button class="btn ghost sm" id="b-vpa" style="margin-top:25px">Verify</button>
+            </div>
+            <p class="err" id="e-vpa"></p>
+            <div class="vname" id="vpaName" hidden>
+              <svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg><span id="vpaNameTxt"></span>
+            </div>
+          </div>
+
+          <div class="sep">or scan to pay</div>
+          <div class="qrwrap">
+            <div class="qrbox" id="qrBox"></div>
+            <div class="qrside">
+              <div class="hint" style="font-weight:700;color:var(--ink-2)">Scan with any UPI app</div>
+              <div class="hint drop">Open Google Pay, PhonePe, Paytm or your bank app, scan this code and approve
+                ₹2,499.00 to Cobalt Mart.</div>
+              <span class="chip warn"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>Refreshes every 8 min</span>
+            </div>
+          </div>
+
+          <button class="btn" id="b-pay" disabled>
+            <svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+            <span id="payLbl">Select a UPI app to continue</span>
+          </button>
+          <div class="trust">
+            <svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+            256-bit encrypted · PCI DSS compliant
+          </div>
+        </div>
+      </div>
+      <div class="powered" id="pw3"></div>
+    </div>
+  </section>
+
+  <!-- @dev Screen 4 · Awaiting payer approval
+       shadcn: Card · states: waiting, timed-out
+       API: POST /v3/payments/upi/collect → GET /v3/payments/transaction/status (poll) -->
+  <section class="screen" id="sc-await">
+    <div class="wrap narrow">
+      <div class="card pad">
+        <div class="await">
+          <div class="pulse"><i></i><i></i><i></i>
+            <span class="core"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M11 18.5h2"/></svg></span>
+          </div>
+          <div class="stack gap-s">
+            <h1>Approve the request in <span id="aw-app">your UPI app</span></h1>
+            <p class="sub drop">A collect request for <b class="num">₹2,499.00</b> has gone out to
+              <b id="aw-vpa">your UPI ID</b>. Enter your UPI PIN to finish.</p>
+          </div>
+          <span class="timer"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Request valid for <b class="num" id="aw-clock">04:30</b></span>
+          <div class="steps">
+            <div class="stp done" id="st1"><span class="dot"></span>Collect request raised with NPCI</div>
+            <div class="stp on" id="st2"><span class="dot"></span>Waiting for you to approve in the app</div>
+            <div class="stp" id="st3"><span class="dot"></span>Debit confirmed and settled to Cobalt Mart</div>
+          </div>
+          <button class="btn" id="b-approve">I have approved it</button>
+          <button class="btn ghost" id="b-cancel">Cancel this payment</button>
+        </div>
+      </div>
+      <div class="powered" id="pw4"></div>
+    </div>
+  </section>
+
+  <!-- @dev Screen 5 · Outcome (7 states, Decentro-Demo.MD §8.5)
+       shadcn: Card, Badge · API: GET /v3/payments/transaction/status + webhook -->
+  <section class="screen" id="sc-status">
+    <div class="wrap narrow">
+      <div class="card pad">
+        <div class="out" id="outBox">
+          <div class="ic" id="outIc"></div>
+          <div class="stack gap-s">
+            <h1 id="outTitle">Payment Successful</h1>
+            <p class="sub" id="outDesc"></p>
+          </div>
+          <div class="recpt" id="outRecpt"></div>
+          <p class="note" id="outNote" hidden></p>
+          <button class="btn" id="b-done">Back to Cobalt Mart</button>
+          <p class="redir" id="outRedir" hidden></p>
+          <button class="btn ghost" id="b-again">Run the flow again</button>
+        </div>
+      </div>
+      <div class="powered" id="pw5"></div>
+    </div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="dev" id="dev" aria-label="Developer console">
+  <header class="dev-h">
+    <b>Developer console</b>
+    <button id="devClear" title="Clear"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg></button>
+    <button id="devClose" title="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  </header>
+  <div class="dev-b" id="devBody"></div>
+  <footer class="dev-f">https://staging.api.decentro.tech · all values mock</footer>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* CONFIG → STATE → QR → MOCK SERVER → FLOW → RENDER → DEV CONSOLE → BOOT */
+
+/* ─────────────────────────── CONFIG ─────────────────────────── */
+var LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg>';
+
+var MERCHANT = { name:'Cobalt Mart', legal:'COBALT RETAIL PRIVATE LIMITED', vpa:'cobaltmart@decentro', mcc:'5411' };
+var APPS = { gpay:'Google Pay', phonepe:'PhonePe', paytm:'Paytm', cred:'CRED', vpa:'your UPI app' };
+var LINK_ID = 'PLNK2026102900913';
+var TXN_ID  = '7f3c1a9e2b4d48c0a1e5d6f70b8c9a21';
+var UTR     = '432910772184';
+
+/* Outcome copy — Decentro-Demo.MD §8.5 */
+var OUTCOMES = {
+  success:{ t:'Payment Successful', d:'Your payment was successful and has been accepted by Cobalt Mart.', k:'success', redirect:true },
+  pending:{ t:'Payment Pending',    d:'The payment on this link is under process. Please wait for some time.', k:'pending',
+            n:'Please connect with the merchant / sender of this link to share a new one with you.' },
+  failed: { t:'Payment Failed',     d:'The bank declined the request, or it was cancelled in the UPI app.', k:'failed' },
+  refund: { t:'Refund Initiated',   d:'You were debited but Cobalt Mart could not accept the payment. The refund starts automatically.', k:'refund',
+            n:'Refunds reach the source account in 3–5 working days. The reference below is your proof of debit.' },
+  hold:   { t:'Unconfirmed Payment Status', d:'You were debited and the amount is on hold until Cobalt Mart confirms it.', k:'hold' },
+  expired:{ t:'Payment Link Expired', d:'The session ran out before the payment was approved.', k:'expired',
+            n:'Please connect with the merchant / sender of this link to share a new one with you.' },
+  invalid:{ t:'Invalid Link',       d:'This link was not issued by Decentro, or it has already been used.', k:'invalid',
+            n:'Please connect with the merchant / sender of this link to share a new one with you.' }
+};
+var OUT_IC = {
+  success:'<path d="m5 13 4 4L19 7"/>',
+  pending:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+  hold:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+  failed:'<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>',
+  expired:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+  invalid:'<path d="M12 3.5 2.8 19.5h18.4Z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/>',
+  refund:'<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/>'
+};
+
+/* ─────────────────────────── STATE ─────────────────────────── */
+var st = {
+  screen:'create', amount:2499, name:'Rohan Mehta', mobile:'9876543210',
+  note:'Order CM-48213', expiry:60, app:null, vpa:null, vpaName:null,
+  outcome:'success', linkClock:0, awaitClock:0, t1:null, t2:null, t3:null
+};
+
+/* ─────────────────────────── helpers ─────────────────────────── */
+function $(id){ return document.getElementById(id); }
+function inr(n){ return '₹' + Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function mmss(s){ s=Math.max(0,s|0); return String((s/60)|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function maskMob(m){ return '+91 ' + m.slice(0,2) + 'XXX XX' + m.slice(-3); }
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t);
+  toast._t=setTimeout(function(){ t.classList.remove('on'); }, 2200); }
+
+/* ══════════════════════════════════════════════════════════════
+   QR — byte mode, ECC level L, versions 1–9. Encodes the real
+   upi://pay intent, so the code on screen actually scans.
+   ══════════════════════════════════════════════════════════════ */
+var QR = (function(){
+  var EXP=new Array(512), LOG=new Array(256), x=1;
+  for(var i=0;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&256) x^=285; }
+  for(var i2=255;i2<512;i2++) EXP[i2]=EXP[i2-255];
+  function mul(a,b){ return (a===0||b===0)?0:EXP[LOG[a]+LOG[b]]; }
+  function genPoly(n){ var p=[1]; for(var i=0;i<n;i++){ var q=p.concat([0]);
+      for(var j=0;j<p.length;j++) q[j+1]^=mul(p[j],EXP[i]); p=q; } return p; }
+  function rs(data,n){ var res=new Array(n).fill(0), g=genPoly(n);
+    for(var i=0;i<data.length;i++){ var f=data[i]^res[0]; res.shift(); res.push(0);
+      if(f!==0) for(var j=0;j<n;j++) res[j]^=mul(g[j+1],f); }
+    return res; }
+
+  /* [version]: [total data codewords (L), ec codewords per block, block count] */
+  var CAP = {1:[19,7,1],2:[34,10,1],3:[55,15,1],4:[80,20,1],5:[108,26,1],
+             6:[136,18,2],7:[156,20,2],8:[194,24,2],9:[232,30,2]};
+  var ALIGN = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46]};
+  var VERINFO = {7:0x07C94,8:0x085BC,9:0x09A99};
+
+  function bch15(v){ var d=v<<10; for(var i=4;i>=0;i--) if(d&(1<<(i+10))) d^=0x537<<i; return ((v<<10)|d)^0x5412; }
+
+  function build(text){
+    var bytes=[], s=unescape(encodeURIComponent(text));
+    for(var i=0;i<s.length;i++) bytes.push(s.charCodeAt(i)&255);
+    var ver=0;
+    for(var v=1;v<=9;v++){ if(CAP[v][0]-2 >= bytes.length){ ver=v; break; } }
+    if(!ver) throw new Error('QR payload too long');
+    var total=CAP[ver][0], ecn=CAP[ver][1], blocks=CAP[ver][2];
+
+    var bits=[];
+    function push(val,len){ for(var i=len-1;i>=0;i--) bits.push((val>>i)&1); }
+    push(4,4); push(bytes.length,8);
+    for(var i3=0;i3<bytes.length;i3++) push(bytes[i3],8);
+    var cap=total*8;
+    for(var i4=0;i4<4 && bits.length<cap;i4++) bits.push(0);
+    while(bits.length%8) bits.push(0);
+    var words=[]; for(var i5=0;i5<bits.length;i5+=8){ var b=0; for(var j=0;j<8;j++) b=(b<<1)|bits[i5+j]; words.push(b); }
+    var pad=[0xEC,0x11],pi=0; while(words.length<total) words.push(pad[pi++%2]);
+
+    var per=total/blocks, dBlocks=[], eBlocks=[];
+    for(var b2=0;b2<blocks;b2++){ var blk=words.slice(b2*per,(b2+1)*per); dBlocks.push(blk); eBlocks.push(rs(blk,ecn)); }
+    var out=[];
+    for(var c=0;c<per;c++) for(var b3=0;b3<blocks;b3++) out.push(dBlocks[b3][c]);
+    for(var c2=0;c2<ecn;c2++) for(var b4=0;b4<blocks;b4++) out.push(eBlocks[b4][c2]);
+
+    var size=ver*4+17;
+    var m=[],res=[];
+    for(var r=0;r<size;r++){ m.push(new Array(size).fill(0)); res.push(new Array(size).fill(false)); }
+    function set(r,c,v){ m[r][c]=v?1:0; res[r][c]=true; }
+    function finder(r,c){ for(var dr=-1;dr<=7;dr++) for(var dc=-1;dc<=7;dc++){
+        var rr=r+dr, cc=c+dc; if(rr<0||cc<0||rr>=size||cc>=size) continue;
+        var on=(dr>=0&&dr<=6&&(dc===0||dc===6))||(dc>=0&&dc<=6&&(dr===0||dr===6))||(dr>=2&&dr<=4&&dc>=2&&dc<=4);
+        set(rr,cc,on); } }
+    finder(0,0); finder(0,size-7); finder(size-7,0);
+    for(var i6=8;i6<size-8;i6++){ set(6,i6,i6%2===0); set(i6,6,i6%2===0); }
+    var al=ALIGN[ver];
+    for(var a=0;a<al.length;a++) for(var b5=0;b5<al.length;b5++){
+      var ar=al[a], ac=al[b5];
+      if((ar<=7&&ac<=7)||(ar<=7&&ac>=size-8)||(ar>=size-8&&ac<=7)) continue;
+      for(var dr2=-2;dr2<=2;dr2++) for(var dc2=-2;dc2<=2;dc2++)
+        set(ar+dr2, ac+dc2, Math.max(Math.abs(dr2),Math.abs(dc2))!==1);
+    }
+    set(size-8,8,true); /* dark module */
+    for(var i7=0;i7<9;i7++){ if(!res[8][i7]) set(8,i7,false); if(!res[i7][8]) set(i7,8,false); }
+    for(var i8=0;i8<8;i8++){ if(!res[8][size-1-i8]) set(8,size-1-i8,false); if(!res[size-1-i8][8]) set(size-1-i8,8,false); }
+    if(ver>=7){ for(var i9=0;i9<18;i9++){ var bit=(VERINFO[ver]>>i9)&1,
+        rr2=Math.floor(i9/3), cc2=i9%3; set(rr2,size-11+cc2,bit); set(size-11+cc2,rr2,bit); } }
+
+    /* place data, zig-zag from bottom-right */
+    function place(mask){
+      var g=m.map(function(row){ return row.slice(); });
+      var bit=0, up=true;
+      for(var col=size-1;col>0;col-=2){
+        if(col===6) col--;
+        for(var k=0;k<size;k++){
+          var row = up ? size-1-k : k;
+          for(var cDelta=0;cDelta<2;cDelta++){
+            var c3=col-cDelta;
+            if(res[row][c3]) continue;
+            var v=0;
+            if(bit < out.length*8) v=(out[bit>>3]>>(7-(bit&7)))&1;
+            bit++;
+            if(maskFn(mask,row,c3)) v^=1;
+            g[row][c3]=v;
+          }
+        }
+        up=!up;
+      }
+      /* format info */
+      var fmt=bch15((1<<3)|mask); /* 01 = level L */
+      for(var i10=0;i10<15;i10++){
+        var f=(fmt>>i10)&1;
+        if(i10<6) g[i10][8]=f; else if(i10<8) g[i10+1][8]=f; else if(i10===8) g[8][7]=f;
+        else g[8][14-i10]=f;
+        if(i10<8) g[8][size-1-i10]=f; else g[size-15+i10][8]=f;
+      }
+      g[size-8][8]=1;
+      return g;
+    }
+    function maskFn(k,r,c){
+      switch(k){
+        case 0: return (r+c)%2===0;
+        case 1: return r%2===0;
+        case 2: return c%3===0;
+        case 3: return (r+c)%3===0;
+        case 4: return ((((r/2)|0)+((c/3)|0))%2)===0;
+        case 5: return ((r*c)%2)+((r*c)%3)===0;
+        case 6: return ((((r*c)%2)+((r*c)%3))%2)===0;
+        default:return ((((r+c)%2)+((r*c)%3))%2)===0;
+      }
+    }
+    function penalty(g){
+      var n=g.length, p=0, dark=0, i, j, run, prev;
+      for(i=0;i<n;i++){
+        run=1; prev=g[i][0];
+        for(j=1;j<n;j++){ if(g[i][j]===prev) run++; else { if(run>=5) p+=3+(run-5); run=1; prev=g[i][j]; } }
+        if(run>=5) p+=3+(run-5);
+        run=1; prev=g[0][i];
+        for(j=1;j<n;j++){ if(g[j][i]===prev) run++; else { if(run>=5) p+=3+(run-5); run=1; prev=g[j][i]; } }
+        if(run>=5) p+=3+(run-5);
+      }
+      for(i=0;i<n-1;i++) for(j=0;j<n-1;j++){
+        var s2=g[i][j]+g[i][j+1]+g[i+1][j]+g[i+1][j+1];
+        if(s2===0||s2===4) p+=3;
+      }
+      for(i=0;i<n;i++) for(j=0;j<n;j++) dark+=g[i][j];
+      p += Math.floor(Math.abs(dark*100/(n*n)-50)/5)*10;
+      return p;
+    }
+    var best=null, bestP=Infinity;
+    for(var k2=0;k2<8;k2++){ var g2=place(k2), p2=penalty(g2); if(p2<bestP){ bestP=p2; best=g2; } }
+    return best;
+  }
+
+  function svg(text,quiet){
+    var g=build(text), n=g.length, q=(quiet==null?2:quiet), dim=n+q*2, r='';
+    for(var i=0;i<n;i++){ for(var j=0;j<n;j++){ if(g[i][j]) r+='<rect x="'+(j+q)+'" y="'+(i+q)+'" width="1" height="1"/>'; } }
+    return '<svg viewBox="0 0 '+dim+' '+dim+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="UPI QR code">' +
+           '<rect width="'+dim+'" height="'+dim+'" fill="#fff"/><g fill="#0B0F14">'+r+'</g></svg>';
+  }
+  return { svg:svg };
+})();
+
+function upiIntent(){
+  return 'upi://pay?pa=' + MERCHANT.vpa +
+         '&pn=' + encodeURIComponent(MERCHANT.name) +
+         '&am=' + st.amount.toFixed(2) +
+         '&cu=INR&tn=' + encodeURIComponent(st.note) +
+         '&tr=' + LINK_ID + '&mc=' + MERCHANT.mcc;
+}
+
+/* ─────────────────────────── MOCK SERVER (dev console trace) ─────────────────────────── */
+var API_HOST = 'https://staging.api.decentro.tech';
+function CALLS(){ return {
+  create:[{ m:'POST', p:'/v3/payments/upi/payment_link', s:201, t:'Create the payment link',
+    req:{ reference_id:LINK_ID, payee_account:MERCHANT.vpa, amount:st.amount, currency:'INR',
+          purpose_message:st.note, expiry_minutes:st.expiry,
+          customer:{ name:st.name, mobile:st.mobile }, generate_qr:true, generate_uri:true },
+    res:{ api_status:'SUCCESS', data:{ link_id:LINK_ID, short_url:'https://pay.decentro.tech/l/9f21c0',
+          upi_uri:upiIntent(), status:'ACTIVE', expires_at:'Oct 29, 2026 02:23:00 PM' } },
+    n:'One call issues the short URL, the upi:// intent and the QR payload together. The QR on the payer page is rendered from upi_uri.' }],
+  link:[{ m:'GET', p:'/v3/payments/upi/payment_link/'+LINK_ID, s:200, t:'Payer opened the link',
+    res:{ api_status:'SUCCESS', data:{ status:'ACTIVE', amount:st.amount, merchant:MERCHANT.name,
+          seconds_to_expiry:st.linkClock } },
+    n:'Poll or read once on page load. ACTIVE · PAID · EXPIRED · CANCELLED are the only link states.' }],
+  collect:[{ m:'POST', p:'/v3/payments/upi/collect', s:200, t:'Raise the collect request',
+    req:{ reference_id:LINK_ID, payer_upi:(st.vpa||'rohan@okaxis'), payee_account:MERCHANT.vpa,
+          amount:st.amount, purpose_message:st.note, expiry_time:5 },
+    res:{ api_status:'SUCCESS', data:{ decentro_txn_id:TXN_ID, status:'PENDING' } },
+    n:'PENDING only means NPCI accepted the request. Nothing is debited until the payer enters the UPI PIN.' },
+   { m:'GET', p:'/v3/payments/transaction/status?decentro_txn_id='+TXN_ID, s:200, t:'Poll until it settles',
+    res:{ api_status:'SUCCESS', data:{ status:'PENDING', npci_txn_id:'AXI'+UTR } },
+    n:'Query params only, no body. Poll every 3–5s; stop at a terminal state or at expiry.' }],
+  done:function(){
+    var map={ success:'SUCCESS', pending:'PENDING', failed:'FAILURE', refund:'REFUND_INITIATED',
+              hold:'ON_HOLD', expired:'EXPIRED', invalid:'INVALID_LINK' };
+    var s=map[st.outcome];
+    return [
+      { m:'GET', p:'/v3/payments/transaction/status?decentro_txn_id='+TXN_ID, s:200, t:'Terminal status',
+        res:{ api_status:'SUCCESS', data:{ status:s, bank_reference_number:(st.outcome==='success'||st.outcome==='hold'||st.outcome==='refund')?UTR:null,
+              amount:st.amount, payer_upi:(st.vpa||'rohan@okaxis') } } },
+      { m:'HOOK', p:'payment_link.status_updated', t:'Webhook to the merchant',
+        res:{ event:'payment_link.status_updated', link_id:LINK_ID, decentro_txn_id:TXN_ID, status:s, amount:st.amount },
+        n:'The webhook is the source of truth, not the browser. Never mark an order paid from the redirect alone.' }
+    ];
+  }
+};}
+
+/* ─────────────────────────── DEV CONSOLE ─────────────────────────── */
+var devOpen=false;
+function devClear(){ $('devBody').innerHTML='<div class="dev-empty">Step through the flow — every screen adds the calls behind it.</div>'; }
+function hl(o){
+  return JSON.stringify(o,null,2).replace(/[&<>]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; })
+    .replace(/"([^"]+)":/g,'<i class="k">"$1"</i>:')
+    .replace(/: "([^"]*)"/g,': <i class="v">"$1"</i>')
+    .replace(/: (true|false|null)/g,': <i class="bo">$1</i>')
+    .replace(/: (-?\d+\.?\d*)/g,': <i class="n">$1</i>');
+}
+function devAdd(c,terminal){
+  var empty=$('devBody').querySelector('.dev-empty'); if(empty) empty.remove();
+  $('devBody').querySelectorAll('.call-b').forEach(function(b){ b.hidden=true; });
+  var el=document.createElement('article'); el.className='call live';
+  if(terminal) el.setAttribute('data-term','1');
+  el.innerHTML='<button class="call-h"><span class="m m-'+c.m+'">'+c.m+'</span>'+
+    '<span class="p">'+esc(c.p||c.t)+'</span>'+(c.s?'<span class="s">'+c.s+'</span>':'')+'</button>'+
+    '<div class="call-b">'+(c.t&&c.p?'<div class="lb">'+esc(c.t)+'</div>':'')+
+    (c.req?'<div class="lb">Request</div><pre>'+hl(c.req)+'</pre>':'')+
+    (c.res?'<div class="lb">'+(c.m==='HOOK'?'Payload':'Response')+'</div><pre>'+hl(c.res)+'</pre>':'')+
+    (c.n?'<p class="nt">'+esc(c.n)+'</p>':'')+'</div>';
+  el.querySelector('.call-h').addEventListener('click',function(){
+    var b=el.querySelector('.call-b'); b.hidden=!b.hidden; });
+  $('devBody').appendChild(el);
+  $('devBody').scrollTop=$('devBody').scrollHeight;
+}
+function devTrace(key){
+  var c=CALLS(); var seq = (key==='done') ? c.done() : c[key];
+  if(!seq) return;
+  if(key==='done'){
+    /* the terminal pair is re-issued every time the outcome switcher moves, so
+       drop the previous one rather than stacking seven copies of it */
+    $('devBody').querySelectorAll('[data-term]').forEach(function(e){ e.remove(); });
+  }
+  seq.forEach(function(call){ devAdd(call, key==='done'); });
+}
+function setDev(on){
+  devOpen=on; $('dev').classList.toggle('on',on); $('scrim').classList.toggle('on',on);
+  $('devTog').setAttribute('aria-pressed',String(on));
+}
+
+/* ─────────────────────────── RENDER ─────────────────────────── */
+function go(id){
+  st.screen=id;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id==='sc-'+id); });
+  clearInterval(st.t1); clearInterval(st.t2); clearTimeout(st.t3);
+  window.scrollTo(0,0);
+  if(id==='link') startLinkClock();
+  if(id==='await') startAwait();
+  if(id==='status') paintOutcome();
+}
+
+function paintShare(){
+  $('sh-name').textContent = st.name;
+  $('wa-msg').textContent =
+    'Cobalt Mart\n' +
+    'Hi ' + st.name.split(' ')[0] + ', here is your payment link for ' + inr(st.amount) + ' — ' + st.note + '.\n' +
+    'https://pay.decentro.tech/l/9f21c0\n' +
+    'Pay with any UPI app. The link expires in ' +
+    (st.expiry >= 1440 ? (st.expiry/1440) + ' day' + (st.expiry > 1440 ? 's' : '') : st.expiry + ' minutes') + '.';
+}
+function paintLink(){
+  $('pl-amt').textContent = inr(st.amount);
+  $('pl-note').textContent = st.note;
+  $('pl-id').textContent = LINK_ID;
+  $('pl-cust').textContent = st.name + ' · ' + maskMob(st.mobile);
+  $('qrBox').innerHTML = QR.svg(upiIntent());
+  var hint = document.querySelector('.qrside .hint.drop');
+  if(hint) hint.textContent = 'Open Google Pay, PhonePe, Paytm or your bank app, scan this code and approve ' +
+    inr(st.amount) + ' to ' + MERCHANT.name + '.';
+}
+function startLinkClock(){
+  st.linkClock = Math.min(st.expiry,60) * 60 - 60;
+  var tick=function(){
+    $('pl-clock').textContent = mmss(st.linkClock);
+    if(st.linkClock<=0){ clearInterval(st.t1); st.outcome='expired'; $('outSel').value='expired'; go('status'); return; }
+    st.linkClock--;
+  };
+  tick(); st.t1=setInterval(tick,1000);
+}
+function startAwait(){
+  $('aw-app').textContent = APPS[st.app] || 'your UPI app';
+  $('aw-vpa').textContent = st.vpa || (APPS[st.app] || 'your UPI app');
+  st.awaitClock = 270;
+  var tick=function(){
+    $('aw-clock').textContent = mmss(st.awaitClock);
+    if(st.awaitClock<=0){ clearInterval(st.t2); st.outcome='expired'; $('outSel').value='expired'; go('status'); return; }
+    st.awaitClock--;
+  };
+  tick(); st.t2=setInterval(tick,1000);
+}
+function paintOutcome(){
+  var o=OUTCOMES[st.outcome];
+  $('outBox').className='out '+o.k;
+  $('outIc').innerHTML='<svg viewBox="0 0 24 24">'+OUT_IC[st.outcome]+'</svg>';
+  $('outTitle').textContent=o.t;
+  $('outDesc').textContent=o.d;
+  var paid = (st.outcome==='success'||st.outcome==='hold'||st.outcome==='refund');
+  var rows=[['Amount', inr(st.amount)],['Paid to', MERCHANT.name],['For', st.note],['Link ID', LINK_ID]];
+  if(paid) rows.push(['UPI reference (UTR)', UTR]);
+  if(st.outcome!=='invalid') rows.push(['Paid from', st.vpa || 'rohan@okaxis']);
+  $('outRecpt').innerHTML = rows.map(function(r){
+    return '<div class="rr"><span>'+esc(r[0])+'</span><b class="num">'+esc(r[1])+'</b></div>'; }).join('');
+  $('outRecpt').hidden = (st.outcome==='invalid');
+  $('outNote').hidden = !o.n; if(o.n) $('outNote').textContent=o.n;
+  $('b-done').textContent = (st.outcome==='success') ? 'Back to Cobalt Mart' : 'Back to Cobalt Mart';
+  var rd=$('outRedir'); rd.hidden=!o.redirect;
+  if(o.redirect){
+    var left=5;
+    var tick=function(){ rd.textContent='Taking you back to Cobalt Mart in '+left+'s…';
+      if(left<=0){ clearInterval(st.t1); rd.textContent='You can close this page.'; return; } left--; };
+    tick(); st.t1=setInterval(tick,1000);
+  }
+  devTrace('done');
+}
+
+/* ─────────────────────────── FLOW ─────────────────────────── */
+function validateCreate(){
+  var ok=true;
+  var amt=parseFloat($('i-amt').value.replace(/,/g,''));
+  var name=$('i-name').value.trim(), mob=$('i-mob').value.replace(/\D/g,''), note=$('i-note').value.trim();
+  $('f-amt').classList.toggle('bad', !(amt>0)); if(!(amt>0)) ok=false;
+  $('f-name').classList.toggle('bad', !name); if(!name) ok=false;
+  $('f-mob').classList.toggle('bad', mob.length!==10); if(mob.length!==10) ok=false;
+  $('f-note').classList.toggle('bad', !note); if(!note) ok=false;
+  $('e-create').textContent = ok ? '' : 'Check the highlighted fields — an amount above zero, a name, a 10-digit mobile and a reason.';
+  if(ok){ st.amount=amt; st.name=name; st.mobile=mob; st.note=note; st.expiry=parseInt($('i-exp').value,10); }
+  return ok;
+}
+function selectApp(k){
+  st.app=k;
+  document.querySelectorAll('.app').forEach(function(a){ a.classList.toggle('sel', a.dataset.app===k); });
+  var isVpa = (k==='vpa');
+  $('vpaBox').hidden = !isVpa;
+  if(!isVpa){ st.vpa=null; $('vpaName').hidden=true; }
+  updatePayBtn();
+}
+function updatePayBtn(){
+  var ready = st.app && (st.app!=='vpa' || !!st.vpa);
+  $('b-pay').disabled = !ready;
+  $('payLbl').textContent = ready
+    ? 'Pay ' + inr(st.amount) + ' via ' + (st.app==='vpa' ? 'UPI ID' : APPS[st.app])
+    : 'Select a UPI app to continue';
+}
+function verifyVpa(){
+  var v=$('i-vpa').value.trim();
+  if(!/^[\w.\-]{2,}@[a-z]{2,}$/i.test(v)){
+    $('f-vpa').classList.add('bad'); $('e-vpa').textContent='That does not look like a UPI ID. Try name@bank.';
+    $('vpaName').hidden=true; st.vpa=null; updatePayBtn(); return;
+  }
+  $('f-vpa').classList.remove('bad'); $('e-vpa').textContent='';
+  st.vpa=v; st.vpaName=st.name.toUpperCase();
+  $('vpaNameTxt').textContent = st.vpaName + ' · verified with the bank';
+  $('vpaName').hidden=false;
+  updatePayBtn();
+}
+function restart(){
+  clearInterval(st.t1); clearInterval(st.t2); clearTimeout(st.t3);
+  st.app=null; st.vpa=null; st.vpaName=null;
+  document.querySelectorAll('.app').forEach(function(a){ a.classList.remove('sel'); });
+  $('vpaBox').hidden=true; $('vpaName').hidden=true; $('i-vpa').value='';
+  $('e-create').textContent=''; $('e-vpa').textContent='';
+  document.querySelectorAll('.fld').forEach(function(f){ f.classList.remove('bad'); });
+  updatePayBtn(); devClear(); go('create');
+}
+
+/* ─────────────────────────── BOOT ─────────────────────────── */
+$('mk').innerHTML = LOGO + '<i></i><b>UPI Payment Link</b>';
+['pw1','pw2','pw3','pw4','pw5'].forEach(function(id){
+  $(id).innerHTML = '<span>Powered by</span>' + LOGO; });
+devClear();
+
+$('b-create').addEventListener('click', function(){
+  if(!validateCreate()) return;
+  paintShare(); devTrace('create'); go('share');
+});
+$('b-copy').addEventListener('click', function(){
+  var u=$('sh-url').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(u).catch(function(){});
+  toast('Link copied');
+});
+document.querySelectorAll('[data-share]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var m={wa:'WhatsApp',sms:'SMS',mail:'Email',qr:'QR code'};
+    toast('Shared over ' + m[b.dataset.share] + ' · demo only');
+  });
+});
+$('b-open').addEventListener('click', function(){ paintLink(); devTrace('link'); go('link'); });
+
+document.querySelectorAll('.app').forEach(function(a){
+  a.addEventListener('click', function(){ selectApp(a.dataset.app); });
+});
+$('b-vpa').addEventListener('click', verifyVpa);
+$('i-vpa').addEventListener('keydown', function(e){ if(e.key==='Enter') verifyVpa(); });
+$('b-pay').addEventListener('click', function(){ devTrace('collect'); go('await'); });
+
+$('b-approve').addEventListener('click', function(){
+  $('st2').className='stp done'; $('st3').className='stp on';
+  clearInterval(st.t2);
+  st.t3=setTimeout(function(){ $('st3').className='stp done'; go('status'); }, 900);
+});
+$('b-cancel').addEventListener('click', function(){
+  st.outcome='failed'; $('outSel').value='failed'; go('status');
+});
+$('b-again').addEventListener('click', restart);
+$('b-done').addEventListener('click', restart);
+$('restart').addEventListener('click', restart);
+
+$('outSel').addEventListener('change', function(e){
+  st.outcome=e.target.value;
+  if(st.screen==='status') paintOutcome();
+});
+$('devTog').addEventListener('click', function(){ setDev(!devOpen); });
+$('devClose').addEventListener('click', function(){ setDev(false); });
+$('scrim').addEventListener('click', function(){ setDev(false); });
+$('devClear').addEventListener('click', devClear);
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && devOpen){ setDev(false); }
+});
+updatePayBtn();
+</script>
+
+<script>
+/* Restart and Backend already live in the hub's footer, so only the outcome
+   switcher — the one control the footer does not already have — moves up. */
+window.__decentroControls = {
+  bar: 'header.top',
+  items: [
+    { id:'outcome', kind:'select', label:'Outcome',
+      options:[{v:'success',l:'Payment Successful'},{v:'pending',l:'Payment Pending'},
+               {v:'failed',l:'Payment Failed'},{v:'refund',l:'Refund Initiated'},
+               {v:'hold',l:'Unconfirmed Status'},{v:'expired',l:'Link Expired'},
+               {v:'invalid',l:'Invalid Link'}],
+      get:function(){ var s=document.getElementById('outSel'); return s?s.value:'success'; },
+      set:function(v){ var s=document.getElementById('outSel'); if(!s) return;
+                       s.value=v; s.dispatchEvent(new Event('change',{bubbles:true})); } }
+  ]
+};
+</script>
+
+<style>
+/* ══ branded payment animations · 29 Oct 2026 ══
+   Each outcome clip is a whole sequence: dark "Processing Payment…", then the
+   spinner, resolving onto a light background with the badge — so it covers the
+   wait AND the reveal, and lands on a colour the outcome card can take over
+   from without a seam. The loader loops for indeterminate waits. */
+.dc-anim{
+  position:fixed;inset:0;z-index:9500;display:none;
+  align-items:center;justify-content:center;background:#05070B;
+  opacity:0;transition:opacity .28s ease;
+}
+.dc-anim.on{display:flex;opacity:1}
+.dc-anim.out{opacity:0}
+.dc-anim img{width:100%;height:100%;object-fit:cover;display:block}
+@media (prefers-reduced-motion:reduce){ .dc-anim{display:none!important} }
+</style>
+<script>
+/* play(kind, ms) — overlays the clip, then calls back. Falls straight through
+   when the viewer asked for reduced motion. */
+(function(){
+  if(window.__decentroAnim) return;
+  window.__decentroAnim = 1;
+  var MAP = { success:'success', failed:'failure', failure:'failure', expired:'failure',
+              invalid:'failure', cancelled:'failure', pending:'pending', hold:'pending',
+              refund:'pending', loader:'loader' };
+  var el, img;
+  function ensure(){
+    if(el) return;
+    el = document.createElement('div'); el.className = 'dc-anim';
+    img = document.createElement('img'); img.alt = '';
+    el.appendChild(img); document.body.appendChild(el);
+  }
+  window.dcAnim = function(kind, ms, done){
+    var reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(reduce){ if(done) done(); return; }
+    ensure();
+    var file = MAP[kind] || 'loader';
+    /* cache-bust so a play-once clip restarts rather than sitting on its last frame */
+    img.src = 'anim/' + file + '.webp?t=' + Date.now();
+    el.classList.remove('out'); el.classList.add('on');
+    setTimeout(function(){
+      el.classList.add('out');
+      setTimeout(function(){ el.classList.remove('on','out'); if(done) done(); }, 300);
+    }, ms || 2900);
+  };
+})();
+</script>
+
+<script>
+/* ══ Demo Hub bridge · 29 Oct 2026 ══════════════════════════════════════════
+   Opened from file://, every iframe gets an opaque origin, so the hub cannot
+   touch this document and its reach-in Demo fill silently fails. The hub then
+   asks over postMessage instead — this is the half that answers. Same code
+   serves http, so behaviour is identical either way. */
+(function(){
+  if (window.__dcnBridge) return; window.__dcnBridge = 1;
+
+  var RULES = [
+    [/otp|passcode|\bpin\b/i,            '482913'],
+    [/mobile|phone|contact|msisdn|tel/i, '9876543210'],
+    [/e-?mail/i,                         'rakesh.sharma@example.in'],
+    [/\bpan\b/i,                         'ABCDE1234F'],
+    [/ifsc/i,                            'HDFC0001205'],
+    [/upi|vpa|handle/i,                  'rakesh.sharma@okhdfcbank'],
+    [/account.*(number|no)|acc.*num/i,   '50100412887201'],
+    [/passport/i,                        'Z4821907'],
+    [/aadhaar|uid/i,                     '9821'],
+    [/pin ?code|postal|zip/i,            '560025'],
+    [/first.*name|given/i,               'Rakesh'],
+    [/middle/i,                          'Kumar'],
+    [/last.*name|surname|family/i,       'Sharma'],
+    [/company|business|merchant|entity/i,'Aurora & Co.'],
+    [/\bcity\b/i,                        'Bengaluru'],
+    [/\bstate\b/i,                       'Karnataka'],
+    [/address|street|line ?1/i,          '12 Residency Road'],
+    [/amount|value|price/i,              '2499'],
+    [/\bdate\b|dob|birth/i,              '1991-04-12'],
+    [/\bname\b/i,                        'Rakesh Sharma'],
+    [/reference|ref ?id|order/i,         'DEC20261029001']
+  ];
+
+  function hint(el){
+    var t = [el.id, el.name, el.getAttribute('placeholder') || '',
+             el.getAttribute('aria-label') || '', el.className || ''].join(' ');
+    try{
+      var lab = (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
+      if(lab) t += ' ' + lab.textContent;
+      var fld = el.closest('.fld,.field,.form-row,.b-field,.inp');
+      if(fld) t += ' ' + (fld.textContent || '').slice(0, 80);
+    }catch(e){}
+    return t;
+  }
+  function valueFor(el){
+    var type = (el.getAttribute('type') || 'text').toLowerCase();
+    if(type === 'date') return '1991-04-12';
+    if(type === 'email') return 'rakesh.sharma@example.in';
+    if(type === 'tel') return '9876543210';
+    /* single-character boxes are OTP/PIN digits */
+    if(el.maxLength === 1) return String(Math.floor(Math.random() * 10));
+    var h = hint(el);
+    for(var i = 0; i < RULES.length; i++) if(RULES[i][0].test(h)) return RULES[i][1];
+    var ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
+    if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
+    if(type === 'number') return '100';
+    return 'Demo value';
+  }
+  /* React and friends track value on the node, so poke the native setter */
+  function setVal(el, v){
+    var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    var d = Object.getOwnPropertyDescriptor(proto, 'value');
+    if(d && d.set) d.set.call(el, v); else el.value = v;
+    ['input','change','keyup','blur'].forEach(function(ev){
+      el.dispatchEvent(new Event(ev, {bubbles:true}));
+    });
+  }
+  function visible(el){
+    if(el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 8 && r.height > 6;
+  }
+
+  function fill(){
+    var n = 0;
+    var els = document.querySelectorAll(
+      'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select');
+    Array.prototype.forEach.call(els, function(el){
+      if(el.disabled || el.readOnly || !visible(el)) return;
+      var type = (el.getAttribute('type') || '').toLowerCase();
+      if(type === 'checkbox' || type === 'radio'){
+        if(!el.checked){ el.click(); n++; }      /* consents gate the primary action */
+        return;
+      }
+      if(el.tagName === 'SELECT'){
+        if(el.selectedIndex > 0) return;
+        var opt = Array.prototype.filter.call(el.options, function(o){ return o.value && !o.disabled; })[0];
+        if(opt){ el.value = opt.value; el.dispatchEvent(new Event('change', {bubbles:true})); n++; }
+        return;
+      }
+      if((el.value || '').trim()) return;
+      setVal(el, valueFor(el)); n++;
+    });
+    /* a flow that ships its own sample data knows its persona better than we do */
+    if(!n){
+      var own = window.prefill || window.useSample || window.fillSample;
+      if(typeof own === 'function'){ try{ own(true); return -1; }catch(e){} }
+      var btn = Array.prototype.filter.call(
+        document.querySelectorAll('button,[onclick],.btn'),
+        function(b){ return /use sample|sample details|fill sample|demo data/i.test(b.innerText || ''); })[0];
+      if(btn && visible(btn)){ btn.click(); return -1; }
+    }
+    return n;
+  }
+
+  function send(msg){
+    msg.source = 'decentro-demo';
+    try{ parent.postMessage(msg, '*'); }catch(e){}
+  }
+
+  addEventListener('message', function(ev){
+    var d = ev.data;
+    if(!d || d.source !== 'decentro-hub') return;
+    if(d.type === 'fill'){
+      var n = fill();
+      /* some screens repaint on input and recreate fields empty */
+      setTimeout(function(){
+        var more = fill();
+        var total = (n < 0 || more < 0) ? -1 : n + (more > 0 ? more : 0);
+        send({type:'fill-result', n: total});
+      }, 260);
+    }
+  });
+
+  addEventListener('keydown', function(e){ if(e.key === 'Escape') send({type:'escape'}); });
+
+  /* report the visible screen so the hub's backend trace follows along */
+  var lastScreen = null;
+  function reportScreen(){
+    var el = document.querySelector('.screen.active,.screen.on,[class*=screen].active,section.active');
+    var id = el && el.id;
+    if(id && id !== lastScreen){ lastScreen = id; send({type:'screen', screen:id}); }
+  }
+  setInterval(reportScreen, 400);
+
+  if(document.readyState === 'loading')
+    addEventListener('DOMContentLoaded', function(){ send({type:'ready'}); reportScreen(); });
+  else { send({type:'ready'}); reportScreen(); }
+})();
+</script>
+</body>
+</html>

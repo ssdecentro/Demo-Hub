@@ -1,4 +1,47 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* ══ Decentro-Demo.MD §6 responsive baseline — appended 29 Oct 2026 ══
+   Four guarantees: no sideways scroll at any width from 320 up, nothing
+   clipped, one primary action reachable by thumb, readable without zoom. */
+html,body{overflow-x:hidden}
+img,svg,video,canvas{max-width:100%}
+/* iOS zooms any input under 16px on focus — inside an iFrame that reads as the
+   page breaking, so this one is loud on purpose. */
+@media (max-width:768px){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select,textarea{font-size:16px!important}
+}
+/* Touch ergonomics: only lifts controls that have not set their own height. */
+@media (pointer:coarse){
+  button,[role="button"],summary{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ── scrollbars: hidden everywhere, scrolling untouched ──────────────────
+   No visible bar on any surface. !important because several flows style
+   their own (.zone-body, .pane, .steps…) with a higher specificity than a
+   universal selector, and those would otherwise keep painting. Hiding the
+   bar does not affect wheel, trackpad, touch, keyboard or programmatic
+   scrolling — only the indicator is gone. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+</style>
+
+<style>
+/* -- closed drawers must not cast a shadow --
+   These panels park off-canvas with translateX of about 102%, which clears the
+   edge by only ~7px. Their box-shadow (20px offset plus 40px blur) reached back
+   over the content, painting a grey smudge down the side of every screen. The
+   shadow now belongs to the open state only. */
+.ctl,.dev{box-shadow:none!important}
+.ctl.open{box-shadow:rgba(0,0,0,.18) 20px 0 40px!important}
+.dev.open{box-shadow:rgba(0,0,0,.18) -20px 0 40px!important}
+</style>
+</head><body>
 <title>Verification SDK Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -566,7 +609,7 @@ body.devmode .tab{padding:7px 8px 8px}
   <header class="top">
     <button class="tbtn" id="btnCtl" type="button" aria-controls="ctl"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Journey</button>
     <div class="brand">
-      <svg class="logo" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg>
+      <svg class="logo" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg>
       <span class="sep"></span>
       <b>Verification SDK</b>
       <span class="tag">RPD · VerifyPay · VBA</span>
@@ -651,7 +694,7 @@ body.devmode .tab{padding:7px 8px 8px}
                 <div class="sdk" id="sdk" aria-live="polite">
                   <div class="s-head" id="shead"></div>
                   <div class="s-body" id="sbody"></div>
-                  <div class="s-foot">Powered by <svg viewBox="0 0 2749.67 538.23" aria-label="Decentro"><use href="#decentro-logo"/></svg></div>
+                  <div class="s-foot">Powered by <svg viewBox="0 0 2749.67 538.23" aria-label="Decentro" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg></div>
                 </div>
                 <div class="scrim" id="scrim"></div>
                 <div class="sheet" id="sheet"></div>
@@ -2577,4 +2620,166 @@ document.fonts && document.fonts.ready.then(fit);
 
 </script>
 
+
+<script>
+/* controls that used to sit in this demo's own top bar */
+window.__decentroControls = {
+  bar: 'header.top',
+  items: [
+    { id:'journey', kind:'button', label:'Journey',
+      set:function(){ var b=document.getElementById('btnCtl'); if(b) b.click(); } },
+    { id:'mode', kind:'segment', label:'Mode',
+      options:[{v:'demo',l:'Demo'},{v:'dev',l:'Developer'}],
+      get:function(){ var b=document.querySelector('header.top [data-v].on,header.top [data-v].active,header.top [data-v][aria-pressed="true"]'); return b?b.getAttribute('data-v'):'demo'; },
+      set:function(v){ var b=document.querySelector('header.top [data-v="'+v+'"]'); if(b) b.click(); } },
+    { id:'os', kind:'segment', label:'OS',
+      options:[{v:'android',l:'Android'},{v:'ios',l:'iOS'}],
+      get:function(){ var d=document.querySelector('.device'); return d?(d.getAttribute('data-os')||'ios'):'ios'; },
+      set:function(v){ var b=document.querySelector('header.top [data-os="'+v+'"]'); if(b) b.click(); } },
+    { id:'inspector', kind:'button', label:'Inspector',
+      set:function(){ var b=document.getElementById('btnDev'); if(b) b.click(); } }
+  ]
+};
+</script>
+
+<script>
+/* ══ Demo Hub bridge · 29 Oct 2026 ══════════════════════════════════════════
+   Opened from file://, every iframe gets an opaque origin, so the hub cannot
+   touch this document and its reach-in Demo fill silently fails. The hub then
+   asks over postMessage instead — this is the half that answers. Same code
+   serves http, so behaviour is identical either way. */
+(function(){
+  if (window.__dcnBridge) return; window.__dcnBridge = 1;
+
+  var RULES = [
+    [/otp|passcode|\bpin\b/i,            '482913'],
+    [/mobile|phone|contact|msisdn|tel/i, '9876543210'],
+    [/e-?mail/i,                         'rakesh.sharma@example.in'],
+    [/\bpan\b/i,                         'ABCDE1234F'],
+    [/ifsc/i,                            'HDFC0001205'],
+    [/upi|vpa|handle/i,                  'rakesh.sharma@okhdfcbank'],
+    [/account.*(number|no)|acc.*num/i,   '50100412887201'],
+    [/passport/i,                        'Z4821907'],
+    [/aadhaar|uid/i,                     '9821'],
+    [/pin ?code|postal|zip/i,            '560025'],
+    [/first.*name|given/i,               'Rakesh'],
+    [/middle/i,                          'Kumar'],
+    [/last.*name|surname|family/i,       'Sharma'],
+    [/company|business|merchant|entity/i,'Aurora & Co.'],
+    [/\bcity\b/i,                        'Bengaluru'],
+    [/\bstate\b/i,                       'Karnataka'],
+    [/address|street|line ?1/i,          '12 Residency Road'],
+    [/amount|value|price/i,              '2499'],
+    [/\bdate\b|dob|birth/i,              '1991-04-12'],
+    [/\bname\b/i,                        'Rakesh Sharma'],
+    [/reference|ref ?id|order/i,         'DEC20261029001']
+  ];
+
+  function hint(el){
+    var t = [el.id, el.name, el.getAttribute('placeholder') || '',
+             el.getAttribute('aria-label') || '', el.className || ''].join(' ');
+    try{
+      var lab = (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
+      if(lab) t += ' ' + lab.textContent;
+      var fld = el.closest('.fld,.field,.form-row,.b-field,.inp');
+      if(fld) t += ' ' + (fld.textContent || '').slice(0, 80);
+    }catch(e){}
+    return t;
+  }
+  function valueFor(el){
+    var type = (el.getAttribute('type') || 'text').toLowerCase();
+    if(type === 'date') return '1991-04-12';
+    if(type === 'email') return 'rakesh.sharma@example.in';
+    if(type === 'tel') return '9876543210';
+    /* single-character boxes are OTP/PIN digits */
+    if(el.maxLength === 1) return String(Math.floor(Math.random() * 10));
+    var h = hint(el);
+    for(var i = 0; i < RULES.length; i++) if(RULES[i][0].test(h)) return RULES[i][1];
+    var ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
+    if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
+    if(type === 'number') return '100';
+    return 'Demo value';
+  }
+  /* React and friends track value on the node, so poke the native setter */
+  function setVal(el, v){
+    var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    var d = Object.getOwnPropertyDescriptor(proto, 'value');
+    if(d && d.set) d.set.call(el, v); else el.value = v;
+    ['input','change','keyup','blur'].forEach(function(ev){
+      el.dispatchEvent(new Event(ev, {bubbles:true}));
+    });
+  }
+  function visible(el){
+    if(el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 8 && r.height > 6;
+  }
+
+  function fill(){
+    var n = 0;
+    var els = document.querySelectorAll(
+      'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select');
+    Array.prototype.forEach.call(els, function(el){
+      if(el.disabled || el.readOnly || !visible(el)) return;
+      var type = (el.getAttribute('type') || '').toLowerCase();
+      if(type === 'checkbox' || type === 'radio'){
+        if(!el.checked){ el.click(); n++; }      /* consents gate the primary action */
+        return;
+      }
+      if(el.tagName === 'SELECT'){
+        if(el.selectedIndex > 0) return;
+        var opt = Array.prototype.filter.call(el.options, function(o){ return o.value && !o.disabled; })[0];
+        if(opt){ el.value = opt.value; el.dispatchEvent(new Event('change', {bubbles:true})); n++; }
+        return;
+      }
+      if((el.value || '').trim()) return;
+      setVal(el, valueFor(el)); n++;
+    });
+    /* a flow that ships its own sample data knows its persona better than we do */
+    if(!n){
+      var own = window.prefill || window.useSample || window.fillSample;
+      if(typeof own === 'function'){ try{ own(true); return -1; }catch(e){} }
+      var btn = Array.prototype.filter.call(
+        document.querySelectorAll('button,[onclick],.btn'),
+        function(b){ return /use sample|sample details|fill sample|demo data/i.test(b.innerText || ''); })[0];
+      if(btn && visible(btn)){ btn.click(); return -1; }
+    }
+    return n;
+  }
+
+  function send(msg){
+    msg.source = 'decentro-demo';
+    try{ parent.postMessage(msg, '*'); }catch(e){}
+  }
+
+  addEventListener('message', function(ev){
+    var d = ev.data;
+    if(!d || d.source !== 'decentro-hub') return;
+    if(d.type === 'fill'){
+      var n = fill();
+      /* some screens repaint on input and recreate fields empty */
+      setTimeout(function(){
+        var more = fill();
+        var total = (n < 0 || more < 0) ? -1 : n + (more > 0 ? more : 0);
+        send({type:'fill-result', n: total});
+      }, 260);
+    }
+  });
+
+  addEventListener('keydown', function(e){ if(e.key === 'Escape') send({type:'escape'}); });
+
+  /* report the visible screen so the hub's backend trace follows along */
+  var lastScreen = null;
+  function reportScreen(){
+    var el = document.querySelector('.screen.active,.screen.on,[class*=screen].active,section.active');
+    var id = el && el.id;
+    if(id && id !== lastScreen){ lastScreen = id; send({type:'screen', screen:id}); }
+  }
+  setInterval(reportScreen, 400);
+
+  if(document.readyState === 'loading')
+    addEventListener('DOMContentLoaded', function(){ send({type:'ready'}); reportScreen(); });
+  else { send({type:'ready'}); reportScreen(); }
+})();
+</script>
 </body></html>

@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Decentro · Checkout Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+/* align-items:flex-start + margin:auto centres when it fits and never clips the
+   top once the page overflows — required for the sticky timer to behave */
+/* never allow a sideways scroll on any viewport */
+html,body{overflow-x:hidden;max-width:100%;}
+img,svg,canvas,table{max-width:100%;}
+.co-col,.zone-body,.zone-foot,.zone-head{min-width:0;}
+/* --co-bar is the height the fixed session-timer bar occupies at the top */
+:root{--co-bar:50px;
+  /* ── TYPE SCALE ── 17px titles · 15px body · 13px subtext, in rem */
+  --fs-title:1.0625rem; --fs-body:0.9375rem; --fs-sub:0.8125rem;}
+body{font-family:'Montserrat',sans-serif;background:#f0f2f6;min-height:100vh;min-height:100dvh;display:flex;align-items:flex-start;justify-content:center;padding:0;position:relative;isolation:isolate;}
+/* 48px grid (masked) + soft brand glow blobs */
+body.no-art::before,body.no-art::after,body.no-art .bg-blob{display:none;}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(148,158,182,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(148,158,182,.16) 1px,transparent 1px);
+  background-size:48px 48px;
+  -webkit-mask-image:radial-gradient(ellipse 85% 90% at 30% 30%,#000 35%,transparent 100%);
+  mask-image:radial-gradient(ellipse 85% 90% at 30% 30%,#000 35%,transparent 100%);}
+body::after{content:"";position:fixed;z-index:0;pointer-events:none;width:760px;height:760px;right:-260px;top:-300px;
+  background:radial-gradient(closest-side,rgba(0,212,255,.09),transparent);}
+.bg-blob{position:fixed;z-index:0;pointer-events:none;border-radius:50%;}
+.bg-blob.b1{width:620px;height:620px;left:-240px;bottom:-260px;background:radial-gradient(closest-side,rgba(var(--brand-rgb),.09),transparent);}
+.bg-blob.b2{width:420px;height:420px;left:38%;top:-200px;background:radial-gradient(closest-side,rgba(var(--brand-rgb),.06),transparent);}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+input{font-family:inherit;}
+/* The page column is exactly one viewport tall: the fixed bar's height, then a
+   gap, then the card taking whatever is left, with the trust strip and the
+   Powered-by line closing it out at the bottom edge. The card never grows past
+   the fold — its own .zone-body scrolls instead. */
+.page{width:100%;max-width:1060px;margin:0 auto;position:relative;z-index:1;
+  display:flex;flex-direction:column;overflow:hidden;
+  height:100vh;height:100dvh;height:100dvh;
+  padding:24px 24px 18px;}
+/* docked: the bar owns the top edge, so the column only clears its height */
+.page.is-docked{padding-top:calc(var(--co-bar) + 10px);}
+/* the card grows with its content and stops at the available height; the auto
+   margins centre the card + trust + powered group in whatever room is left */
+/* The card absorbs whatever height the viewport leaves after the banner, the
+   trust strip and the Powered-by line — so it fills the screen without ever
+   pushing those out. Its own zones scroll when the content outgrows it. */
+.page > .checkout{flex:1 1 auto;min-height:0;width:100%;margin:0;z-index:2;}
+.page > .trust-strip{flex:none;}
+.page > .powered{flex:none;}
+.blk + .blk{margin-top:18px;}
+.trust-strip{margin-top:16px;}
+.trust-strip .b-secure{justify-content:center;color:#8794a8;}
+.powered{width:100%;text-align:center;font-size:var(--fs-sub);font-weight:600;color:#94a3b8;margin-top:14px;}
+.powered span{display:inline-flex;align-items:center;gap:9px;vertical-align:middle;}
+.powered svg{opacity:.85;}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · BRAND COLOUR
+   Change ONE value — --brand — and the CTAs, the product panel, the
+   background glow all follow.
+   --brand-ink is pre-computed for best contrast (WCAG) against --brand:
+   white on dark brand colours, near-black on light ones.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --brand:        #096ef2;        /* your brand colour — the only input      */
+  --brand-rgb:    9,110,242;          /* same colour as r,g,b for rgba() use     */
+  --brand-ink:    #ffffff;          /* text/icon colour ON a --brand fill      */
+  --brand-panel:  #eef5fe;      /* muted tint — product panel background   */
+  --brand-field:  #f8fbff;   /* inputs/chips inside the panel           */
+  --brand-border: #b0d1fb;  /* hairlines inside the panel              */
+  --brand-sub:    #5b6472;     /* secondary text on the panel             */
+  --brand-soft:   #e6f1fe;       /* solid muted tint — icon tiles, chips    */
+}
+.checkout{
+  --co-accent:     var(--brand);      /* every CTA, radio, link, active state     */
+  --co-accent-ink: var(--brand-ink);  /* label colour on those CTAs               */
+  --co-sum-bg:     var(--brand-panel);
+  --co-sum-field:  var(--brand-field);
+  --co-sum-border: var(--brand-border);
+  --co-sum-sub:    var(--brand-sub);
+  --co-soft:       var(--brand-soft);
+  --co-font-head:  'Montserrat',sans-serif;
+  --co-r:          10px;
+}
+/* payment-method accordion icons: brand glyph on a muted brand tile */
+.bm-ic{ background:var(--brand-soft); color:var(--brand); }
+/* default logo tile (shown when no logo image is uploaded) */
+.b-brand .bb-logo{ background:var(--brand); color:var(--brand-ink); }
+/* background glow inherits the brand colour */
+.bg-blob.b1{background:radial-gradient(closest-side,rgba(var(--brand-rgb),.09),transparent);}
+.bg-blob.b2{background:radial-gradient(closest-side,rgba(var(--brand-rgb),.06),transparent);}
+body::after{background:radial-gradient(closest-side,rgba(var(--brand-rgb),.08),transparent);}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · CHECKOUT COMPONENTS  (layout, blocks, payment methods, result screens)
+   ══════════════════════════════════════════════════════════════════════════ */
+.swatch-row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.swatch { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px inset; transition: transform 0.12s; }
+.swatch:hover { transform: scale(1.12); }
+.swatch.on { border-color: rgb(0, 0, 0); box-shadow: rgb(255, 255, 255) 0px 0px 0px 2px inset; }
+.swatch-custom { width: 26px; height: 26px; border-radius: 50%; border: 1.5px dashed rgb(203, 213, 225); padding: 0px; overflow: hidden; position: relative; background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); }
+.swatch-custom input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; }
+.sw { position: relative; width: 34px; height: 20px; min-width: 34px; background: rgb(226, 232, 240); border-radius: 100px; cursor: pointer; transition: background 0.15s; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: rgb(255, 255, 255); border-radius: 50%; box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px; transition: left 0.15s; }
+.sw.on { background: var(--ed-brand,#000); }
+.sw.on::after { background: var(--ed-brand-ink,#fff); }
+.checkout .sw.on { background: var(--co-accent); }
+.checkout .sw.on::after { background: var(--co-accent-ink); }
+.sw.on::after { left: 16px; }
+.checkout { border-radius: 16px; overflow: hidden; box-shadow: rgba(2, 11, 30, 0.1) 0px 8px 40px, rgba(2, 11, 30, 0.06) 0px 1px 3px; display: grid; grid-template-columns: 1fr 1.1fr; grid-template-rows: minmax(0px, 1fr); min-height:min(660px, -190px + 100vh);min-height:min(660px, -190px + 100dvh); position: relative; z-index: 2; background: var(--co-pay-bg); flex: 1 1 auto; width: 100%; margin: 0px; }
+.co-col { padding: 34px 34px 32px; min-width: 0px; display: flex; flex-direction: column; min-height: 0px; overflow: hidden; }
+.zone-head { flex: 0 0 auto; }
+.zone-body { flex: 1 1 auto; min-height: 0px; overflow: hidden auto; overscroll-behavior: contain; margin-right: -12px; padding-right: 9px; }
+.zone-body::-webkit-scrollbar { width: 3px; }
+.zone-body::-webkit-scrollbar-track { background: rgba(var(--brand-rgb,9,110,242),.08); border-radius: 3px; }
+.zone-body::-webkit-scrollbar-thumb { background: rgba(var(--brand-rgb,9,110,242),.35); border-radius: 3px; }
+.zone-foot { flex: 0 0 auto; margin-top: auto; padding-top: var(--co-sep); }
+.zone-body { --stack: 10px; }
+.zone-body .blk + .blk { margin-top: var(--stack); }
+.zone-head > .blk:first-child, .zone-body > .blk:first-child, .zone-foot > .blk:first-child { margin-top: 0px; }
+.zone-foot::before { content: ""; display: block; height: 1px; background: var(--co-sum-border); margin: 0 0 var(--co-sep); }
+.co-payment .zone-foot::before { background: var(--co-pay-border); }
+.zone-foot.no-rule::before { display: none; }
+.zone-head { padding-bottom: var(--co-sep); border-bottom: 1px solid var(--co-sum-border); margin-bottom: var(--co-sep); }
+.co-payment .zone-head { border-bottom-color: var(--co-pay-border); }
+.zone-foot { --stack: 10px; }
+.zone-foot .co-nav { margin-bottom: 20px; }
+.zone-foot .b-mfoot { margin-top: 10px; }
+.zone-foot .b-recur { align-items: center; gap: 10px; }
+.zone-foot .b-recur .rc-name { font-size: var(--fs-body); font-weight: 600; }
+.zone-foot .b-recur .rc-sub { display: none; }
+.zone-foot .sw { width: 30px; height: 18px; min-width: 30px; }
+.zone-foot .sw::after { width: 14px; height: 14px; }
+.zone-foot .sw.on::after { left: 14px; }
+.co-summary { background: var(--co-sum-bg); color: var(--co-sum-text); }
+.co-payment { background: var(--co-pay-bg); color: var(--co-pay-text); }
+.checkout.theme-light { --co-sum-bg: #f8fafc; --co-sum-text: #1c2024; --co-sum-sub: #64748b; --co-sum-border: #e2e8f0; --co-sum-field: #ffffff; --co-pay-bg: #ffffff; --co-pay-text: #1c2024; --co-pay-sub: #64748b; --co-pay-border: #e2e8f0; --co-pay-field: #ffffff; --co-pay-hover: #f8fafc; }
+.checkout.theme-navy { --co-sum-bg: linear-gradient(160deg,#020b1e 0%,#0a1a3a 100%); --co-sum-text: #f1f5f9; --co-sum-sub: #8ea0bf; --co-sum-border: rgba(148,163,184,.22); --co-sum-field: rgba(255,255,255,.06); --co-pay-bg: #ffffff; --co-pay-text: #1c2024; --co-pay-sub: #64748b; --co-pay-border: #e2e8f0; --co-pay-field: #ffffff; --co-pay-hover: #f8fafc; }
+.checkout.theme-midnight { --co-sum-bg: #060d1f; --co-sum-text: #f1f5f9; --co-sum-sub: #8ea0bf; --co-sum-border: rgba(148,163,184,.22); --co-sum-field: rgba(255,255,255,.05); --co-pay-bg: #0b1428; --co-pay-text: #f1f5f9; --co-pay-sub: #8ea0bf; --co-pay-border: rgba(148,163,184,.22); --co-pay-field: rgba(255,255,255,.05); --co-pay-hover: rgba(255,255,255,.04); }
+.co-timer { position: relative; z-index: 1; width: 100%; max-width: 1060px; margin: 0px auto 16px; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgb(254, 242, 242); border: 1px solid rgb(251, 217, 217); border-radius: 12px; padding: 12px 18px; box-shadow: rgba(2, 11, 30, 0.1) 0px 8px 40px, rgba(2, 11, 30, 0.06) 0px 1px 3px; transition: background 0.2s, border-color 0.2s; }
+.co-timer .ct-in { display: inline-flex; align-items: center; gap: 10px; min-width: 0px; }
+.co-timer .ct-ic { width: 17px; height: 17px; min-width: 17px; display: flex; align-items: center; justify-content: center; }
+.co-timer .ct-ic svg { width: 17px; height: 17px; stroke: rgb(220, 38, 38); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.co-timer .ct-t { font-size: var(--fs-body); font-weight: 700; color: rgb(185, 28, 28); line-height: 1.3; }
+.co-timer .ct-t b { font-variant-numeric: tabular-nums; }
+.co-timer.urgent { background: rgb(254, 226, 226); border-color: rgb(252, 165, 165); animation: 1.6s ease-in-out 0s infinite normal none running tpulse; }
+.co-timer.done { background: rgb(241, 245, 249); border-color: rgb(226, 232, 240); }
+.co-timer.done .ct-t { color: rgb(100, 116, 139); }
+.co-timer.done .ct-ic svg { stroke: rgb(148, 163, 184); }
+.is-docked .co-timer { position: fixed; top: 0px; left: 0px; right: 0px; width: 100vw; max-width: none; margin: 0px; border-radius: 0px; border-left-style: none; border-right-style: none; border-top-style: none; box-shadow: rgba(2, 11, 30, 0.12) 0px 4px 14px; z-index: 60; }
+.ct-sentinel { height: 1px; margin-bottom: -1px; flex: 0 0 auto; }
+.co-stage { display: none; }
+.co-stage.on { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0px; animation: 0.22s ease 0s 1 normal none running stagein; }
+.co-persist { margin-top: 18px; }
+.co-persist > .blk:first-child { margin-top: 0px; }
+@keyframes stagein { 
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: none; }
+}
+.co-stage-head { margin-bottom: 16px; }
+.co-stage-head .sh-k { font-size: 0.6562rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--co-pay-sub); }
+.co-stage-head .sh-t { font-size: var(--title-size); font-weight: 700; font-family: var(--co-font-head); margin-top: 3px; }
+.co-recap { display: flex; align-items: center; gap: 12px; border: 1px solid var(--co-pay-border); background: var(--co-pay-field); border-radius: var(--co-r); padding: 11px 14px; margin-bottom: 18px; }
+.co-recap .rc-i { flex: 1 1 0%; min-width: 0px; }
+.co-recap .rc-n { font-size: var(--fs-body); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.co-recap .rc-c { font-size: var(--fs-sub); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.co-recap .rc-e { font-size: 0.7188rem; font-weight: 700; color: var(--co-accent); flex: 0 0 auto; padding: 6px 10px; border-radius: 8px; }
+.co-recap .rc-e:hover { background: color-mix(in srgb,var(--co-accent) 10%,transparent); }
+.co-nav { display: flex; gap: 10px; align-items: center; margin-top: 20px; }
+.co-nav .nav-back { flex: 0 0 auto; height: 46px; padding: 0px 16px; border-radius: var(--co-r); border: 1px solid var(--co-pay-border); color: inherit; font-size: var(--fs-sub); font-weight: 700; background: transparent; }
+.co-nav .nav-back:hover { background: var(--co-pay-hover); }
+.co-nav .nav-next { flex: 1 1 0%; height: 48px; border-radius: var(--co-r); background: var(--co-accent); color: var(--co-accent-ink); font-size: var(--fs-body); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.15s, transform 0.1s; }
+.co-nav .nav-next:hover { filter: brightness(1.1); }
+.co-nav .nav-next:active { transform: scale(0.99); }
+.co-nav .nav-next svg { width: 15px; height: 15px; stroke: currentcolor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.b-field.err input { border-color: rgb(239, 68, 68); box-shadow: rgba(239, 68, 68, 0.12) 0px 0px 0px 3px; }
+.b-field .fe { display: none; font-size: 0.6875rem; font-weight: 600; color: rgb(239, 68, 68); margin-top: 5px; }
+.b-field.err .fe { display: block; }
+@keyframes dlpulse { 
+  50% { opacity: 0.5; }
+}
+.co-summary .cv-sub { color: var(--co-sum-sub); }
+.co-payment .cv-sub { color: var(--co-pay-sub); }
+.b-brand { display: flex; align-items: center; gap: 10px; }
+.b-brand .bb-logo { width: 32px; height: 32px; border-radius: 8px; background: var(--co-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.875rem; color: var(--co-accent-ink); }
+.b-brand .bb-name { font-size: var(--fs-title); font-weight: 700; letter-spacing: 0.1px; font-family: var(--co-font-head); }
+.b-heading { font-size: var(--title-size); font-weight: 700; font-family: var(--co-font-head); letter-spacing: -0.2px; }
+.b-para { font-size: var(--fs-sub); line-height: 1.6; }
+.b-divider { height: 1px; background: var(--co-sum-border); }
+.b-payhead .phd-rule { height: 1px; background: var(--co-sum-border); }
+.co-payment .b-payhead .phd-rule { background: var(--co-pay-border); }
+.b-payhead .phd-body { padding-right: 0px; padding-bottom: 0px; padding-left: 0px; padding-top: var(--co-sep); }
+.checkout { --title-size: var(--fs-title); --co-sep: 14px; }
+.b-payhead .phd-t { position: relative; display: flex; align-items: center; gap: 7px; font-size: var(--title-size); font-weight: 700; font-family: var(--co-font-head); line-height: 1.3; }
+.b-payhead.is-collapsed .phd-d { display: none; }
+.b-payhead:not(.is-collapsed) .info-tip, .b-payhead:not(.is-collapsed) .phd-t-fallback { display: none; }
+.info-tip { display: inline-flex; flex: 0 0 auto; }
+.info-tip-btn { width: 18px; height: 18px; min-width: 18px; display: flex; align-items: center; justify-content: center; border: none; background: none; padding: 0px; border-radius: 50%; color: var(--co-accent); cursor: help; transition: background 0.13s; }
+.info-tip-btn svg { width: 15px; height: 15px; display: block; }
+.info-tip:hover .info-tip-btn, .info-tip:focus-within .info-tip-btn { background: rgba(var(--brand-rgb,9,110,242),.12); }
+.info-pop { position: absolute; left: 0px; top: calc(100% + 10px); z-index: 25; width: 280px; max-width: 100%; padding: 11px 13px; border-radius: 11px; background: var(--co-pay-bg); border: 1px solid var(--co-sum-border); box-shadow: rgba(2, 11, 30, 0.17) 0px 12px 30px; font-size: var(--fs-sub); font-weight: 500; line-height: 1.6; letter-spacing: 0px; font-family: var(--co-font-head); color: var(--co-sum-sub); text-align: left; opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s; }
+.info-tip:hover .info-pop, .info-tip:focus-within .info-pop { opacity: 1; visibility: visible; }
+.b-payhead .phd-d { font-size: var(--fs-sub); line-height: 1.6; margin-top: 6px; }
+.b-payhead .phd-t + .phd-d { margin-top: 5px; }
+.co-payment .b-divider { background: var(--co-pay-border); }
+.b-item { display: flex; align-items: center; gap: 14px; min-height: 52px; }
+.b-item .it-thumb { width: 52px; height: 52px; min-width: 52px; border-radius: 12px; background: linear-gradient(135deg,var(--co-accent),#0000 220%); opacity: 0.92; display: flex; align-items: center; justify-content: center; color: var(--co-accent-ink); font-weight: 700; font-size: 1rem; }
+.b-item .it-main { flex: 1 1 0%; min-width: 0px; }
+.b-item .it-name { font-size: var(--fs-body); font-weight: 600; }
+.b-item .it-qty, .b-item .it-unit { font-size: var(--fs-sub); font-weight: 500; margin-top: 3px; }
+.b-item .it-amt { margin-left: auto; flex: 0 0 auto; font-size: var(--fs-body); font-weight: 700; text-align: right; white-space: nowrap; }
+.b-totals .tr { display: flex; justify-content: space-between; font-size: var(--fs-sub); padding: 4px 0px; }
+.b-totals .tr .tv { font-weight: 600; }
+.tt-acc { display: block; }
+.tt-sum { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0px; cursor: pointer; font-size: var(--fs-sub); font-weight: 600; color: var(--co-sum-sub); list-style: none; user-select: none; }
+.tt-sum::-webkit-details-marker { display: none; }
+.tt-sum::marker { content: ""; }
+.tt-sum:hover { color: var(--co-accent); }
+.tt-chev { width: 14px; height: 14px; flex: 0 0 auto; stroke: currentcolor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; }
+.tt-acc[open] .tt-chev { transform: rotate(180deg); }
+.b-totals .tt-body { padding: 1px 0px 5px; animation: 0.18s ease-out 0s 1 normal none running ttdrop; }
+.b-totals .tt-body .tr { font-size: 0.75rem; padding: 3px 0px; }
+.b-totals .tt-body .tr .tv { font-size: 0.75rem; font-weight: 600; }
+@keyframes ttdrop { 
+  0% { opacity: 0; transform: translateY(-3px); }
+  100% { opacity: 1; transform: none; }
+}
+.b-totals .tr-total { position: relative; border-top: 1px solid var(--co-sum-border); margin-top: var(--co-sep); padding-top: var(--co-sep); align-items: baseline; }
+.co-payment .b-totals .tr-total { border-color: var(--co-pay-border); }
+.b-totals .tr-total .tl { font-size: var(--title-size); font-weight: 700; }
+.b-totals .tr-total .tv { font-size: var(--fs-title); font-weight: 800; font-family: var(--co-font-head); }
+.b-dc { position: relative; min-width: 0px; }
+.dc-cta { font-size: var(--fs-sub); font-weight: 700; color: var(--co-accent); padding: 4px 0px; text-decoration: underline 1px; text-underline-offset: 3px; background: none; border: none; cursor: pointer; white-space: nowrap; }
+.dc-cta:hover { opacity: 0.78; }
+.dc-pop { display: none; position: absolute; bottom: calc(100% + 8px); left: 0px; z-index: 30; width: 232px; max-width: 70vw; }
+.b-dc.open .dc-pop { display: block; animation: 0.16s ease-out 0s 1 normal none running popin; }
+.dc-field { position: relative; }
+.dc-field input { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--co-accent); background: rgb(255, 255, 255); color: var(--co-pay-text); padding: 0px 46px 0px 13px; font-size: var(--fs-sub); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; box-shadow: rgba(2, 11, 30, 0.14) 0px 8px 24px; }
+.dc-field input:focus { outline: none; border-color: var(--co-accent); box-shadow: 0 0 0 3px color-mix(in srgb,var(--co-accent) 14%,transparent); }
+.dc-go { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; border-radius: 7px; background: var(--co-accent); color: var(--co-accent-ink); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: filter 0.13s; }
+.dc-go:hover { filter: brightness(0.92); }
+.dc-go svg { width: 14px; height: 14px; stroke: currentcolor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.dc-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.6875rem; font-weight: 700; line-height: 1; color: var(--co-accent); padding: 5px 6px 5px 10px; border-radius: 100px; background: color-mix(in srgb,var(--co-accent) 12%,transparent); white-space: nowrap; }
+.dc-x { width: 16px; height: 16px; min-width: 16px; border-radius: 50%; background: color-mix(in srgb,var(--co-accent) 20%,transparent); color: var(--co-accent); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: background 0.13s, color 0.13s; }
+.dc-x:hover { background: var(--co-accent); color: var(--co-accent-ink); }
+.dc-x svg { width: 9px; height: 9px; stroke: currentcolor; fill: none; stroke-width: 3; stroke-linecap: round; }
+.b-recur { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.b-recur .rc-name { font-size: var(--fs-body); font-weight: 600; }
+.b-recur .rc-sub { font-size: var(--fs-sub); margin-top: 2px; }
+.b-field label, .f-label { display: block; font-size: var(--fs-body); font-weight: 600; margin-bottom: 7px; color: var(--co-pay-sub); }
+.co-summary .b-field label { color: var(--co-sum-sub); }
+.b-field input { width: 100%; height: 44px; border-radius: var(--co-r); border: 1px solid var(--co-pay-border); background: var(--co-pay-field); color: inherit; padding: 0px 13px; font-size: var(--fs-body); transition: border-color 0.15s, box-shadow 0.15s; }
+.co-summary .b-field input { border-color: var(--co-sum-border); background: var(--co-sum-field); }
+.b-field input::placeholder { color: var(--co-pay-sub); opacity: 0.75; }
+.b-field input:focus { outline: none; border-color: var(--co-accent); box-shadow: 0 0 0 3px color-mix(in srgb,var(--co-accent) 14%,transparent); }
+.b-method { border: 1px solid var(--co-pay-border); border-radius: var(--co-r); overflow: hidden; background: var(--co-pay-field); }
+.bm-head { display: flex; align-items: center; gap: 11px; padding: 14px 16px; cursor: pointer; user-select: none; }
+.bm-head:hover { background: var(--co-pay-hover); }
+.bm-ic { width: 30px; height: 30px; min-width: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--co-soft); color: var(--co-accent); }
+.bm-ic svg { width: 16px; height: 16px; stroke: currentcolor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.bm-title { font-size: var(--fs-body); font-weight: 700; flex: 1 1 0%; }
+.bm-sub { font-size: 0.6562rem; font-weight: 500; margin-top: 1px; }
+.bm-badge { font-size: 0.5625rem; font-weight: 800; letter-spacing: 0.6px; padding: 3px 8px; border-radius: 100px; background: color-mix(in srgb, rgb(16, 185, 129) 14%, transparent); color: rgb(16, 185, 129); }
+.bm-badge.soon { background: color-mix(in srgb, var(--co-pay-sub) 15%, transparent); color: var(--co-pay-sub); }
+/* ── inactive method (not built yet) ──
+   Reads as a real row so the method list looks complete in a pitch, but it
+   cannot be opened, selected or paid with: no accordion, no hover, no tab stop. */
+.b-method.off { background: transparent; border-style: dashed; }
+.b-method.off .bm-head { cursor: default; opacity: 0.62; }
+.b-method.off .bm-head:hover { background: transparent; }
+.b-method.off .bm-ic { background: color-mix(in srgb, var(--co-pay-sub) 12%, transparent); color: var(--co-pay-sub); }
+.b-method.off .bm-chev { display: none; }
+.b-method.off .bm-body { display: none !important; }
+.bm-chev { transition: transform 0.2s; color: var(--co-pay-sub); }
+.bm-chev svg { width: 15px; height: 15px; stroke: currentcolor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.b-method.open .bm-chev { transform: rotate(180deg); }
+.bm-body { display: none; padding: 14px 16px 16px; border-top: 1px solid var(--co-pay-border); }
+.b-method.open .bm-body { display: block; }
+.b-method.flat .bm-body { display: block; }
+.b-method.flat .bm-chev { display: none; }
+.b-method.flat .bm-head { cursor: default; }
+.upi-note { font-size: var(--fs-sub); margin-bottom: 10px; }
+.upi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.upi-app { display: flex; align-items: center; gap: 10px; border: 1px solid var(--co-pay-border); border-radius: var(--co-r); padding: 9px 12px; cursor: pointer; transition: 0.13s; }
+.upi-app:hover { border-color: var(--co-accent); }
+.upi-app.sel { border-color: var(--co-accent); box-shadow: 0 0 0 2.5px color-mix(in srgb,var(--co-accent) 18%,transparent); }
+.upi-app .ua-logo { width: 26px; height: 26px; min-width: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.5938rem; font-weight: 800; color: rgb(255, 255, 255); }
+.upi-app .ua-name { font-size: var(--fs-sub); font-weight: 600; flex: 1 1 0%; }
+.upi-app .ua-radio { width: 16px; height: 16px; min-width: 16px; border-radius: 50%; border: 1.7px solid var(--co-pay-border); transition: 0.13s; }
+.upi-app.sel .ua-radio { border-width: 5px; border-color: var(--co-accent); }
+.upi-any { margin-top: 8px; }
+.upi-any .ua-logo { background: var(--co-accent); color: var(--co-accent-ink); }
+.upi-any .ua-logo svg { width: 13px; height: 13px; stroke: currentcolor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.upi-vpa { margin-top: 10px; }
+.upi-vpa .uv-hint { font-size: 0.6562rem; margin-top: 6px; }
+.bm-logo { display: flex; align-items: center; flex-shrink: 0; margin-right: 2px; }
+.bm-logo svg { display: block; }
+.nb-crows { display: flex; flex-direction: column; }
+.nb-crow { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 4px; cursor: pointer; border-bottom: 1px solid var(--co-pay-border); font-size: var(--fs-body); font-weight: 700; transition: color 0.13s; user-select: none; }
+.nb-crow:last-child { border-bottom: none; }
+.nb-crow:hover { color: var(--co-accent); }
+.nb-crow.sel { color: var(--co-accent); }
+.nb-crow .nc-ring { width: 17px; height: 17px; min-width: 17px; border-radius: 50%; border: 1.7px solid var(--co-pay-border); transition: 0.13s; }
+.nb-crow:hover .nc-ring { border-color: var(--co-accent); }
+.nb-crow.sel .nc-ring { border-width: 5.5px; border-color: var(--co-accent); }
+.nb-note { font-size: var(--fs-sub); line-height: 1.6; padding: 10px 12px; border: 1px dashed var(--co-pay-border); border-radius: var(--co-r); margin-top: 10px; }
+.nb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; margin-top: 12px; }
+.nb-bank { border: 1px solid var(--co-pay-border); border-radius: var(--co-r); padding: 10px 6px; text-align: center; cursor: pointer; transition: 0.13s; }
+.nb-bank:hover { border-color: var(--co-accent); }
+.nb-bank.sel { border-color: var(--co-accent); box-shadow: 0 0 0 2.5px color-mix(in srgb,var(--co-accent) 18%,transparent); }
+.nb-bank .nb-ic { width: 26px; height: 26px; border-radius: 50%; margin: 0px auto 6px; display: flex; align-items: center; justify-content: center; font-size: 0.5625rem; font-weight: 800; color: rgb(255, 255, 255); }
+.nb-bank .nb-name { font-size: 0.6562rem; font-weight: 600; }
+.b-pay button.paybtn { width: 100%; height: 50px; border-radius: var(--co-r); background: var(--co-accent); color: var(--co-accent-ink); font-size: var(--fs-body); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 9px; transition: filter 0.15s, transform 0.1s; letter-spacing: 0.1px; }
+.b-pay button.paybtn:hover { filter: brightness(1.12); }
+.b-pay button.paybtn:active { transform: scale(0.985); }
+.b-pay button.paybtn svg { width: 15px; height: 15px; stroke: currentcolor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.zone-foot { --stack: 12px; }
+.zone-foot .blk + .blk { margin-top: var(--stack); }
+.b-pay .pay-note { text-align: center; font-size: var(--fs-sub); margin-top: var(--stack,12px); }
+.b-secure { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.b-secure .sc-item { display: flex; align-items: center; gap: 7px; font-size: var(--fs-sub); font-weight: 600; }
+.b-secure .sc-item svg { width: 13px; height: 13px; stroke: currentcolor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.b-secure .sc-sep { width: 3px; height: 3px; border-radius: 50%; background: currentcolor; opacity: 0.3; }
+.b-inv { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sub); }
+.b-inv svg { width: 14px; height: 14px; stroke: currentcolor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; }
+.b-inv .iv-num { font-weight: 700; margin-left: auto; font-variant-numeric: tabular-nums; }
+.b-addr .ad-title { font-size: var(--fs-body); font-weight: 600; color: var(--co-pay-sub); margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+.co-summary .b-addr .ad-title { color: var(--co-sum-sub); }
+.b-addr .ad-title svg { width: 14px; height: 14px; min-width: 14px; stroke: currentcolor; fill: none; stroke-width: 1.85; stroke-linecap: round; stroke-linejoin: round; }
+.b-addr .ad-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+.b-addr .ad-same { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sub); cursor: pointer; user-select: none; }
+.b-addr .ad-check { width: 16px; height: 16px; min-width: 16px; border-radius: 5px; border: 1.6px solid var(--co-pay-border); display: flex; align-items: center; justify-content: center; transition: 0.13s; }
+.b-addr .ad-check.on { background: var(--co-accent); border-color: var(--co-accent); }
+.b-addr .ad-check svg { width: 10px; height: 10px; stroke: var(--co-accent-ink); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
+.b-addr .ad-check.on svg { display: block; }
+.b-custom-row { display: flex; justify-content: space-between; gap: 12px; font-size: var(--fs-sub); }
+.b-custom-row .cf-v { font-weight: 600; text-align: right; word-break: break-word; }
+.b-qrd { display: flex; gap: 16px; align-items: center; }
+.b-qrd .qr-card { background: rgb(255, 255, 255); border: 1px solid rgb(226, 232, 240); border-radius: 12px; padding: 10px; line-height: 0; }
+.b-qrd .qr-card svg { width: 132px; height: 132px; display: block; }
+.b-qrd .qr-side { flex: 1 1 0%; min-width: 0px; }
+.b-qrd .qr-t { font-size: var(--fs-sub); font-weight: 600; line-height: 1.55; margin-bottom: 5px; }
+.b-qrd .qr-s { font-size: var(--fs-sub); line-height: 1.55; }
+.b-qrd .qr-timer { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 0.6562rem; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: color-mix(in srgb,var(--co-accent) 10%,transparent); color: var(--co-accent); }
+.b-qrm { display: none; font-size: var(--fs-sub); line-height: 1.6; padding: 10px 12px; border: 1px dashed var(--co-pay-border); border-radius: var(--co-r); }
+.b-mfoot { font-size: var(--fs-sub); line-height: 1.6; }
+.b-mfoot .mf-links { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; font-weight: 600; font-size: var(--fs-sub); }
+.b-mfoot .mf-links a { color: inherit; cursor: pointer; text-decoration: none; opacity: 0.8; }
+.b-mfoot .mf-links a:hover { opacity: 1; text-decoration: underline; }
+.b-mfoot .mf-sup { display: flex; flex-wrap: wrap; gap: 5px 16px; justify-content: center; margin-top: 10px; opacity: 0.9; font-size: var(--fs-sub); }
+.b-mfoot .mf-soc { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.b-mfoot .mf-soc a { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--co-pay-border); display: flex; align-items: center; justify-content: center; color: inherit; opacity: 0.75; }
+.b-mfoot .mf-soc a:hover { opacity: 1; border-color: var(--co-accent); color: var(--co-accent); }
+.b-mfoot .mf-soc svg { width: 12px; height: 12px; stroke: currentcolor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.co-summary .b-mfoot .mf-soc a { border-color: var(--co-sum-border); }
+.po-ring.fail { background: color-mix(in srgb, rgb(239, 68, 68) 13%, transparent); }
+.po-ring.fail svg { stroke: rgb(239, 68, 68); }
+.po-ring.exp { background: color-mix(in srgb, rgb(245, 158, 11) 14%, transparent); }
+.po-ring.exp svg { stroke: rgb(217, 119, 6); }
+.po-btnrow { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+.po-primary { height: 40px; padding: 0px 22px; border-radius: var(--co-r); background: var(--co-accent); color: var(--co-accent-ink); font-size: var(--fs-sub); font-weight: 700; }
+.po-primary:hover { filter: brightness(1.1); }
+.po-ws { margin-top: 16px; font-size: 0.625rem; display: inline-flex; align-items: center; gap: 6px; opacity: 0.55; }
+.po-ws .ws-dot { width: 6px; height: 6px; border-radius: 50%; background: rgb(16, 185, 129); animation: 1.2s ease 0s infinite normal none running dlpulse; }
+.po-bank { width: min(400px, 90%); margin: 0px auto; text-align: left; border: 1px solid var(--co-pay-border); border-radius: 12px; overflow: hidden; background: var(--co-pay-field); }
+.po-bank .pb-head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; color: rgb(255, 255, 255); font-size: var(--fs-sub); font-weight: 700; }
+.po-bank .pb-head .nb-ic { width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 0.5625rem; font-weight: 800; }
+.po-bank .pb-body { padding: 18px 16px; }
+.po-bank .pb-note { font-size: 0.625rem; text-align: center; margin-top: 12px; opacity: 0.6; }
+.po-bank .b-field + .b-field { margin-top: 12px; }
+.po-bank .pb-amt { display: flex; justify-content: space-between; font-size: var(--fs-sub); margin-bottom: 14px; padding: 10px 12px; border-radius: 8px; background: var(--co-pay-hover); border: 1px solid var(--co-pay-border); }
+.po-bank .pb-amt b { font-size: var(--fs-body); }
+.po-qrcard { background: rgb(255, 255, 255); border: 1px solid rgb(226, 232, 240); border-radius: 14px; padding: 12px; display: inline-block; line-height: 0; margin-bottom: 18px; }
+.po-qrcard svg { width: min(150px, 40vw); height: min(150px, 40vw); display: block; }
+.po-appic { width: 64px; height: 64px; border-radius: 18px; margin: 0px auto 18px; display: flex; align-items: center; justify-content: center; color: rgb(255, 255, 255); font-size: 1.25rem; font-weight: 800; box-shadow: rgba(2, 11, 30, 0.22) 0px 10px 26px; animation: 0.4s cubic-bezier(0.2, 1.6, 0.4, 1) 0s 1 normal none running popin; }
+.pay-overlay { overflow-y: auto; }
+.pr-wrap { margin: auto; text-align: center; padding: clamp(16px, 3.5vh, 34px) 26px; max-width: 480px; display: flex; flex-direction: column; align-items: center; color: var(--co-pay-text); }
+.pr-ill { width: clamp(110px, 22vh, 190px); margin-bottom: 2px; }
+.pr-ill svg { width: 100%; height: auto; display: block; }
+.pr-amt-row { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-top: 4px; }
+.pr-meta { font-size: var(--fs-sub); }
+.pr-txn { font-size: 0.6562rem; opacity: 0.85; word-break: break-all; }
+.pr-count { margin-top: 16px; border: 1.5px solid var(--co-pay-border); border-radius: 100px; padding: 10px 28px; font-size: var(--fs-sub); font-weight: 700; }
+.pr-count b { color: var(--co-accent); }
+.pr-note { margin-top: 16px; font-size: var(--fs-sub); line-height: 1.6; background: var(--co-pay-hover); border: 1px solid var(--co-pay-border); border-radius: 10px; padding: 10px 16px; max-width: 400px; }
+.pr-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.pr-btn { height: 40px; padding: 0px 26px; border-radius: 100px; font-size: var(--fs-sub); font-weight: 700; background: var(--co-accent); color: var(--co-accent-ink); }
+.pr-btn:hover { filter: brightness(1.1); }
+.pr-help { margin-top: 12px; font-size: 0.6875rem; line-height: 1.6; max-width: 420px; border: 1px dashed var(--co-pay-border); border-radius: 10px; padding: 12px 14px; text-align: left; }
+.pr-help b { font-weight: 700; }
+.pr-help .ph-head { text-align: center; font-weight: 700; font-size: 0.7188rem; color: var(--co-pay-text); margin-bottom: 8px; }
+.co-summary .pr-help .ph-head { color: var(--co-sum-text); }
+.pr-help .ph-body { text-align: left; }
+.pr-help .ph-fine { text-align: left; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--co-pay-border); opacity: 0.85; }
+.pr-help .ph-mail { font-weight: 700; color: var(--co-accent); word-break: break-word; }
+.pr-trust { display: flex; align-items: center; gap: 6px; font-size: 0.7188rem; font-weight: 600; color: rgb(47, 128, 237); margin-top: 14px; }
+.pr-trust svg { width: 14px; height: 14px; fill: rgb(47, 128, 237); }
+.pay-overlay { position: absolute; inset: 0px; background: var(--co-pay-bg); display: none; align-items: center; justify-content: center; z-index: 40; border-radius: inherit; }
+.pay-overlay.show { display: flex; position: fixed; inset: 60px 0px 0px; z-index: 80; border-radius: 0px; }
+.po-inner { text-align: center; padding: 30px; color: var(--co-pay-text); }
+.po-ring { width: 76px; height: 76px; border-radius: 50%; margin: 0px auto 20px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, rgb(16, 185, 129) 13%, transparent); animation: 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 0s 1 normal none running popin; }
+.po-ring svg { width: 38px; height: 38px; stroke: rgb(16, 185, 129); fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.po-ring svg path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: 0.5s ease-out 0.25s 1 normal forwards running draw; }
+@keyframes draw { 
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes popin { 
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.po-spin { width: 44px; height: 44px; border-radius: 50%; border-top-style: ; border-top-width: ; border-right-color: ; border-right-style: ; border-right-width: ; border-bottom-color: ; border-bottom-style: ; border-bottom-width: ; border-left-color: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; border-top-color: var(--co-accent); margin: 0px auto 18px; animation: 0.7s linear 0s infinite normal none running spin; }
+@keyframes spin { 
+  100% { transform: rotate(360deg); }
+}
+.dl { display: flex; flex-direction: column; align-items: center; }
+.dl-stage { width: clamp(132px, 30vw, 168px); margin-bottom: 16px; }
+.dl-stage svg { width: 100%; height: auto; display: block; overflow: visible; }
+.dl-rail { stroke: rgba(9, 110, 242, 0.16); stroke-width: 4; stroke-linecap: round; }
+.dl-d-bg { fill: none; stroke: rgba(9, 110, 242, 0.14); stroke-width: 26; stroke-linecap: round; stroke-linejoin: round; }
+.dl-d-fg { fill: none; stroke: rgb(9, 110, 242); stroke-width: 26; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 0.28, 0.72; animation: 1.15s cubic-bezier(0.65, 0, 0.35, 1) 0s infinite normal none running dlChase; }
+@keyframes dlChase { 
+  0% { stroke-dashoffset: 1; }
+  100% { stroke-dashoffset: 0; }
+}
+.dl-trail { fill: url("#dlTrail"); opacity: 0; animation: 1.15s cubic-bezier(0.22, 0.9, 0.3, 1) 0s infinite normal none running dlTrail; }
+@keyframes dlTrail { 
+  0% { opacity: 0; transform: translateX(-300px) scaleX(0.2); }
+  22% { opacity: 0.85; }
+  62% { opacity: 0; transform: translateX(0px) scaleX(1.9); }
+  100% { opacity: 0; transform: translateX(0px) scaleX(1.9); }
+}
+.dl-cube { fill: rgb(0, 146, 255); animation: 1.15s cubic-bezier(0.22, 0.9, 0.3, 1) 0s infinite normal none running dlFly; }
+@keyframes dlFly { 
+  0% { transform: translateX(-300px); opacity: 0; }
+  14% { opacity: 1; }
+  58% { transform: translateX(0px); opacity: 1; }
+  70% { transform: translateX(0px) scale(1.14); transform-origin: 150px 387px; }
+  84% { transform: translateX(0px) scale(1); opacity: 1; }
+  100% { transform: translateX(0px); opacity: 0; }
+}
+.dl-cube.c2, .dl-trail.c2 { animation-delay: -0.38s; }
+.dl-cube.c3, .dl-trail.c3 { animation-delay: -0.76s; }
+.dl-t { font-size: var(--fs-body); font-weight: 700; letter-spacing: 0.1px; }
+.dl-s { font-size: var(--fs-sub); margin-top: 5px; }
+.dl-dots i { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: currentcolor; margin: 0px 2px; opacity: 0.3; animation: 1.15s ease-in-out 0s infinite normal none running dlDot; }
+.dl-dots i:nth-child(2) { animation-delay: 0.14s; }
+.dl-dots i:nth-child(3) { animation-delay: 0.28s; }
+@keyframes dlDot { 
+  0%, 100% { opacity: 0.25; transform: translateY(0px); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+.po-title { font-size: var(--fs-title); font-weight: 800; font-family: var(--co-font-head); }
+.po-sub { font-size: var(--fs-sub); margin-top: 7px; }
+.po-amount { font-size: var(--fs-title); font-weight: 800; margin-top: 14px; font-family: var(--co-font-head); }
+.po-close { margin-top: 22px; height: 38px; padding: 0px 20px; border-radius: var(--co-r); border: 1px solid var(--co-pay-border); color: inherit; font-size: var(--fs-sub); font-weight: 700; }
+.po-close:hover { background: var(--co-pay-hover); }
+.b-brand { min-height: 32px; }
+.b-brand .bb-img { height: 32px; max-width: 170px; object-fit: contain; display: block; }
+.b-brand .bb-empty { font-size: 0.6875rem; font-style: italic; opacity: 0.55; }
+
+.pay-overlay.show{top:0;}
+@media (max-width:760px){
+  /* flat, full-device-width page — the card treatment is desktop/tablet only */
+  body{padding:0;background:#fff;background-image:none;align-items:stretch;}
+  :root{--co-bar:46px;}   /* the bar is fixed on phones too */
+  .page{max-width:100%;margin:0;height:auto;padding:12px 0 0;display:block;}
+  .page.is-docked{padding-top:12px;}
+  .checkout{border-radius:0;box-shadow:none;min-height:100vh;min-height:100dvh;min-height:100dvh;grid-template-rows:auto;}
+  .powered{padding:16px 16px 22px;}
+  body::before,body::after,.bg-blob{display:none;}   /* flat white on phones */
+  /* ONE page scroll — nothing pinned, no inner scrollers */
+  .zone-body{overflow:visible !important;flex:none;}
+  .zone-foot{margin-top:0;}
+  .co-col,.co-stage.on{display:block;}
+  .co-summary{padding-bottom:30px;}   /* gap under Total Payable */
+  .b-payhead.is-collapsed .phd-d{display:block;}       /* always inline on phones */
+  .b-payhead .info-tip,.b-payhead .phd-t-fallback{display:none;}
+  .zone-body{margin-right:0;padding-right:0;}
+  /* phones: island banner with a margin, docking full-bleed once it scrolls off */
+  /* width:auto, not 100% — with 12px side margins, 100% overflows by 24px
+     and the banner gets clipped on the right */
+  .co-timer{width:auto;max-width:none;margin:0 12px 14px;padding:11px 14px;}
+  .co-timer .ct-t{font-size:var(--fs-sub);}
+  .is-docked .co-timer{width:100vw;margin:0;}
+  /* ── ONE COLUMN ── summary stacks above payment and the page owns the scroll */
+  .checkout{grid-template-columns:1fr;}
+  .co-col{padding:26px 22px 32px;}
+  .upi-grid{grid-template-columns:1fr;}
+  .nb-grid{grid-template-columns:1fr 1fr;}
+  .b-qrd{display:none;}
+  .b-qrm{display:block;}
+  .b-addr .ad-grid{grid-template-columns:1fr 1fr;}
+  .b-item{min-height:44px;}
+  .b-item .it-thumb{width:44px;height:44px;min-width:44px;}
+  .co-stage-head .sh-t{font-size:var(--fs-title);}
+  .co-nav{position:sticky;bottom:0;background:var(--co-pay-bg);padding:10px 0 2px;margin-top:16px;z-index:5;}
+}
+/* desktop & tablet: the charge breakdown folds into the info-icon popover */
+@media (min-width:641px){
+}
+/* Thin brand scrollbar on the scrolling zones. A global scrollbar-width:thin
+   makes Blink ignore ::-webkit-scrollbar and use the OS overlay bar, so reset
+   the standard properties where the pseudo-elements exist and keep them only
+   as the Firefox path. */
+@supports selector(::-webkit-scrollbar){
+  .zone-body{scrollbar-width:auto;scrollbar-color:auto;}
+}
+@supports not selector(::-webkit-scrollbar){
+  .zone-body{scrollbar-width:thin;scrollbar-color:rgba(var(--brand-rgb),.35) rgba(var(--brand-rgb),.08);}
+}
+.zone-body::-webkit-scrollbar{width:3px;}
+.zone-body::-webkit-scrollbar-track{background:rgba(var(--brand-rgb),.08);border-radius:3px;}
+.zone-body::-webkit-scrollbar-thumb{background:rgba(var(--brand-rgb),.35);border-radius:3px;}
+@media (prefers-reduced-motion:reduce){
+  .dl-cube,.dl-trail,.dl-d-fg,.dl-dots i{animation:none;}
+  .dl-cube{opacity:1;} .dl-trail{opacity:0;} .dl-d-fg{stroke-dasharray:none;}
+}
+</style>
+
+<style>
+/* ══ Decentro-Demo.MD §6 responsive baseline — appended 29 Oct 2026 ══
+   Four guarantees: no sideways scroll at any width from 320 up, nothing
+   clipped, one primary action reachable by thumb, readable without zoom. */
+html,body{overflow-x:hidden}
+img,svg,video,canvas{max-width:100%}
+/* iOS zooms any input under 16px on focus — inside an iFrame that reads as the
+   page breaking, so this one is loud on purpose. */
+@media (max-width:768px){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select,textarea{font-size:16px!important}
+}
+/* Touch ergonomics: only lifts controls that have not set their own height. */
+@media (pointer:coarse){
+  button,[role="button"],summary{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ── scrollbars: hidden everywhere, scrolling untouched ──────────────────
+   No visible bar on any surface. !important because several flows style
+   their own (.zone-body, .pane, .steps…) with a higher specificity than a
+   universal selector, and those would otherwise keep painting. Hiding the
+   bar does not affect wheel, trackpad, touch, keyboard or programmatic
+   scrolling — only the indicator is gone. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+</style>
+
+<style>
+/* The lockup is a brand mark, not muted label text. On these light footers the
+   words "Powered by" stay quiet but the logo itself is the full black lockup —
+   white on dark, black on light, never a washed-out grey in between. */
+.powered svg[viewBox="0 0 2749.67 538.23"],
+.sticky-powered svg[viewBox="0 0 2749.67 538.23"],
+.pow-strip svg[viewBox="0 0 2749.67 538.23"]{fill:#0B0F14;opacity:1}
+</style>
+
+<style>
+/* ── mobile: the primary action rides the bottom of the viewport ──
+   Below 640px the card treatment is dropped and the page grows with its
+   content, which pushed "Continue to payment" nearly 150px below the fold on
+   a 390x844 phone. The CTA is now pinned; the page gets bottom padding so
+   nothing ever hides behind it. */
+@media (max-width:640px){
+  .page{padding-bottom:104px!important}
+  .zone-foot [data-act="toStep2"],
+  .zone-foot [data-act="pay"]{
+    position:fixed;left:14px;right:14px;width:auto;z-index:40;
+    bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 12px 34px rgba(9,110,242,.34);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     BACKGROUND  (decorative only — safe to delete this whole block)
+     · body::before  48px Manifesto grid, radially masked
+     · body::after / .bg-blob   soft brand-coloured glows
+     All pointer-events:none and hidden on phones.
+     ══════════════════════════════════════════════════════════════════════════ -->
+<span class="bg-blob b1" aria-hidden="true"></span>
+<span class="bg-blob b2" aria-hidden="true"></span>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     CHECKOUT
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+<div class="ct-sentinel" id="ctSentinel"></div>
+  <div class="co-timer  " id="coTimer">
+    <span class="ct-in">
+      <span class="ct-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><path d="M12 7.6V12l3.1 1.9"/></svg></span>
+      <span class="ct-t">Payment session expires in <b id="ctClock">10:00</b></span>
+    </span>
+  </div>
+<div class="checkout theme-light">
+  <!-- ─────────── LEFT: ORDER SUMMARY ─────────── -->
+  <div class="co-col co-summary">
+
+      <!-- head: brand + payment title (fixed) -->
+      <div class="zone-head"><div class="blk"><div class="b-brand"><div class="bb-logo">A&amp;</div><div class="bb-name"  data-ei="name">Aurora &amp; Co.</div></div></div>
+<div class="blk"><div class="b-payhead">
+        <div class="phd-rule"></div>
+        <div class="phd-body">
+          <div class="phd-t "><span  data-ei="title">Checkout Page</span><span class="info-tip"><button class="info-tip-btn" type="button" aria-label="Payment details"><svg viewBox="0 0 500 500" aria-hidden="true" focusable="false"><path fill="currentColor" d="M484.1,209C464.2,112.7,407,49.9,313.1,21c-14.3-4.4-29.7-5.4-44.6-7.9c-1.2-0.2-2.4-0.5-3.6-0.8c-9.9,0-19.8,0-29.7,0c-8.9,1.2-17.7,2.2-26.6,3.7C115.7,31.1,37,106.3,17.9,198.6c-2.2,10.7-3.3,21.7-4.9,32.5c-0.2,1.4-0.5,2.7-0.8,4c0,9.9,0,19.8,0,29.7c1.2,8.9,2.1,17.8,3.7,26.6C28.4,358.2,63,410.6,119.3,448.5c34,22.9,71.8,35.5,112.8,38.5c1,0.1,2.1,0.5,3.1,0.7c9.9,0,19.8,0,29.7,0c8.7-1.2,17.5-2.1,26.1-3.6c55.3-9.8,101.6-36,138.5-78.3c34.3-39.3,53.4-85.3,57.6-137.4c0.1-1.2,0.5-2.4,0.8-3.6c0-9.9,0-19.8,0-29.7C486.6,226.4,485.9,217.6,484.1,209z M249.7,454.5c-113.1-0.3-204.6-92.2-204.2-204.9C46,136.5,137.9,45,250.5,45.5c113.2,0.6,204.7,92.5,204,205.1C453.8,363.7,362.3,454.8,249.7,454.5z"/><path fill="currentColor" d="M265.3,213.6c-9.8-4.2-19.9-4.3-29.8-0.4c-6.5,2.5-9.7,7.3-9.7,14.7c0.2,37.9,0.2,75.8,0,113.7c0,6.6,2.7,11.1,8.2,13.9c11.1,5.7,22.3,5.6,33.2-0.7c4.9-2.8,7.4-6.9,7.3-13c-0.2-19-0.1-38-0.1-57.1c0-19-0.2-38,0.1-57.1C274.5,220.6,271.4,216.2,265.3,213.6z"/><path fill="currentColor" d="M230,145.2c-7.4,8-7.6,19.1-0.4,27.3c5.4,6.2,12.4,9,21,9c1-0.1,2.4,0,3.7-0.3c9.4-1.8,16.6-6.7,19.9-16c2.7-7.8,0.5-14.6-5-20.4C258.9,134.1,240.1,134.4,230,145.2z"/></svg></button><span class="info-pop" role="tooltip">Complete your details to continue.</span></span></div>
+          <div class="phd-d cv-sub"  data-ei="desc">Complete your details to continue.</div>
+        </div>
+      </div></div></div>
+      <!-- body: product / service list — the ONLY part that scrolls -->
+      <div class="zone-body"><div class="blk"><div class="b-item">
+        <div class="it-main">
+          <div class="it-name"  data-ei="name">Aurora Desk Lamp — Brass</div>
+          <div class="it-qty cv-sub">Qty 1</div>
+        </div>
+        <div class="it-amt">₹3,499</div>
+      </div></div>
+<div class="blk"><div class="b-item">
+        <div class="it-main">
+          <div class="it-name"  data-ei="name">Filament Bulb Set (×3)</div>
+          <div class="it-qty cv-sub">Qty 1</div>
+        </div>
+        <div class="it-amt">₹899</div>
+      </div></div></div>
+      <!-- foot: recurring + discount + payable amount (pinned to the bottom) -->
+      <div class="zone-foot"><div class="blk"><div class="b-dc ">
+        <button class="dc-cta" data-act="dcOpen">Add discount code</button>
+        <div class="dc-pop">
+          <div class="dc-field">
+            <input placeholder="Enter code" data-role="dcode" autocomplete="off" spellcheck="false">
+            <button class="dc-go" data-act="applyDc" title="Apply" aria-label="Apply discount code"><svg viewBox="0 0 24 24"><path d="M5 12h13M12 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+      </div></div><div class="blk"><div class="b-recur"><div><div class="rc-name"  data-ei="label">Make this a recurring order</div><div class="rc-sub cv-sub"  data-ei="sub">Save 5% on every refill · UPI Autopay</div></div><div class="sw " data-act="recur"></div></div></div><div class="blk"><div class="b-totals">
+        <details class="tt-acc">
+          <summary class="tt-sum"><span>Amount details</span><svg class="tt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <div class="tt-body">
+        <div class="tr"><span class="cv-sub">Subtotal</span><span class="tv" data-tt="sub">₹4,398</span></div>
+        <div class="tr"><span class="cv-sub" data-tt="disclbl">Discount</span><span class="tv" data-tt="disc" >−₹0</span></div>
+        <div class="tr"><span class="cv-sub">Shipping</span><span class="tv">Free</span></div>
+        <div class="tr"><span class="cv-sub">GST (18%)</span><span class="tv" data-tt="tax">₹791.64</span></div></div>
+        </details>
+        <div class="tr tr-total">
+          <span class="tl">Total Payable</span>
+          <span class="tv" data-tt="total">₹5,189.64</span>
+        </div>
+      </div></div></div>
+  </div>
+  <!-- ─────────── RIGHT: CUSTOMER INFO → PAYMENT ─────────── -->
+  <div class="co-col co-payment">
+
+    <!-- STEP 1 — customer information -->
+    <div class="co-stage on" data-stage="1">
+      <div class="zone-head"><div class="co-stage-head"><div class="sh-k">Step 1 Of 2</div><div class="sh-t">Customer Information</div></div></div>
+      <div class="zone-body">
+        <div class="blk"><div class="b-field" data-vf="name"><label>Full Name</label><input type="text" data-role="pname" value="" placeholder="Rakesh Sharma"><div class="fe">Enter the name on this order</div></div></div>
+<div class="blk"><div class="b-field" data-vf="email"><label>Email</label><input type="email" data-role="pemail" value="" placeholder="you@example.com"><div class="fe">Enter a valid email address</div></div></div>
+<div class="blk"><div class="b-field" data-vf="phone"><label>Mobile Number</label><input type="tel" data-role="pphone" value="" placeholder="+91 98765 43210"><div class="fe">Enter a valid 10-digit mobile number</div></div></div>
+      </div>
+      <!-- Continue, with the merchant footer closing out step 1 -->
+      <div class="zone-foot no-rule"><div class="co-nav"><button class="nav-next" data-act="toStep2">Continue To Payment <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><div class="blk"><div class="b-mfoot cv-sub">
+        <div class="mf-links">
+          <a data-act="legal" data-doc="tnc">Terms &amp; Conditions</a>
+          <a data-act="legal" data-doc="privacy">Privacy Policy</a>
+          <a href="https://decentro.tech/help/consumer" target="_blank" rel="noopener">Grievances</a>
+        </div>
+        <div class="mf-sup">
+          <span>support@aurora.co</span>
+          <span>+91 80 4000 1234</span>
+        </div>
+        <div class="mf-soc"><a href="https://aurora.co" target="_blank" rel="noopener" title="https://aurora.co"><svg class="" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg></a></div>
+      </div></div></div>
+    </div>
+    <!-- STEP 2 — payment methods (only one accordion open at a time) -->
+    <div class="co-stage" data-stage="2">
+      <div class="zone-head">
+        <div class="co-stage-head"><div class="sh-k">Step 2 Of 2</div><div class="sh-t">Choose How To Pay</div></div>
+        <div class="co-recap"><div class="rc-i"><div class="rc-n" id="rcName">Customer Information</div><div class="rc-c cv-sub" id="rcContact"></div></div><button class="rc-e" data-act="editDetails">Edit</button></div>
+      </div>
+      <!-- body: payment methods — the ONLY part that scrolls -->
+      <div class="zone-body">
+        <div class="blk"><div class="b-method open ">
+    <div class="bm-head" data-act="acc">
+      <div class="bm-ic"><svg class="" viewBox="0 0 24 24"><path d="M7 11 12 3l5 8-5 8-5-8Z"/><path d="M12 3v16"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="bm-title">Pay Via UPI</div></div>
+      <span class="bm-logo"><svg width="49" height="15" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2896.5 891.8"> <g> <path fill="#66686C" d="M2399.7,68c-4.8,17.6-9.4,35.3-14.3,52.9c-52.9,191.1-105.9,382.2-158.8,573.2 c-11.3,40.6-22.6,81.3-33.8,121.9c-0.8,2.9-1.8,4.3-5.2,4.3c-47.3-0.1-94.6-0.1-141.9-0.1c-1.1,0-2.3-0.2-3.8-0.3 c4.5-16.2,8.8-32.2,13.2-48.2c43.5-157,87-314,130.6-470.9c21.2-76.5,42.4-153,63.5-229.5c0.3-1.1,0.4-2.3,0.6-3.4 C2299.7,68,2349.7,68,2399.7,68z"/> <path fill="#65676B" d="M1657,70.2c134.8,0,269.6,0,404.3,0c8.3,0,16.6,0.4,24.7,2.7c24.5,6.9,39.7,29.6,37.2,55.1 c-1.7,16.9-7.3,32.7-11.8,48.9c-24.7,89.8-49.4,179.7-74.8,269.3c-11.7,41.2-40.2,65.4-81.6,74.8c-6.8,1.6-13.9,1.4-20.9,1.4 c-220.6,0-441.1,0-661.7-0.2c-5.3,0-7,1.7-8.3,6.4c-26.6,96.7-53.4,193.4-80.1,290.1c-1,3.7-2.5,4.9-6.4,4.9 c-46.5-0.2-93-0.2-139.4,0c-5.1,0-5.3-1.4-4.1-5.7c30.3-108.8,60.4-217.6,90.6-326.5c10.3-37.3,20.7-74.6,30.9-111.9 c1-3.6,2.3-5,6.3-5c47,0.2,94,0.1,140.9,0.1c199.6,0.1,399.2,0.2,598.7,0.4c4.3,0,5.5-1.5,6.6-5.3c13.4-48.7,27-97.3,40.5-146 c1.7-6.1,1.7-6.1-4.6-6.1c-245.2,0-490.5,0-735.7,0c-1.3,0-2.7-0.1-4,0c-3,0.3-3.7-0.8-2.9-3.7c13-46.7,25.9-93.5,38.8-140.2 c0.9-3.1,2.5-3.7,5.3-3.6c19.3,0.1,38.7,0.1,58,0.1C1421.4,70.2,1539.2,70.2,1657,70.2z"/> <path fill="#65676B" d="M492.2,823.8c-128.1,0-256.2,0-384.3,0c-12.3,0-24.4-1.4-34.9-8.3c-18.4-12-25.9-29.5-23.7-50.9 c1.9-18.9,8.8-36.8,13.8-55c39.7-143.4,79.6-286.8,119.5-430.1c19-68.3,38-136.6,56.9-205c0.9-3.3,2.3-4.3,5.8-4.3 c46.5,0.1,93,0.1,139.4,0.1c6.1,0,6.1,0,4.5,5.8c-27.7,99.5-55.3,199-83,298.6c-27.5,98.7-54.9,197.4-82.4,296.2 c-1.6,5.7-1.6,5.7,4.5,5.7c196.1,0,392.1,0,588.2,0.1c4.4,0,6.2-1.2,7.4-5.5c40.7-146.9,81.5-293.8,122.3-440.7 c14.4-51.8,28.8-103.7,43.1-155.6c1-3.5,2.5-4.6,6.2-4.6c46.6,0.1,93.3,0.1,139.9,0c4.8,0,5,1.3,3.8,5.4 c-28.9,103.5-57.6,207-86.3,310.5c-35.7,128.3-71.3,256.7-107,385c-9.2,33.1-35.3,52.8-70,52.8 C748.1,823.9,620.2,823.8,492.2,823.8z"/> <g> <path fill="#E8661C" d="M2496.6,653.8c-8.1,7.4-16.2,14.8-24.2,22.3c-50.8,48-101.7,96-152.5,144.1c-0.8,0.8-1.7,1.6-3.5,3.2 c69.9-251.7,139.5-502.2,209.1-753c1.9,1.4,2.3,3.2,3,4.7c26.7,53.1,53.4,106.3,80.2,159.4c0.8,1.6,1.8,3.1,2.7,4.7 c2.2,1,2.7,3.3,3.7,5.2c24.7,49.3,49.2,98.6,74.1,147.8c8.2,16.2,16.4,32.4,24.7,48.5c2.2,4.2,1.9,7.1-1.6,10.5 c-17.6,16.8-35.1,33.6-53,50c-6.6,6.1-13.1,12.3-19.5,18.6c-15.9,15.4-32.2,30.4-48.2,45.7c-18.4,17.6-37,35-55.5,52.5 c-11.7,11.1-23.6,22-35.2,33.3C2499.8,652.3,2498.7,653.9,2496.6,653.8z"/> <path fill="#277F3B" d="M2496.6,653.8c17.4-16.7,34.8-33.4,52.4-50c22.7-21.5,45.5-42.9,68.3-64.4c31.5-29.7,62.9-59.5,94.4-89.1 c3.2-3,3.2-5.1,1.4-8.8c-33.2-65.7-66.2-131.5-99.3-197.3c-0.8-1.6-1.4-3.3-2.2-5c6-21.4,12.1-42.8,18.1-64.2 c9.4-33.6,18.6-67.2,28-100.8c0.3-1.3,0.8-2.5,1.4-4.3c8.9,17.7,17.6,34.9,26.3,52.1c53.7,106.8,107.5,213.7,161.3,320.4 c1.6,3.1,1.6,4.9-1.2,7.5c-92,86.8-184,173.8-276,260.7c-38.2,36.1-76.5,72.3-114.7,108.4c-1.2,1.1-2.1,2.6-4.5,3.2 c2.7-9.9,5.4-19.4,8-29c12.7-45.9,25.5-91.8,38.2-137.7C2496.5,654.8,2496.5,654.3,2496.6,653.8z"/> </g> </g> </svg></span><div class="bm-chev"><svg class="" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+    </div>
+    <div class="bm-body">
+        <div class="upi-note cv-sub">Choose your UPI app to complete the payment</div>
+        <div class="upi-grid"><div class="upi-app " data-act="upi" data-k="gpay"><div class="ua-logo" style="background:#4285F4">GP</div><div class="ua-name">Google Pay</div><div class="ua-radio"></div></div><div class="upi-app " data-act="upi" data-k="phonepe"><div class="ua-logo" style="background:#5f259f">Pe</div><div class="ua-name">PhonePe</div><div class="ua-radio"></div></div><div class="upi-app " data-act="upi" data-k="paytm"><div class="ua-logo" style="background:#00b9f1">Pt</div><div class="ua-name">Paytm</div><div class="ua-radio"></div></div><div class="upi-app " data-act="upi" data-k="cred"><div class="ua-logo" style="background:#1a1a1a">CR</div><div class="ua-name">CRED</div><div class="ua-radio"></div></div></div>
+        
+        <div class="upi-app upi-any " data-act="upiany">
+          <div class="ua-logo"><svg class="" viewBox="0 0 24 24"><path d="M7 11 12 3l5 8-5 8-5-8Z"/><path d="M12 3v16"/></svg></div>
+          <div class="ua-name">Pay by any UPI App</div>
+          <div class="ua-radio"></div>
+        </div>
+        </div>
+  </div></div>
+<div class="blk"><div class="b-method  ">
+    <div class="bm-head" data-act="acc">
+      <div class="bm-ic"><svg class="" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M18 18h3v3h-3z"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="bm-title">Scan QR To Pay</div></div>
+      <span class="bm-logo"><svg width="49" height="15" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2896.5 891.8"> <g> <path fill="#66686C" d="M2399.7,68c-4.8,17.6-9.4,35.3-14.3,52.9c-52.9,191.1-105.9,382.2-158.8,573.2 c-11.3,40.6-22.6,81.3-33.8,121.9c-0.8,2.9-1.8,4.3-5.2,4.3c-47.3-0.1-94.6-0.1-141.9-0.1c-1.1,0-2.3-0.2-3.8-0.3 c4.5-16.2,8.8-32.2,13.2-48.2c43.5-157,87-314,130.6-470.9c21.2-76.5,42.4-153,63.5-229.5c0.3-1.1,0.4-2.3,0.6-3.4 C2299.7,68,2349.7,68,2399.7,68z"/> <path fill="#65676B" d="M1657,70.2c134.8,0,269.6,0,404.3,0c8.3,0,16.6,0.4,24.7,2.7c24.5,6.9,39.7,29.6,37.2,55.1 c-1.7,16.9-7.3,32.7-11.8,48.9c-24.7,89.8-49.4,179.7-74.8,269.3c-11.7,41.2-40.2,65.4-81.6,74.8c-6.8,1.6-13.9,1.4-20.9,1.4 c-220.6,0-441.1,0-661.7-0.2c-5.3,0-7,1.7-8.3,6.4c-26.6,96.7-53.4,193.4-80.1,290.1c-1,3.7-2.5,4.9-6.4,4.9 c-46.5-0.2-93-0.2-139.4,0c-5.1,0-5.3-1.4-4.1-5.7c30.3-108.8,60.4-217.6,90.6-326.5c10.3-37.3,20.7-74.6,30.9-111.9 c1-3.6,2.3-5,6.3-5c47,0.2,94,0.1,140.9,0.1c199.6,0.1,399.2,0.2,598.7,0.4c4.3,0,5.5-1.5,6.6-5.3c13.4-48.7,27-97.3,40.5-146 c1.7-6.1,1.7-6.1-4.6-6.1c-245.2,0-490.5,0-735.7,0c-1.3,0-2.7-0.1-4,0c-3,0.3-3.7-0.8-2.9-3.7c13-46.7,25.9-93.5,38.8-140.2 c0.9-3.1,2.5-3.7,5.3-3.6c19.3,0.1,38.7,0.1,58,0.1C1421.4,70.2,1539.2,70.2,1657,70.2z"/> <path fill="#65676B" d="M492.2,823.8c-128.1,0-256.2,0-384.3,0c-12.3,0-24.4-1.4-34.9-8.3c-18.4-12-25.9-29.5-23.7-50.9 c1.9-18.9,8.8-36.8,13.8-55c39.7-143.4,79.6-286.8,119.5-430.1c19-68.3,38-136.6,56.9-205c0.9-3.3,2.3-4.3,5.8-4.3 c46.5,0.1,93,0.1,139.4,0.1c6.1,0,6.1,0,4.5,5.8c-27.7,99.5-55.3,199-83,298.6c-27.5,98.7-54.9,197.4-82.4,296.2 c-1.6,5.7-1.6,5.7,4.5,5.7c196.1,0,392.1,0,588.2,0.1c4.4,0,6.2-1.2,7.4-5.5c40.7-146.9,81.5-293.8,122.3-440.7 c14.4-51.8,28.8-103.7,43.1-155.6c1-3.5,2.5-4.6,6.2-4.6c46.6,0.1,93.3,0.1,139.9,0c4.8,0,5,1.3,3.8,5.4 c-28.9,103.5-57.6,207-86.3,310.5c-35.7,128.3-71.3,256.7-107,385c-9.2,33.1-35.3,52.8-70,52.8 C748.1,823.9,620.2,823.8,492.2,823.8z"/> <g> <path fill="#E8661C" d="M2496.6,653.8c-8.1,7.4-16.2,14.8-24.2,22.3c-50.8,48-101.7,96-152.5,144.1c-0.8,0.8-1.7,1.6-3.5,3.2 c69.9-251.7,139.5-502.2,209.1-753c1.9,1.4,2.3,3.2,3,4.7c26.7,53.1,53.4,106.3,80.2,159.4c0.8,1.6,1.8,3.1,2.7,4.7 c2.2,1,2.7,3.3,3.7,5.2c24.7,49.3,49.2,98.6,74.1,147.8c8.2,16.2,16.4,32.4,24.7,48.5c2.2,4.2,1.9,7.1-1.6,10.5 c-17.6,16.8-35.1,33.6-53,50c-6.6,6.1-13.1,12.3-19.5,18.6c-15.9,15.4-32.2,30.4-48.2,45.7c-18.4,17.6-37,35-55.5,52.5 c-11.7,11.1-23.6,22-35.2,33.3C2499.8,652.3,2498.7,653.9,2496.6,653.8z"/> <path fill="#277F3B" d="M2496.6,653.8c17.4-16.7,34.8-33.4,52.4-50c22.7-21.5,45.5-42.9,68.3-64.4c31.5-29.7,62.9-59.5,94.4-89.1 c3.2-3,3.2-5.1,1.4-8.8c-33.2-65.7-66.2-131.5-99.3-197.3c-0.8-1.6-1.4-3.3-2.2-5c6-21.4,12.1-42.8,18.1-64.2 c9.4-33.6,18.6-67.2,28-100.8c0.3-1.3,0.8-2.5,1.4-4.3c8.9,17.7,17.6,34.9,26.3,52.1c53.7,106.8,107.5,213.7,161.3,320.4 c1.6,3.1,1.6,4.9-1.2,7.5c-92,86.8-184,173.8-276,260.7c-38.2,36.1-76.5,72.3-114.7,108.4c-1.2,1.1-2.1,2.6-4.5,3.2 c2.7-9.9,5.4-19.4,8-29c12.7-45.9,25.5-91.8,38.2-137.7C2496.5,654.8,2496.5,654.3,2496.6,653.8z"/> </g> </g> </svg></span><div class="bm-chev"><svg class="" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+    </div>
+    <div class="bm-body">
+      <div class="b-qrd">
+        <div class="qr-card"><svg viewBox="0 0 104 104" xmlns="http://www.w3.org/2000/svg"><rect width="104" height="104" fill="#fff"/><g fill="#000"><rect x="2" y="2" width="4" height="4"/><rect x="6" y="2" width="4" height="4"/><rect x="10" y="2" width="4" height="4"/><rect x="14" y="2" width="4" height="4"/><rect x="18" y="2" width="4" height="4"/><rect x="22" y="2" width="4" height="4"/><rect x="26" y="2" width="4" height="4"/><rect x="30" y="2" width="4" height="4"/><rect x="42" y="2" width="4" height="4"/><rect x="50" y="2" width="4" height="4"/><rect x="58" y="2" width="4" height="4"/><rect x="62" y="2" width="4" height="4"/><rect x="70" y="2" width="4" height="4"/><rect x="74" y="2" width="4" height="4"/><rect x="78" y="2" width="4" height="4"/><rect x="82" y="2" width="4" height="4"/><rect x="86" y="2" width="4" height="4"/><rect x="90" y="2" width="4" height="4"/><rect x="94" y="2" width="4" height="4"/><rect x="98" y="2" width="4" height="4"/><rect x="2" y="6" width="4" height="4"/><rect x="26" y="6" width="4" height="4"/><rect x="38" y="6" width="4" height="4"/><rect x="42" y="6" width="4" height="4"/><rect x="50" y="6" width="4" height="4"/><rect x="58" y="6" width="4" height="4"/><rect x="62" y="6" width="4" height="4"/><rect x="66" y="6" width="4" height="4"/><rect x="74" y="6" width="4" height="4"/><rect x="98" y="6" width="4" height="4"/><rect x="2" y="10" width="4" height="4"/><rect x="10" y="10" width="4" height="4"/><rect x="14" y="10" width="4" height="4"/><rect x="18" y="10" width="4" height="4"/><rect x="26" y="10" width="4" height="4"/><rect x="38" y="10" width="4" height="4"/><rect x="42" y="10" width="4" height="4"/><rect x="50" y="10" width="4" height="4"/><rect x="54" y="10" width="4" height="4"/><rect x="66" y="10" width="4" height="4"/><rect x="70" y="10" width="4" height="4"/><rect x="74" y="10" width="4" height="4"/><rect x="82" y="10" width="4" height="4"/><rect x="86" y="10" width="4" height="4"/><rect x="90" y="10" width="4" height="4"/><rect x="98" y="10" width="4" height="4"/><rect x="2" y="14" width="4" height="4"/><rect x="10" y="14" width="4" height="4"/><rect x="14" y="14" width="4" height="4"/><rect x="18" y="14" width="4" height="4"/><rect x="26" y="14" width="4" height="4"/><rect x="30" y="14" width="4" height="4"/><rect x="42" y="14" width="4" height="4"/><rect x="46" y="14" width="4" height="4"/><rect x="50" y="14" width="4" height="4"/><rect x="54" y="14" width="4" height="4"/><rect x="74" y="14" width="4" height="4"/><rect x="82" y="14" width="4" height="4"/><rect x="86" y="14" width="4" height="4"/><rect x="90" y="14" width="4" height="4"/><rect x="98" y="14" width="4" height="4"/><rect x="2" y="18" width="4" height="4"/><rect x="10" y="18" width="4" height="4"/><rect x="14" y="18" width="4" height="4"/><rect x="18" y="18" width="4" height="4"/><rect x="26" y="18" width="4" height="4"/><rect x="34" y="18" width="4" height="4"/><rect x="42" y="18" width="4" height="4"/><rect x="58" y="18" width="4" height="4"/><rect x="62" y="18" width="4" height="4"/><rect x="70" y="18" width="4" height="4"/><rect x="74" y="18" width="4" height="4"/><rect x="82" y="18" width="4" height="4"/><rect x="86" y="18" width="4" height="4"/><rect x="90" y="18" width="4" height="4"/><rect x="98" y="18" width="4" height="4"/><rect x="2" y="22" width="4" height="4"/><rect x="26" y="22" width="4" height="4"/><rect x="42" y="22" width="4" height="4"/><rect x="54" y="22" width="4" height="4"/><rect x="58" y="22" width="4" height="4"/><rect x="62" y="22" width="4" height="4"/><rect x="66" y="22" width="4" height="4"/><rect x="70" y="22" width="4" height="4"/><rect x="74" y="22" width="4" height="4"/><rect x="98" y="22" width="4" height="4"/><rect x="2" y="26" width="4" height="4"/><rect x="6" y="26" width="4" height="4"/><rect x="10" y="26" width="4" height="4"/><rect x="14" y="26" width="4" height="4"/><rect x="18" y="26" width="4" height="4"/><rect x="22" y="26" width="4" height="4"/><rect x="26" y="26" width="4" height="4"/><rect x="30" y="26" width="4" height="4"/><rect x="34" y="26" width="4" height="4"/><rect x="46" y="26" width="4" height="4"/><rect x="50" y="26" width="4" height="4"/><rect x="66" y="26" width="4" height="4"/><rect x="74" y="26" width="4" height="4"/><rect x="78" y="26" width="4" height="4"/><rect x="82" y="26" width="4" height="4"/><rect x="86" y="26" width="4" height="4"/><rect x="90" y="26" width="4" height="4"/><rect x="94" y="26" width="4" height="4"/><rect x="98" y="26" width="4" height="4"/><rect x="6" y="30" width="4" height="4"/><rect x="18" y="30" width="4" height="4"/><rect x="22" y="30" width="4" height="4"/><rect x="26" y="30" width="4" height="4"/><rect x="30" y="30" width="4" height="4"/><rect x="42" y="30" width="4" height="4"/><rect x="54" y="30" width="4" height="4"/><rect x="58" y="30" width="4" height="4"/><rect x="78" y="30" width="4" height="4"/><rect x="98" y="30" width="4" height="4"/><rect x="2" y="34" width="4" height="4"/><rect x="6" y="34" width="4" height="4"/><rect x="14" y="34" width="4" height="4"/><rect x="26" y="34" width="4" height="4"/><rect x="30" y="34" width="4" height="4"/><rect x="34" y="34" width="4" height="4"/><rect x="46" y="34" width="4" height="4"/><rect x="54" y="34" width="4" height="4"/><rect x="58" y="34" width="4" height="4"/><rect x="66" y="34" width="4" height="4"/><rect x="98" y="34" width="4" height="4"/><rect x="6" y="38" width="4" height="4"/><rect x="18" y="38" width="4" height="4"/><rect x="22" y="38" width="4" height="4"/><rect x="26" y="38" width="4" height="4"/><rect x="30" y="38" width="4" height="4"/><rect x="42" y="38" width="4" height="4"/><rect x="50" y="38" width="4" height="4"/><rect x="54" y="38" width="4" height="4"/><rect x="62" y="38" width="4" height="4"/><rect x="86" y="38" width="4" height="4"/><rect x="90" y="38" width="4" height="4"/><rect x="94" y="38" width="4" height="4"/><rect x="98" y="38" width="4" height="4"/><rect x="14" y="42" width="4" height="4"/><rect x="26" y="42" width="4" height="4"/><rect x="34" y="42" width="4" height="4"/><rect x="42" y="42" width="4" height="4"/><rect x="46" y="42" width="4" height="4"/><rect x="58" y="42" width="4" height="4"/><rect x="74" y="42" width="4" height="4"/><rect x="82" y="42" width="4" height="4"/><rect x="86" y="42" width="4" height="4"/><rect x="2" y="46" width="4" height="4"/><rect x="6" y="46" width="4" height="4"/><rect x="22" y="46" width="4" height="4"/><rect x="30" y="46" width="4" height="4"/><rect x="50" y="46" width="4" height="4"/><rect x="54" y="46" width="4" height="4"/><rect x="62" y="46" width="4" height="4"/><rect x="90" y="46" width="4" height="4"/><rect x="94" y="46" width="4" height="4"/><rect x="98" y="46" width="4" height="4"/><rect x="2" y="50" width="4" height="4"/><rect x="22" y="50" width="4" height="4"/><rect x="30" y="50" width="4" height="4"/><rect x="34" y="50" width="4" height="4"/><rect x="38" y="50" width="4" height="4"/><rect x="42" y="50" width="4" height="4"/><rect x="46" y="50" width="4" height="4"/><rect x="54" y="50" width="4" height="4"/><rect x="58" y="50" width="4" height="4"/><rect x="74" y="50" width="4" height="4"/><rect x="86" y="50" width="4" height="4"/><rect x="94" y="50" width="4" height="4"/><rect x="98" y="50" width="4" height="4"/><rect x="2" y="54" width="4" height="4"/><rect x="6" y="54" width="4" height="4"/><rect x="18" y="54" width="4" height="4"/><rect x="22" y="54" width="4" height="4"/><rect x="30" y="54" width="4" height="4"/><rect x="38" y="54" width="4" height="4"/><rect x="42" y="54" width="4" height="4"/><rect x="50" y="54" width="4" height="4"/><rect x="70" y="54" width="4" height="4"/><rect x="74" y="54" width="4" height="4"/><rect x="78" y="54" width="4" height="4"/><rect x="82" y="54" width="4" height="4"/><rect x="86" y="54" width="4" height="4"/><rect x="2" y="58" width="4" height="4"/><rect x="18" y="58" width="4" height="4"/><rect x="22" y="58" width="4" height="4"/><rect x="26" y="58" width="4" height="4"/><rect x="30" y="58" width="4" height="4"/><rect x="34" y="58" width="4" height="4"/><rect x="46" y="58" width="4" height="4"/><rect x="58" y="58" width="4" height="4"/><rect x="62" y="58" width="4" height="4"/><rect x="66" y="58" width="4" height="4"/><rect x="78" y="58" width="4" height="4"/><rect x="86" y="58" width="4" height="4"/><rect x="94" y="58" width="4" height="4"/><rect x="98" y="58" width="4" height="4"/><rect x="2" y="62" width="4" height="4"/><rect x="6" y="62" width="4" height="4"/><rect x="14" y="62" width="4" height="4"/><rect x="26" y="62" width="4" height="4"/><rect x="30" y="62" width="4" height="4"/><rect x="34" y="62" width="4" height="4"/><rect x="38" y="62" width="4" height="4"/><rect x="42" y="62" width="4" height="4"/><rect x="70" y="62" width="4" height="4"/><rect x="74" y="62" width="4" height="4"/><rect x="86" y="62" width="4" height="4"/><rect x="90" y="62" width="4" height="4"/><rect x="98" y="62" width="4" height="4"/><rect x="18" y="66" width="4" height="4"/><rect x="30" y="66" width="4" height="4"/><rect x="34" y="66" width="4" height="4"/><rect x="58" y="66" width="4" height="4"/><rect x="86" y="66" width="4" height="4"/><rect x="10" y="70" width="4" height="4"/><rect x="14" y="70" width="4" height="4"/><rect x="22" y="70" width="4" height="4"/><rect x="26" y="70" width="4" height="4"/><rect x="30" y="70" width="4" height="4"/><rect x="50" y="70" width="4" height="4"/><rect x="54" y="70" width="4" height="4"/><rect x="62" y="70" width="4" height="4"/><rect x="70" y="70" width="4" height="4"/><rect x="74" y="70" width="4" height="4"/><rect x="78" y="70" width="4" height="4"/><rect x="86" y="70" width="4" height="4"/><rect x="2" y="74" width="4" height="4"/><rect x="6" y="74" width="4" height="4"/><rect x="10" y="74" width="4" height="4"/><rect x="14" y="74" width="4" height="4"/><rect x="18" y="74" width="4" height="4"/><rect x="22" y="74" width="4" height="4"/><rect x="26" y="74" width="4" height="4"/><rect x="34" y="74" width="4" height="4"/><rect x="42" y="74" width="4" height="4"/><rect x="54" y="74" width="4" height="4"/><rect x="58" y="74" width="4" height="4"/><rect x="62" y="74" width="4" height="4"/><rect x="66" y="74" width="4" height="4"/><rect x="74" y="74" width="4" height="4"/><rect x="78" y="74" width="4" height="4"/><rect x="86" y="74" width="4" height="4"/><rect x="94" y="74" width="4" height="4"/><rect x="2" y="78" width="4" height="4"/><rect x="26" y="78" width="4" height="4"/><rect x="38" y="78" width="4" height="4"/><rect x="54" y="78" width="4" height="4"/><rect x="58" y="78" width="4" height="4"/><rect x="66" y="78" width="4" height="4"/><rect x="90" y="78" width="4" height="4"/><rect x="94" y="78" width="4" height="4"/><rect x="2" y="82" width="4" height="4"/><rect x="10" y="82" width="4" height="4"/><rect x="14" y="82" width="4" height="4"/><rect x="18" y="82" width="4" height="4"/><rect x="26" y="82" width="4" height="4"/><rect x="34" y="82" width="4" height="4"/><rect x="38" y="82" width="4" height="4"/><rect x="50" y="82" width="4" height="4"/><rect x="62" y="82" width="4" height="4"/><rect x="66" y="82" width="4" height="4"/><rect x="82" y="82" width="4" height="4"/><rect x="90" y="82" width="4" height="4"/><rect x="98" y="82" width="4" height="4"/><rect x="2" y="86" width="4" height="4"/><rect x="10" y="86" width="4" height="4"/><rect x="14" y="86" width="4" height="4"/><rect x="18" y="86" width="4" height="4"/><rect x="26" y="86" width="4" height="4"/><rect x="30" y="86" width="4" height="4"/><rect x="42" y="86" width="4" height="4"/><rect x="46" y="86" width="4" height="4"/><rect x="58" y="86" width="4" height="4"/><rect x="66" y="86" width="4" height="4"/><rect x="70" y="86" width="4" height="4"/><rect x="90" y="86" width="4" height="4"/><rect x="94" y="86" width="4" height="4"/><rect x="98" y="86" width="4" height="4"/><rect x="2" y="90" width="4" height="4"/><rect x="10" y="90" width="4" height="4"/><rect x="14" y="90" width="4" height="4"/><rect x="18" y="90" width="4" height="4"/><rect x="26" y="90" width="4" height="4"/><rect x="34" y="90" width="4" height="4"/><rect x="46" y="90" width="4" height="4"/><rect x="50" y="90" width="4" height="4"/><rect x="54" y="90" width="4" height="4"/><rect x="58" y="90" width="4" height="4"/><rect x="62" y="90" width="4" height="4"/><rect x="66" y="90" width="4" height="4"/><rect x="74" y="90" width="4" height="4"/><rect x="78" y="90" width="4" height="4"/><rect x="86" y="90" width="4" height="4"/><rect x="90" y="90" width="4" height="4"/><rect x="94" y="90" width="4" height="4"/><rect x="2" y="94" width="4" height="4"/><rect x="26" y="94" width="4" height="4"/><rect x="30" y="94" width="4" height="4"/><rect x="34" y="94" width="4" height="4"/><rect x="38" y="94" width="4" height="4"/><rect x="42" y="94" width="4" height="4"/><rect x="46" y="94" width="4" height="4"/><rect x="58" y="94" width="4" height="4"/><rect x="62" y="94" width="4" height="4"/><rect x="66" y="94" width="4" height="4"/><rect x="70" y="94" width="4" height="4"/><rect x="94" y="94" width="4" height="4"/><rect x="2" y="98" width="4" height="4"/><rect x="6" y="98" width="4" height="4"/><rect x="10" y="98" width="4" height="4"/><rect x="14" y="98" width="4" height="4"/><rect x="18" y="98" width="4" height="4"/><rect x="22" y="98" width="4" height="4"/><rect x="26" y="98" width="4" height="4"/><rect x="34" y="98" width="4" height="4"/><rect x="46" y="98" width="4" height="4"/><rect x="50" y="98" width="4" height="4"/><rect x="54" y="98" width="4" height="4"/><rect x="62" y="98" width="4" height="4"/><rect x="66" y="98" width="4" height="4"/><rect x="70" y="98" width="4" height="4"/><rect x="86" y="98" width="4" height="4"/></g></svg></div>
+        <div class="qr-side">
+          <div class="qr-t">Scan the QR with your phone and pay via any UPI app</div>
+          <div class="qr-timer"><svg class="" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v5h-5"/></svg>Refreshes every 8 min</div>
+        </div>
+      </div>
+      <div class="b-qrm cv-sub">On mobile, payers see UPI app buttons (TPAP intent links) instead of a QR — pick an app above to continue.</div></div>
+  </div></div>
+<div class="blk"><div class="b-method  ">
+    <div class="bm-head" data-act="acc">
+      <div class="bm-ic"><svg class="" viewBox="0 0 24 24"><path d="m3 9 9-6 9 6M4 9v11m16-11v11M2 20h20M8 13v4m4-4v4m4-4v4"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="bm-title">Banking Connect (Net Banking)</div></div>
+      <span class="bm-logo"><svg width="56" height="22" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 485.33 191.2"> <g> <path fill="#1B3280" d="M55.04,140.58l7.07-25.12l11.97,14.77c0.32,0.42,0.64,0.86,0.96,1.34c0.32,0.47,0.64,1.01,0.97,1.6l4.72-16.75 h3.82l-7.07,25.1l-12.23-15.03c-0.32-0.41-0.63-0.84-0.91-1.29c-0.28-0.45-0.54-0.92-0.77-1.42l-4.73,16.8H55.04z"/> <path fill="#1B3280" d="M90.49,129.74l-3.05,10.84h-3.87l6.8-24.16h6.24c1.85,0,3.19,0.1,4,0.29c0.82,0.19,1.49,0.51,2.01,0.95 c0.64,0.56,1.05,1.32,1.23,2.27c0.18,0.95,0.11,2-0.21,3.14c-0.32,1.14-0.85,2.2-1.57,3.17c-0.72,0.97-1.56,1.73-2.51,2.28 c-0.77,0.44-1.62,0.75-2.54,0.94c-0.93,0.19-2.31,0.28-4.16,0.28h-0.81H90.49z M91.65,126.52h1.06c2.29,0,3.88-0.24,4.78-0.71 c0.9-0.47,1.51-1.31,1.85-2.51c0.36-1.29,0.21-2.2-0.46-2.72s-2.09-0.79-4.28-0.79h-1.06L91.65,126.52z"/> <path fill="#1B3280" d="M128,122.3c-0.9-0.95-1.94-1.66-3.1-2.13c-1.17-0.47-2.47-0.71-3.9-0.71c-2.78,0-5.27,0.85-7.49,2.54 c-2.22,1.69-3.71,3.89-4.46,6.58c-0.73,2.61-0.49,4.76,0.72,6.45c1.22,1.69,3.11,2.54,5.69,2.54c1.5,0,3-0.25,4.51-0.76 c1.5-0.51,3.02-1.27,4.56-2.29l-1.25,4.44c-1.32,0.76-2.69,1.33-4.1,1.7c-1.41,0.37-2.88,0.56-4.41,0.56 c-1.94,0-3.65-0.3-5.13-0.91c-1.48-0.6-2.68-1.5-3.59-2.67c-0.91-1.16-1.48-2.52-1.7-4.08c-0.22-1.57-0.08-3.24,0.41-5.01 c0.5-1.77,1.3-3.44,2.4-4.99s2.45-2.92,4.04-4.1c1.6-1.19,3.29-2.09,5.1-2.7c1.8-0.61,3.65-0.92,5.55-0.92 c1.49,0,2.86,0.21,4.09,0.62c1.24,0.41,2.37,1.04,3.41,1.87L128,122.3z"/> <path fill="#1B3280" d="M128.04,140.58l6.8-24.16h4.13l-6.8,24.16H128.04z"/> <path fill="#1B3280" d="M148.81,140.58l6.8-24.16h6.4c1.83,0,3.15,0.09,3.97,0.28c0.82,0.19,1.48,0.49,1.97,0.92 c0.63,0.55,1.04,1.27,1.22,2.16c0.18,0.89,0.12,1.88-0.18,2.95c-0.36,1.29-0.98,2.36-1.85,3.23s-1.94,1.47-3.23,1.81 c1.42,0.22,2.4,0.86,2.95,1.92s0.6,2.4,0.14,4.02c-0.28,0.98-0.72,1.91-1.32,2.79s-1.33,1.63-2.16,2.24 c-0.88,0.67-1.88,1.15-2.98,1.42c-1.11,0.28-2.88,0.41-5.3,0.41H148.81z M153.78,137.3h1.42c1.45,0,2.54-0.06,3.29-0.17 c0.75-0.11,1.37-0.3,1.86-0.58c0.6-0.32,1.11-0.75,1.54-1.29c0.43-0.54,0.74-1.13,0.92-1.78c0.22-0.77,0.24-1.44,0.06-2.01 c-0.18-0.57-0.53-1.02-1.06-1.34c-0.34-0.19-0.75-0.33-1.23-0.41c-0.48-0.09-1.13-0.13-1.97-0.13h-1.25h-1.42L153.78,137.3z M156.79,126.62h1.58c1.96,0,3.43-0.26,4.39-0.77c0.96-0.51,1.61-1.37,1.95-2.58c0.37-1.32,0.26-2.25-0.34-2.78s-1.95-0.8-4.04-0.8 h-1.58L156.79,126.62z"/> <path fill="#1B3280" d="M168.97,140.58l7.2-25.58h3.54l-3.52,12.49c1.05-1.08,2.16-1.86,3.32-2.36c1.16-0.5,2.46-0.74,3.92-0.74 c1.23,0,2.22,0.18,2.97,0.55c0.76,0.37,1.28,0.92,1.56,1.64c0.17,0.43,0.24,0.93,0.2,1.5c-0.03,0.57-0.25,1.57-0.66,3l-2.67,9.49 h-3.8l2.26-8.04c0.58-2.06,0.7-3.42,0.37-4.1c-0.34-0.68-1.17-1.02-2.52-1.02c-0.88,0-1.71,0.15-2.48,0.46 c-0.77,0.31-1.44,0.74-1.99,1.3c-0.38,0.37-0.71,0.86-0.99,1.44c-0.28,0.59-0.59,1.53-0.96,2.81l-2.01,7.13H168.97z"/> <path fill="#1B3280" d="M205.32,140.58h-3.76l0.57-2.03c-0.92,0.9-1.9,1.57-2.92,2.01c-1.02,0.44-2.11,0.66-3.26,0.66 c-2.32,0-3.94-0.76-4.85-2.27c-0.91-1.51-0.99-3.58-0.25-6.21c0.7-2.5,1.95-4.51,3.75-6.05c1.8-1.54,3.79-2.3,5.99-2.3 c1.34,0,2.41,0.27,3.22,0.8c0.8,0.53,1.28,1.3,1.44,2.3l0.72-2.56h3.76L205.32,140.58z M203.88,132.71 c0.46-1.62,0.41-2.88-0.12-3.78c-0.54-0.9-1.52-1.35-2.94-1.35s-2.67,0.47-3.75,1.39c-1.08,0.93-1.85,2.22-2.31,3.87 c-0.47,1.66-0.44,2.94,0.1,3.84c0.53,0.9,1.51,1.35,2.95,1.35c1.35,0,2.59-0.49,3.72-1.47 C202.64,135.59,203.43,134.31,203.88,132.71z"/> <path fill="#1B3280" d="M217.99,127.43c0.7-1.03,1.45-1.8,2.25-2.29c0.8-0.5,1.7-0.74,2.68-0.74c0.53,0,1.04,0.06,1.52,0.18 c0.48,0.12,0.94,0.3,1.37,0.53l-2.21,3.04c-0.26-0.22-0.57-0.38-0.91-0.49c-0.35-0.1-0.75-0.16-1.21-0.16 c-1.25,0-2.28,0.48-3.09,1.43c-0.81,0.95-1.53,2.55-2.17,4.79l-1.93,6.87h-3.76l4.41-15.68h3.76L217.99,127.43z"/> <path fill="#1B3280" d="M239.07,140.58h-3.76l0.57-2.03c-0.93,0.9-1.9,1.57-2.92,2.01c-1.02,0.44-2.11,0.66-3.27,0.66 c-2.32,0-3.94-0.76-4.85-2.27c-0.91-1.51-0.99-3.58-0.25-6.21c0.7-2.5,1.95-4.51,3.75-6.05c1.8-1.54,3.79-2.3,5.99-2.3 c1.34,0,2.41,0.27,3.22,0.8c0.8,0.53,1.28,1.3,1.44,2.3l0.72-2.56h3.76L239.07,140.58z M237.63,132.71 c0.46-1.62,0.41-2.88-0.13-3.78c-0.54-0.9-1.52-1.35-2.94-1.35s-2.67,0.47-3.75,1.39c-1.08,0.93-1.85,2.22-2.31,3.87 c-0.47,1.66-0.43,2.94,0.1,3.84c0.53,0.9,1.51,1.35,2.95,1.35c1.35,0,2.59-0.49,3.72-1.47 C236.39,135.59,237.18,134.31,237.63,132.71z"/> <path fill="#1B3280" d="M245.16,140.58l3.52-12.51h-2.88l0.88-3.14h2.88l1.67-5.92H255l-1.67,5.92h2.88l-0.88,3.14h-2.88l-3.52,12.51 H245.16z"/> <path fill="#1B3280" d="M266.08,140.58l6.8-24.16h6.4c1.83,0,3.15,0.09,3.97,0.28c0.82,0.19,1.48,0.49,1.97,0.92 c0.63,0.55,1.04,1.27,1.22,2.16c0.18,0.89,0.12,1.88-0.18,2.95c-0.36,1.29-0.98,2.36-1.85,3.23s-1.94,1.47-3.23,1.81 c1.42,0.22,2.4,0.86,2.95,1.92s0.6,2.4,0.14,4.02c-0.28,0.98-0.72,1.91-1.32,2.79s-1.33,1.63-2.16,2.24 c-0.88,0.67-1.88,1.15-2.98,1.42c-1.11,0.28-2.88,0.41-5.3,0.41H266.08z M271.04,137.3h1.42c1.45,0,2.54-0.06,3.29-0.17 c0.75-0.11,1.37-0.3,1.86-0.58c0.6-0.32,1.11-0.75,1.54-1.29c0.43-0.54,0.74-1.13,0.92-1.78c0.22-0.77,0.24-1.44,0.06-2.01 c-0.18-0.57-0.53-1.02-1.06-1.34c-0.34-0.19-0.75-0.33-1.23-0.41c-0.48-0.09-1.13-0.13-1.97-0.13h-1.25h-1.42L271.04,137.3z M274.05,126.62h1.58c1.96,0,3.43-0.26,4.39-0.77c0.96-0.51,1.61-1.37,1.95-2.58c0.37-1.32,0.26-2.25-0.34-2.78s-1.95-0.8-4.04-0.8 H276L274.05,126.62z"/> <path fill="#1B3280" d="M286.4,140.58l4.41-15.64h3.76l-4.41,15.64H286.4z M292.21,118.17c0.17-0.6,0.55-1.13,1.14-1.57 c0.59-0.44,1.21-0.66,1.86-0.66c0.67,0,1.17,0.21,1.5,0.63c0.33,0.42,0.4,0.95,0.22,1.59s-0.56,1.17-1.13,1.61 c-0.57,0.43-1.19,0.65-1.85,0.65c-0.65,0-1.14-0.22-1.49-0.67C292.12,119.32,292.04,118.79,292.21,118.17z"/> <path fill="#1B3280" d="M295.72,140.58l7.2-25.58h3.76l-7.2,25.58H295.72z"/> <path fill="#1B3280" d="M305.03,140.58l7.2-25.58H316l-7.2,25.58H305.03z"/> <path fill="#1B3280" d="M321.4,129.74l-3.05,10.84h-3.87l6.8-24.16h6.24c1.85,0,3.18,0.1,4,0.29c0.82,0.19,1.49,0.51,2.01,0.95 c0.64,0.56,1.05,1.32,1.23,2.27c0.18,0.95,0.11,2-0.21,3.14c-0.32,1.14-0.85,2.2-1.57,3.17c-0.72,0.97-1.56,1.73-2.51,2.28 c-0.77,0.44-1.62,0.75-2.54,0.94c-0.93,0.19-2.31,0.28-4.16,0.28h-0.81H321.4z M322.57,126.52h1.06c2.29,0,3.88-0.24,4.78-0.71 c0.9-0.47,1.51-1.31,1.85-2.51c0.36-1.29,0.21-2.2-0.46-2.72s-2.09-0.79-4.28-0.79h-1.06L322.57,126.52z"/> <path fill="#1B3280" d="M347.28,140.58h-3.76l0.57-2.03c-0.92,0.9-1.9,1.57-2.92,2.01c-1.02,0.44-2.11,0.66-3.26,0.66 c-2.32,0-3.94-0.76-4.85-2.27c-0.91-1.51-0.99-3.58-0.25-6.21c0.7-2.5,1.95-4.51,3.75-6.05c1.8-1.54,3.79-2.3,5.99-2.3 c1.34,0,2.41,0.27,3.22,0.8c0.8,0.53,1.28,1.3,1.44,2.3l0.72-2.56h3.76L347.28,140.58z M345.84,132.71 c0.46-1.62,0.41-2.88-0.12-3.78c-0.54-0.9-1.52-1.35-2.94-1.35s-2.67,0.47-3.75,1.39c-1.08,0.93-1.85,2.22-2.31,3.87 c-0.47,1.66-0.44,2.94,0.1,3.84c0.53,0.9,1.51,1.35,2.95,1.35c1.35,0,2.59-0.49,3.72-1.47 C344.6,135.59,345.39,134.31,345.84,132.71z"/> <path fill="#1B3280" d="M353.24,147.94h-3.87l6.96-8.71l-2.01-14.29h4.16l0.74,8.1c0.04,0.49,0.05,1,0.04,1.51 c-0.01,0.51-0.05,1.03-0.12,1.56c0.31-0.55,0.91-1.43,1.81-2.62l0.14-0.2l6.41-8.35h4.08L353.24,147.94z"/> <path fill="#1B3280" d="M380.25,140.58l6.8-24.16h4.13l-5.81,20.64h9.23l-0.99,3.52H380.25z"/> <path fill="#1B3280" d="M397.52,140.58l3.52-12.51h-2.88l0.88-3.14h2.88l1.67-5.92h3.76l-1.67,5.92h2.88l-0.88,3.14h-2.88l-3.52,12.51 H397.52z"/> <path fill="#1B3280" d="M426.32,115.01h3.76l-7.2,25.58h-3.76l0.57-2.03c-0.92,0.9-1.9,1.57-2.92,2.01c-1.02,0.44-2.11,0.66-3.26,0.66 c-2.32,0-3.94-0.76-4.85-2.27c-0.91-1.51-0.99-3.58-0.25-6.21c0.7-2.5,1.95-4.51,3.75-6.05c1.8-1.54,3.79-2.3,5.99-2.3 c1.34,0,2.41,0.27,3.22,0.8c0.8,0.53,1.28,1.3,1.44,2.3L426.32,115.01z M421.44,132.71c0.46-1.62,0.41-2.88-0.12-3.78 c-0.54-0.9-1.52-1.35-2.94-1.35s-2.67,0.47-3.75,1.39c-1.08,0.93-1.85,2.22-2.31,3.87c-0.47,1.66-0.44,2.94,0.1,3.84 c0.53,0.9,1.51,1.35,2.95,1.35c1.36,0,2.61-0.49,3.72-1.46C420.2,135.61,420.99,134.32,421.44,132.71z"/> <path fill="#1B3280" d="M429.09,138.75c0.17-0.6,0.54-1.12,1.1-1.55c0.56-0.43,1.16-0.64,1.79-0.64s1.11,0.21,1.43,0.64 c0.32,0.43,0.39,0.95,0.22,1.55c-0.17,0.59-0.53,1.1-1.08,1.51c-0.56,0.41-1.15,0.62-1.79,0.62s-1.12-0.21-1.44-0.62 C429,139.85,428.92,139.34,429.09,138.75z"/> </g> <path fill="#F27921" d="M233.17,102.52c1.7-1.17,2.8-2.61,3.33-4.33l5.72-18.41c0.52-1.67,0.29-3.07-0.68-4.21 c-0.97-1.13-2.41-1.7-4.31-1.7c1.9,0,3.7-0.58,5.39-1.75c1.68-1.16,2.79-2.59,3.3-4.26l5.72-18.39c0.55-1.79,0.37-3.26-0.57-4.43 c-0.93-1.17-2.38-1.75-4.35-1.75h-74.56l-18.95,60.97h74.56C229.69,104.26,231.49,103.68,233.17,102.52 M182.03,55.2h35.6h11.15 h2.35c1.34,0.3,2.47,1.09,3.12,2.14c0.23,0.74,0.37,1.52,0.37,2.32c0,0.43-0.04,0.85-0.11,1.26l-0.14,0.41l-0.47,1.54 c-1.26,2.67-4.05,4.62-7.39,4.98h-2.27H178.1L182.03,55.2z M226.21,87.67c-1.33,2.5-3.99,4.31-7.17,4.67h-2.35H170.5l3.9-12.56 h35.64h11.01h2.38c1.78,0.39,3.18,1.67,3.59,3.28c0.06,0.36,0.1,0.73,0.1,1.1c0,0.2-0.02,0.39-0.03,0.57 c-0.01,0.08-0.01,0.16-0.02,0.24L226.21,87.67z"/> <polygon fill="#1B3280" points="156.48,42.69 143.98,42.69 132.6,82.89 82.36,42.78 64.92,104.28 77.42,104.28 88.74,64.36 138.98,104.45 "/> <path fill="#1B3280" d="M365.34,92.54l15.23-49.26H367l-18.95,60.97h13.66h65.52c2.35,0,4.47-1.39,5.35-3.52l3.52-8.51L365.34,92.54z" /> <g> <path fill="#F27921" d="M340.05,76.28c-0.01-0.02-4.75-2.41-4.75-2.41l-11.87-6.01h-47.31l3.9-12.55h-0.03l3.22-12.02h-13.02 l-18.95,60.97h74.57c1.9,0,3.69-0.58,5.38-1.74c1.7-1.17,2.8-2.61,3.34-4.33l5.72-18.41C340.66,78.44,340.6,77.28,340.05,76.28z M325.08,84.72c-0.01,0.08-0.01,0.17-0.02,0.24l-0.84,2.72c-1.33,2.5-4,4.3-7.17,4.66h-48.54l3.9-12.56h49.02 c1.78,0.39,3.17,1.67,3.58,3.28c0.06,0.36,0.09,0.72,0.09,1.1C325.1,84.35,325.09,84.54,325.08,84.72z"/> <path fill="#FAB632" d="M349.09,45.05c-0.93-1.18-2.38-1.76-4.35-1.76h-60.36l-3.31,11.92h48.07c1.35,0.29,2.48,1.09,3.12,2.14 c0.24,0.74,0.38,1.52,0.38,2.32c0,0.44-0.04,0.86-0.11,1.26l-0.13,0.41l-0.47,1.54c-1.15,2.44-3.58,4.28-6.54,4.84l11.67,5.86 l0.13,0.07c0.29-0.06,0.57-0.14,0.85-0.23l0.03-0.01c0.88-0.28,1.73-0.72,2.56-1.29c1.69-1.16,2.78-2.59,3.31-4.26l5.72-18.38 C350.21,47.69,350.02,46.21,349.09,45.05z"/> </g> </svg></span><div class="bm-chev"><svg class="" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+    </div>
+    <div class="bm-body"><div class="nb-crows"><div class="nb-crow " data-act="nbmode" data-k="app">
+        <span class="nc-ring"></span>
+        <span>Pay using Bank App</span>
+      </div><div class="nb-crow " data-act="nbmode" data-k="qr">
+        <span class="nc-ring"></span>
+        <span>Pay via. Net-Banking QR code</span>
+      </div><div class="nb-crow " data-act="nbmode" data-k="web">
+        <span class="nc-ring"></span>
+        <span>Redirect to Net-Banking website</span>
+      </div></div></div>
+  </div></div><div class="blk"><div class="b-method off" aria-disabled="true">
+    <div class="bm-head">
+      <div class="bm-ic"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.6"/><path d="M2.5 10h19"/><path d="M6 14.5h3"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div class="bm-title">Debit / Credit Cards</div>
+        <div class="bm-sub cv-sub">Visa · Mastercard · RuPay · Amex</div>
+      </div>
+      <span class="bm-badge soon">COMING SOON</span>
+    </div>
+  </div></div>
+      </div>
+      <div class="zone-foot"><div class="blk"><div class="b-pay"><button class="paybtn" data-act="pay"><svg class="" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Pay ₹5,189.64</span></button></div></div><div class="blk"><div class="b-mfoot cv-sub">
+        <div class="mf-links">
+          <a data-act="legal" data-doc="tnc">Terms &amp; Conditions</a>
+          <a data-act="legal" data-doc="privacy">Privacy Policy</a>
+          <a href="https://decentro.tech/help/consumer" target="_blank" rel="noopener">Grievances</a>
+        </div>
+        <div class="mf-sup">
+          <span>support@aurora.co</span>
+          <span>+91 80 4000 1234</span>
+        </div>
+        <div class="mf-soc"><a href="https://aurora.co" target="_blank" rel="noopener" title="https://aurora.co"><svg class="" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg></a></div>
+      </div></div></div>
+    </div>
+  </div>
+  <div class="pay-overlay" id="payOverlay"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     TRUST STRIP — page chrome, deliberately outside the checkout card
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="trust-strip"><div class="b-secure cv-sub">
+      <span class="sc-item"><svg class="" viewBox="0 0 24 24"><path d="M12 22s8-3 8-10V5l-8-3-8 3v7c0 7 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>256-bit encrypted</span><span class="sc-sep"></span>
+      <span class="sc-item">PCI DSS compliant</span></div></div>
+<div class="powered"><span>Powered by <svg width="92" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2749.67 538.23" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg></span></div>
+</div>
+<div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);align-items:center;justify-content:center;z-index:100;padding:24px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #e2e8f0;">
+      <b id="lmTitle" style="font-size:var(--fs-body);color:#1c2024;"></b>
+      <button data-lm-close style="font-size:1rem;color:#475569;line-height:1;">✕</button>
+    </div>
+    <div id="lmBody" style="flex:1;overflow:auto;padding:18px;font-size:var(--fs-sub);line-height:1.7;color:#475569;white-space:pre-wrap;"></div>
+  </div>
+</div>
+<script>
+var LEGAL={"tnc":"","privacy":""};
+var ORDER={"codes":{"DECENTRO200":200,"FIRSTPAY500":500,"FESTIVE100":100},"subtotal":4398,"taxPct":18,"shipping":0};
+var DC={code:'',amt:0};
+var DC_COLLAPSED="\n        <button class=\"dc-cta\" data-act=\"dcOpen\">Add discount code</button>\n        <div class=\"dc-pop\">\n          <div class=\"dc-field\">\n            <input placeholder=\"Enter code\" data-role=\"dcode\" autocomplete=\"off\" spellcheck=\"false\">\n            <button class=\"dc-go\" data-act=\"applyDc\" title=\"Apply\" aria-label=\"Apply discount code\"><svg viewBox=\"0 0 24 24\"><path d=\"M5 12h13M12 6l6 6-6 6\"/></svg></button>\n          </div>\n        </div>\n      ";
+var inr=function(n){return '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});};
+/* Re-price the order: the discount is a flat rupee amount, GST applies after it. */
+function priceOrder(){
+  var sub=ORDER.subtotal, disc=Math.min(sub, DC.amt||0);
+  var tax=(sub-disc)*(ORDER.taxPct||0)/100, ship=ORDER.shipping||0;
+  return {sub:sub, disc:disc, tax:tax, ship:ship, total:sub-disc+tax+ship};
+}
+function paintTotals(){
+  var t=priceOrder(), rows=document.querySelectorAll('.b-totals .tr');
+  if(rows.length>=5){
+    rows[0].querySelector('.tv').textContent=inr(t.sub);
+    rows[1].querySelector('.cv-sub').textContent='Discount'+(DC.code?' · '+DC.code:'');
+    var dv=rows[1].querySelector('.tv'); dv.textContent='−'+inr(t.disc); dv.style.color=t.disc>0?'#10b981':'';
+    rows[3].querySelector('.tv').textContent=inr(t.tax);
+    rows[4].querySelector('.tv').textContent=inr(t.total);
+  }
+  var pb=document.querySelector('.paybtn span'); if(pb) pb.textContent='Pay '+inr(t.total);
+}
+function applyDiscount(){
+  var wrap=document.querySelector('.b-dc'); if(!wrap) return;
+  var f=wrap.querySelector('[data-role=dcode]'), code=((f&&f.value)||'').trim().toUpperCase();
+  if(!code){ if(f){f.focus();} return; }
+  /* demo build: an unlisted code still applies, at the first code's value */
+  var keys=Object.keys(ORDER.codes);
+  DC={code:code, amt:(code in ORDER.codes) ? ORDER.codes[code] : (keys.length?ORDER.codes[keys[0]]:200)};
+  wrap.classList.remove('open');
+  wrap.innerHTML='<span class="dc-pill">'+code+' · '+inr(DC.amt)+' off<button class="dc-x" data-act="dcClear" title="Remove code" aria-label="Remove discount code"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>';
+  paintTotals();
+}
+function clearDiscount(){
+  var wrap=document.querySelector('.b-dc'); if(!wrap) return;
+  DC={code:'',amt:0};
+  wrap.className='b-dc';
+  wrap.innerHTML=DC_COLLAPSED;
+  paintTotals();
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter' && e.target.dataset && e.target.dataset.role==='dcode'){ e.preventDefault(); applyDiscount(); }
+});
+/* Payment status (success / failed / expired) is driven by web-socket events from the backend in production. */
+/* session expiry countdown */
+(function(){
+  var total=600, s=total, el=document.getElementById('coTimer');
+  if(!el) return;
+  var pad=function(n){return String(n).padStart(2,'0');};
+  var t=setInterval(function(){
+    s--;
+    var c=document.getElementById('ctClock');
+    if(c) c.textContent = pad(Math.floor(Math.max(s,0)/60))+':'+pad(Math.max(s,0)%60);
+    el.classList.toggle('urgent', s<=120 && s>0);
+    if(s<=0){
+      clearInterval(t); el.classList.add('done'); el.classList.remove('urgent');
+      el.querySelector('.ct-t').textContent='Payment session expired';
+      var ov=document.getElementById('payOverlay');
+      if(ov){ ov.innerHTML='<div class="pr-wrap"><div class="po-title">Payment Link Expired</div><div class="po-sub cv-sub">This payment link is expired.</div><div class="pr-note cv-sub">Please connect with the merchant/ sender of this link to share a new one with you.</div></div>'; ov.classList.add('show'); }
+    }
+  },1000);
+})();
+/* Decentro pay loader — logo cube streaming into the D */
+var DL_LOADER='<div class="dl"><div class="dl-stage"><svg viewBox="40 95 400 345" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="dlTrail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0092ff" stop-opacity="0"/><stop offset="1" stop-color="#0092ff" stop-opacity=".55"/></linearGradient></defs><line class="dl-rail" x1="55" y1="387.25" x2="425" y2="387.25"/><path class="dl-d-bg" d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path class="dl-d-fg" d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z" pathLength="1"/><rect class="dl-trail c1" x="60.6" y="369" width="120" height="36" rx="18"/><rect class="dl-trail c2" x="60.6" y="369" width="120" height="36" rx="18"/><rect class="dl-trail c3" x="60.6" y="369" width="120" height="36" rx="18"/><rect class="dl-cube c1" x="120.6" y="357.11" width="60.28" height="60.28" rx="7"/><rect class="dl-cube c2" x="120.6" y="357.11" width="60.28" height="60.28" rx="7"/><rect class="dl-cube c3" x="120.6" y="357.11" width="60.28" height="60.28" rx="7"/></svg></div><div class="dl-t">Processing payment<span class="dl-dots"><i></i><i></i><i></i></span></div></div>';
+function goStep(n){
+  document.querySelectorAll('.co-stage').forEach(function(s){s.classList.toggle('on', s.dataset.stage===String(n));});
+  var t=document.querySelector('.checkout'); if(t&&t.scrollIntoView)t.scrollIntoView({behavior:'smooth',block:'start'});
+  syncScrollRules();
+}
+function validateStep1(){
+  var ok=true, first=null;
+  document.querySelectorAll('.co-stage[data-stage="1"] .b-field[data-vf]').forEach(function(f){
+    var k=f.dataset.vf, i=f.querySelector('input'), v=(i.value||'').trim(), good=true;
+    if(k==='name') good=v.length>=2;
+    if(k==='email') good=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    if(k==='phone') good=v.replace(/\D/g,'').length>=10;
+    f.classList.toggle('err',!good); if(!good){ok=false; if(!first)first=i;}
+  });
+  if(first)first.focus();
+  return ok;
+}
+/* ── Adaptive description ───────────────────────────────────────────────
+   Inline under the title until the product list would overflow, then it
+   collapses into the info tip. The measurement always runs EXPANDED:
+   collapsing frees space, so measuring the collapsed state would flip it
+   straight back and oscillate. Reading scrollHeight forces layout, so the
+   reading reflects the expanded state even though the class goes back on
+   in the same tick. */
+var descRO=null;
+function syncDescription(){
+  if(descRO){descRO.disconnect(); descRO=null;}
+  var payhead=document.querySelector('.co-summary .b-payhead');
+  var body=document.querySelector('.co-summary > .zone-body');
+  if(!payhead) return;
+  var hasDesc=!!payhead.querySelector('.phd-d');
+  var bound=window.matchMedia('(min-width:761px)').matches;
+  if(!hasDesc||!body||!bound||!window.ResizeObserver){payhead.classList.remove('is-collapsed'); return;}
+  var evaluate=function(){
+    payhead.classList.remove('is-collapsed');
+    var overflows = body.scrollHeight > body.clientHeight + 1;
+    payhead.classList.toggle('is-collapsed', overflows);
+  };
+  evaluate();
+  descRO=new ResizeObserver(evaluate);
+  descRO.observe(body); descRO.observe(payhead);
+  Array.prototype.forEach.call(body.children, function(c){descRO.observe(c);});
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ if(descRO) evaluate(); });
+}
+/* a column is .has-scroll only while its body really overflows */
+function syncScrollRules(){
+  document.querySelectorAll('.checkout .co-col').forEach(function(col){
+    var stage=col.querySelector('.co-stage.on');
+    var body=(stage||col).querySelector(':scope > .zone-body');
+    var over=!!body && (body.scrollHeight-body.clientHeight)>1;
+    col.classList.toggle('has-scroll',over);
+  });
+  syncDescription();
+  syncTimerDock();
+}
+/* ── Timer docking ───────────────────────────────────────────────────────
+   Desktop: the banner sits above the card until the card's content needs
+   more room than the viewport gives it, then it docks to the top edge and
+   the card gains the banner's margin plus the page's top gutter. Measured
+   UNDOCKED, since docking adds room and would otherwise flip straight back.
+   Phones scroll, so there the banner docks once it scrolls out of view. */
+function syncTimerDock(){
+  var page=document.querySelector('.page'), bar=document.getElementById('coTimer');
+  if(!page||!bar) return;
+  if(window.matchMedia('(max-width:760px)').matches) return;   /* handled by the observer */
+  page.classList.remove('is-docked');
+  var tight=!!document.querySelector('.checkout .co-col.has-scroll');
+  page.classList.toggle('is-docked', tight);
+}
+(function(){
+  var sent=document.getElementById('ctSentinel'), page=document.querySelector('.page');
+  if(!sent||!page||!window.IntersectionObserver) return;
+  var io=null;
+  var sync=function(){
+    if(io){io.disconnect(); io=null;}
+    if(!window.matchMedia('(max-width:760px)').matches){ syncTimerDock(); return; }
+    io=new IntersectionObserver(function(en){ page.classList.toggle('is-docked', !en[0].isIntersecting); },{threshold:0});
+    io.observe(sent);
+  };
+  sync(); window.addEventListener('resize', sync);
+})();
+document.addEventListener('DOMContentLoaded',syncScrollRules);
+window.addEventListener('load',syncScrollRules);
+var _srz; window.addEventListener('resize',function(){clearTimeout(_srz);_srz=setTimeout(syncScrollRules,120);});
+function syncRecap(){
+  var g=function(k){var el=document.querySelector('[data-role='+k+']');return el?el.value.trim():'';};
+  var n=document.getElementById('rcName'), c=document.getElementById('rcContact');
+  if(n) n.textContent = g('pname') || 'Customer Information';
+  if(c) c.textContent = [g('pemail'),g('pphone')].filter(Boolean).join(' \u00b7 ');
+}
+document.addEventListener('input',function(e){
+  if(e.target.dataset && /^p(name|email|phone)$/.test(e.target.dataset.role||'')){
+    var f=e.target.closest('.b-field'); if(f)f.classList.remove('err');
+  }
+});
+document.addEventListener('click',function(e){
+  if(e.target.closest('[data-act=toStep2]')){ if(validateStep1()){ syncRecap(); goStep(2);} return; }
+  if(e.target.closest('[data-act=editDetails]')){ goStep(1); return; }
+  var lg=e.target.closest('[data-act=legal]');
+  if(lg){document.getElementById('lmTitle').textContent=lg.dataset.doc==='tnc'?'Terms & Conditions':'Privacy Policy';document.getElementById('lmBody').textContent=LEGAL[lg.dataset.doc]||'No content provided.';document.getElementById('legalModal').style.display='flex';return;}
+  if(e.target.closest('[data-lm-close]')||e.target.id==='legalModal'){document.getElementById('legalModal').style.display='none';return;}
+  var acc=e.target.closest('[data-act=acc]');
+  if(acc){var m=acc.closest('.b-method');if(!m.classList.contains('flat')&&!m.classList.contains('off')){var was=m.classList.contains('open');document.querySelectorAll('.b-method').forEach(function(x){x.classList.remove('open')});if(!was)m.classList.add('open');}return;}
+  var sel=e.target.closest('.upi-app,.upi-any,.nb-bank,.nb-crow');
+  if(sel){sel.parentElement.querySelectorAll('.sel').forEach(function(x){x.classList.remove('sel')});sel.classList.add('sel');return;}
+  /* discount: CTA opens the popup, the arrow applies, the pill's cross clears */
+  if(e.target.closest('[data-act=dcOpen]')){
+    var wrap=e.target.closest('.b-dc'); wrap.classList.add('open');
+    var f=wrap.querySelector('[data-role=dcode]'); if(f){f.value='';f.focus();} return;
+  }
+  if(e.target.closest('[data-act=applyDc]')){ applyDiscount(); return; }
+  if(e.target.closest('[data-act=dcClear]')){ clearDiscount(); return; }
+  if(!e.target.closest('.b-dc')) document.querySelectorAll('.b-dc.open').forEach(function(x){x.classList.remove('open')});
+  var sw=e.target.closest('.sw, .ad-check');if(sw){sw.classList.toggle('on');return;}
+  var pay=e.target.closest('[data-act=pay]');
+  if(pay){var ov=document.getElementById('payOverlay');ov.innerHTML='<div class="po-inner">'+DL_LOADER+'<div class="po-ws cv-sub"><span class="ws-dot"></span>Listening for payment status · web socket</div></div>';ov.classList.add('show');
+    setTimeout(function(){ov.innerHTML='<div class="po-inner"><div class="po-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div class="po-title">Payment successful</div><button class="po-close" onclick="document.getElementById(&quot;payOverlay&quot;).classList.remove(&quot;show&quot;)">Back</button></div>';},1500);return;}
+});
+</script>
+
+<style>
+/* ══ branded payment animations · 29 Oct 2026 ══
+   Each outcome clip is a whole sequence: dark "Processing Payment…", then the
+   spinner, resolving onto a light background with the badge — so it covers the
+   wait AND the reveal, and lands on a colour the outcome card can take over
+   from without a seam. The loader loops for indeterminate waits. */
+.dc-anim{
+  position:fixed;inset:0;z-index:9500;display:none;
+  align-items:center;justify-content:center;background:#05070B;
+  opacity:0;transition:opacity .28s ease;
+}
+.dc-anim.on{display:flex;opacity:1}
+.dc-anim.out{opacity:0}
+.dc-anim img{width:100%;height:100%;object-fit:cover;display:block}
+@media (prefers-reduced-motion:reduce){ .dc-anim{display:none!important} }
+</style>
+<script>
+/* play(kind, ms) — overlays the clip, then calls back. Falls straight through
+   when the viewer asked for reduced motion. */
+(function(){
+  if(window.__decentroAnim) return;
+  window.__decentroAnim = 1;
+  var MAP = { success:'success', failed:'failure', failure:'failure', expired:'failure',
+              invalid:'failure', cancelled:'failure', pending:'pending', hold:'pending',
+              refund:'pending', loader:'loader' };
+  var el, img;
+  function ensure(){
+    if(el) return;
+    el = document.createElement('div'); el.className = 'dc-anim';
+    img = document.createElement('img'); img.alt = '';
+    el.appendChild(img); document.body.appendChild(el);
+  }
+  window.dcAnim = function(kind, ms, done){
+    var reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(reduce){ if(done) done(); return; }
+    ensure();
+    var file = MAP[kind] || 'loader';
+    /* cache-bust so a play-once clip restarts rather than sitting on its last frame */
+    img.src = 'anim/' + file + '.webp?t=' + Date.now();
+    el.classList.remove('out'); el.classList.add('on');
+    setTimeout(function(){
+      el.classList.add('out');
+      setTimeout(function(){ el.classList.remove('on','out'); if(done) done(); }, 300);
+    }, ms || 2900);
+  };
+})();
+</script>
+
+<script>
+/* ══ Demo Hub bridge · 29 Oct 2026 ══════════════════════════════════════════
+   Opened from file://, every iframe gets an opaque origin, so the hub cannot
+   touch this document and its reach-in Demo fill silently fails. The hub then
+   asks over postMessage instead — this is the half that answers. Same code
+   serves http, so behaviour is identical either way. */
+(function(){
+  if (window.__dcnBridge) return; window.__dcnBridge = 1;
+
+  var RULES = [
+    [/otp|passcode|\bpin\b/i,            '482913'],
+    [/mobile|phone|contact|msisdn|tel/i, '9876543210'],
+    [/e-?mail/i,                         'rakesh.sharma@example.in'],
+    [/\bpan\b/i,                         'ABCDE1234F'],
+    [/ifsc/i,                            'HDFC0001205'],
+    [/upi|vpa|handle/i,                  'rakesh.sharma@okhdfcbank'],
+    [/account.*(number|no)|acc.*num/i,   '50100412887201'],
+    [/passport/i,                        'Z4821907'],
+    [/aadhaar|uid/i,                     '9821'],
+    [/pin ?code|postal|zip/i,            '560025'],
+    [/first.*name|given/i,               'Rakesh'],
+    [/middle/i,                          'Kumar'],
+    [/last.*name|surname|family/i,       'Sharma'],
+    [/company|business|merchant|entity/i,'Aurora & Co.'],
+    [/\bcity\b/i,                        'Bengaluru'],
+    [/\bstate\b/i,                       'Karnataka'],
+    [/address|street|line ?1/i,          '12 Residency Road'],
+    [/amount|value|price/i,              '2499'],
+    [/\bdate\b|dob|birth/i,              '1991-04-12'],
+    [/\bname\b/i,                        'Rakesh Sharma'],
+    [/reference|ref ?id|order/i,         'DEC20261029001']
+  ];
+
+  function hint(el){
+    var t = [el.id, el.name, el.getAttribute('placeholder') || '',
+             el.getAttribute('aria-label') || '', el.className || ''].join(' ');
+    try{
+      var lab = (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
+      if(lab) t += ' ' + lab.textContent;
+      var fld = el.closest('.fld,.field,.form-row,.b-field,.inp');
+      if(fld) t += ' ' + (fld.textContent || '').slice(0, 80);
+    }catch(e){}
+    return t;
+  }
+  function valueFor(el){
+    var type = (el.getAttribute('type') || 'text').toLowerCase();
+    if(type === 'date') return '1991-04-12';
+    if(type === 'email') return 'rakesh.sharma@example.in';
+    if(type === 'tel') return '9876543210';
+    /* single-character boxes are OTP/PIN digits */
+    if(el.maxLength === 1) return String(Math.floor(Math.random() * 10));
+    var h = hint(el);
+    for(var i = 0; i < RULES.length; i++) if(RULES[i][0].test(h)) return RULES[i][1];
+    var ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
+    if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
+    if(type === 'number') return '100';
+    return 'Demo value';
+  }
+  /* React and friends track value on the node, so poke the native setter */
+  function setVal(el, v){
+    var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    var d = Object.getOwnPropertyDescriptor(proto, 'value');
+    if(d && d.set) d.set.call(el, v); else el.value = v;
+    ['input','change','keyup','blur'].forEach(function(ev){
+      el.dispatchEvent(new Event(ev, {bubbles:true}));
+    });
+  }
+  function visible(el){
+    if(el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 8 && r.height > 6;
+  }
+
+  function fill(){
+    var n = 0;
+    var els = document.querySelectorAll(
+      'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select');
+    Array.prototype.forEach.call(els, function(el){
+      if(el.disabled || el.readOnly || !visible(el)) return;
+      var type = (el.getAttribute('type') || '').toLowerCase();
+      if(type === 'checkbox' || type === 'radio'){
+        if(!el.checked){ el.click(); n++; }      /* consents gate the primary action */
+        return;
+      }
+      if(el.tagName === 'SELECT'){
+        if(el.selectedIndex > 0) return;
+        var opt = Array.prototype.filter.call(el.options, function(o){ return o.value && !o.disabled; })[0];
+        if(opt){ el.value = opt.value; el.dispatchEvent(new Event('change', {bubbles:true})); n++; }
+        return;
+      }
+      if((el.value || '').trim()) return;
+      setVal(el, valueFor(el)); n++;
+    });
+    /* a flow that ships its own sample data knows its persona better than we do */
+    if(!n){
+      var own = window.prefill || window.useSample || window.fillSample;
+      if(typeof own === 'function'){ try{ own(true); return -1; }catch(e){} }
+      var btn = Array.prototype.filter.call(
+        document.querySelectorAll('button,[onclick],.btn'),
+        function(b){ return /use sample|sample details|fill sample|demo data/i.test(b.innerText || ''); })[0];
+      if(btn && visible(btn)){ btn.click(); return -1; }
+    }
+    return n;
+  }
+
+  function send(msg){
+    msg.source = 'decentro-demo';
+    try{ parent.postMessage(msg, '*'); }catch(e){}
+  }
+
+  addEventListener('message', function(ev){
+    var d = ev.data;
+    if(!d || d.source !== 'decentro-hub') return;
+    if(d.type === 'fill'){
+      var n = fill();
+      /* some screens repaint on input and recreate fields empty */
+      setTimeout(function(){
+        var more = fill();
+        var total = (n < 0 || more < 0) ? -1 : n + (more > 0 ? more : 0);
+        send({type:'fill-result', n: total});
+      }, 260);
+    }
+  });
+
+  addEventListener('keydown', function(e){ if(e.key === 'Escape') send({type:'escape'}); });
+
+  /* report the visible screen so the hub's backend trace follows along */
+  var lastScreen = null;
+  function reportScreen(){
+    var el = document.querySelector('.screen.active,.screen.on,[class*=screen].active,section.active');
+    var id = el && el.id;
+    if(id && id !== lastScreen){ lastScreen = id; send({type:'screen', screen:id}); }
+  }
+  setInterval(reportScreen, 400);
+
+  if(document.readyState === 'loading')
+    addEventListener('DOMContentLoaded', function(){ send({type:'ready'}); reportScreen(); });
+  else { send({type:'ready'}); reportScreen(); }
+})();
+</script>
+</body>
+</html>
