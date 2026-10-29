@@ -944,19 +944,51 @@ const TRACES = {
 /* ---------- viewer ---------- */
 let current = null, currentQ = '';
 
-/* every prototype lives in demos/ next to this file; DEMOS carries bare filenames */
-const DEMO_DIR = 'demos/';
+/* Where the prototypes sit depends on how the folder was published: beside this
+   file in demos/, or flattened into the repo root. Rather than hard-code one and
+   404 on the other, resolve it once at startup and keep a per-load fallback for
+   the case where fetch is unavailable (file://). */
+let DEMO_DIR = 'demos/', demoDirProbed = false;
 
+function probeDemoDir(){
+  if(demoDirProbed) return Promise.resolve(DEMO_DIR);
+  demoDirProbed = true;
+  const first = DEMOS[0] && DEMOS[0].file;
+  if(!first) return Promise.resolve(DEMO_DIR);
+  return fetch('demos/' + first, {method:'HEAD'})
+    .then(r => { DEMO_DIR = r.ok ? 'demos/' : ''; return DEMO_DIR; })
+    .catch(() => DEMO_DIR);          /* file:// blocks fetch — the retry covers it */
+}
+
+let retryDemo = null;
 function load(d, q){
   currentQ = q || '';
   $('lname').textContent = 'Loading ' + d.name + '…';
   $('loading').hidden = false;
+  retryDemo = d;                      /* armed until this src proves itself */
+  $('frame').src = DEMO_DIR + d.file + currentQ;
+}
+/* A flow that lands on a 404 (or an empty document) is on the wrong path —
+   swap demos/ for the root, or the other way round, and try once more. */
+function looksMissing(doc){
+  if(!doc) return false;
+  if(/404|not found/i.test(doc.title || '')) return true;
+  return !doc.body || doc.body.children.length === 0;
+}
+function retryOtherDir(d){
+  DEMO_DIR = DEMO_DIR === 'demos/' ? '' : 'demos/';
+  retryDemo = null;
   $('frame').src = DEMO_DIR + d.file + currentQ;
 }
 let reachesFlow = false;
 
 $('frame').addEventListener('load', () => {
   if(!$('frame').src || /about:blank/.test($('frame').src)) return;
+  if(retryDemo){
+    let doc = null; try{ doc = $('frame').contentDocument; }catch(e){}
+    if(looksMissing(doc)){ retryOtherDir(retryDemo); return; }
+    retryDemo = null;
+  }
   $('loading').hidden = true;
   // same-origin, so the flow can hand us Esc and tell us the mouse is moving
   try{
@@ -1406,5 +1438,7 @@ addEventListener('keydown', onKey);
 renderFilters();
 renderList();
 const start = location.hash.slice(1);
-if(start && DEMOS.some(d => d.slug === start)) open(start);
+probeDemoDir().then(() => {
+  if(start && DEMOS.some(d => d.slug === start)) open(start);
+});
 </script>

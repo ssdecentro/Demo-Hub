@@ -1200,7 +1200,10 @@ window.__decentroControls = {
     ensure();
     var file = MAP[kind] || 'loader';
     /* cache-bust so a play-once clip restarts rather than sitting on its last frame */
-    img.src = 'anim/' + file + '.webp?t=' + Date.now();
+    var stamp = '?t=' + Date.now();
+    /* published flat? the clips sit beside this file rather than in anim/ */
+    img.onerror = function(){ img.onerror = null; img.src = file + '.webp' + stamp; };
+    img.src = 'anim/' + file + '.webp' + stamp;
     el.classList.remove('out'); el.classList.add('on');
     setTimeout(function(){
       el.classList.add('out');
