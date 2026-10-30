@@ -36,14 +36,14 @@
     color:var(--fg); background:#eef2f6;
     -webkit-font-smoothing:antialiased; line-height:1.45;
   }
-  .app{min-height:100vh; display:grid; grid-template-columns:minmax(360px,440px) 1fr;}
+  .app{min-height:100vh;min-height:100dvh; display:grid; grid-template-columns:minmax(360px,440px) 1fr;}
   @media (max-width:920px){ .app{grid-template-columns:1fr} }
 
   /* ---------- BRAND PANEL ---------- */
   .brand{
     background:linear-gradient(160deg,var(--navy-1),var(--navy-2));
     color:#fff; padding:40px 38px; display:flex; flex-direction:column;
-    position:sticky; top:0; height:100vh;
+    position:sticky; top:0; height:100vh;height:100dvh;
   }
   @media (max-width:920px){ .brand{position:static;height:auto;padding:28px 24px} }
   .brand-wordmark{font-family:'Montserrat',sans-serif;font-weight:700;font-size:22px;letter-spacing:2px;color:#fff;text-align:left;align-self:flex-start}
@@ -654,6 +654,38 @@
     .wiz-i .num{display:none}
     .step-check{display:none}
   }
+</style>
+
+<style>
+/* ══ Decentro-Demo.MD §6 responsive baseline — appended 29 Oct 2026 ══
+   Four guarantees: no sideways scroll at any width from 320 up, nothing
+   clipped, one primary action reachable by thumb, readable without zoom. */
+html,body{overflow-x:hidden}
+img,svg,video,canvas{max-width:100%}
+/* iOS zooms any input under 16px on focus — inside an iFrame that reads as the
+   page breaking, so this one is loud on purpose. */
+@media (max-width:768px){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select,textarea{font-size:16px!important}
+}
+/* Touch ergonomics: only lifts controls that have not set their own height. */
+@media (pointer:coarse){
+  button,[role="button"],summary{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ── scrollbars: hidden everywhere, scrolling untouched ──────────────────
+   No visible bar on any surface. !important because several flows style
+   their own (.zone-body, .pane, .steps…) with a higher specificity than a
+   universal selector, and those would otherwise keep painting. Hiding the
+   bar does not affect wheel, trackpad, touch, keyboard or programmatic
+   scrolling — only the indicator is gone. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
 </style>
 </head>
 <body>
@@ -1994,6 +2026,147 @@
 
 })();
 
+</script>
+
+<script>
+/* ══ Demo Hub bridge · 29 Oct 2026 ══════════════════════════════════════════
+   Opened from file://, every iframe gets an opaque origin, so the hub cannot
+   touch this document and its reach-in Demo fill silently fails. The hub then
+   asks over postMessage instead — this is the half that answers. Same code
+   serves http, so behaviour is identical either way. */
+(function(){
+  if (window.__dcnBridge) return; window.__dcnBridge = 1;
+
+  var RULES = [
+    [/otp|passcode|\bpin\b/i,            '482913'],
+    [/mobile|phone|contact|msisdn|tel/i, '9876543210'],
+    [/e-?mail/i,                         'rakesh.sharma@example.in'],
+    [/\bpan\b/i,                         'ABCDE1234F'],
+    [/ifsc/i,                            'HDFC0001205'],
+    [/upi|vpa|handle/i,                  'rakesh.sharma@okhdfcbank'],
+    [/account.*(number|no)|acc.*num/i,   '50100412887201'],
+    [/passport/i,                        'Z4821907'],
+    [/aadhaar|uid/i,                     '9821'],
+    [/pin ?code|postal|zip/i,            '560025'],
+    [/first.*name|given/i,               'Rakesh'],
+    [/middle/i,                          'Kumar'],
+    [/last.*name|surname|family/i,       'Sharma'],
+    [/company|business|merchant|entity/i,'Aurora & Co.'],
+    [/\bcity\b/i,                        'Bengaluru'],
+    [/\bstate\b/i,                       'Karnataka'],
+    [/address|street|line ?1/i,          '12 Residency Road'],
+    [/amount|value|price/i,              '2499'],
+    [/\bdate\b|dob|birth/i,              '1991-04-12'],
+    [/\bname\b/i,                        'Rakesh Sharma'],
+    [/reference|ref ?id|order/i,         'DEC20261029001']
+  ];
+
+  function hint(el){
+    var t = [el.id, el.name, el.getAttribute('placeholder') || '',
+             el.getAttribute('aria-label') || '', el.className || ''].join(' ');
+    try{
+      var lab = (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
+      if(lab) t += ' ' + lab.textContent;
+      var fld = el.closest('.fld,.field,.form-row,.b-field,.inp');
+      if(fld) t += ' ' + (fld.textContent || '').slice(0, 80);
+    }catch(e){}
+    return t;
+  }
+  function valueFor(el){
+    var type = (el.getAttribute('type') || 'text').toLowerCase();
+    if(type === 'date') return '1991-04-12';
+    if(type === 'email') return 'rakesh.sharma@example.in';
+    if(type === 'tel') return '9876543210';
+    /* single-character boxes are OTP/PIN digits */
+    if(el.maxLength === 1) return String(Math.floor(Math.random() * 10));
+    var h = hint(el);
+    for(var i = 0; i < RULES.length; i++) if(RULES[i][0].test(h)) return RULES[i][1];
+    var ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
+    if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
+    if(type === 'number') return '100';
+    return 'Demo value';
+  }
+  /* React and friends track value on the node, so poke the native setter */
+  function setVal(el, v){
+    var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    var d = Object.getOwnPropertyDescriptor(proto, 'value');
+    if(d && d.set) d.set.call(el, v); else el.value = v;
+    ['input','change','keyup','blur'].forEach(function(ev){
+      el.dispatchEvent(new Event(ev, {bubbles:true}));
+    });
+  }
+  function visible(el){
+    if(el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 8 && r.height > 6;
+  }
+
+  function fill(){
+    var n = 0;
+    var els = document.querySelectorAll(
+      'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select');
+    Array.prototype.forEach.call(els, function(el){
+      if(el.disabled || el.readOnly || !visible(el)) return;
+      var type = (el.getAttribute('type') || '').toLowerCase();
+      if(type === 'checkbox' || type === 'radio'){
+        if(!el.checked){ el.click(); n++; }      /* consents gate the primary action */
+        return;
+      }
+      if(el.tagName === 'SELECT'){
+        if(el.selectedIndex > 0) return;
+        var opt = Array.prototype.filter.call(el.options, function(o){ return o.value && !o.disabled; })[0];
+        if(opt){ el.value = opt.value; el.dispatchEvent(new Event('change', {bubbles:true})); n++; }
+        return;
+      }
+      if((el.value || '').trim()) return;
+      setVal(el, valueFor(el)); n++;
+    });
+    /* a flow that ships its own sample data knows its persona better than we do */
+    if(!n){
+      var own = window.prefill || window.useSample || window.fillSample;
+      if(typeof own === 'function'){ try{ own(true); return -1; }catch(e){} }
+      var btn = Array.prototype.filter.call(
+        document.querySelectorAll('button,[onclick],.btn'),
+        function(b){ return /use sample|sample details|fill sample|demo data/i.test(b.innerText || ''); })[0];
+      if(btn && visible(btn)){ btn.click(); return -1; }
+    }
+    return n;
+  }
+
+  function send(msg){
+    msg.source = 'decentro-demo';
+    try{ parent.postMessage(msg, '*'); }catch(e){}
+  }
+
+  addEventListener('message', function(ev){
+    var d = ev.data;
+    if(!d || d.source !== 'decentro-hub') return;
+    if(d.type === 'fill'){
+      var n = fill();
+      /* some screens repaint on input and recreate fields empty */
+      setTimeout(function(){
+        var more = fill();
+        var total = (n < 0 || more < 0) ? -1 : n + (more > 0 ? more : 0);
+        send({type:'fill-result', n: total});
+      }, 260);
+    }
+  });
+
+  addEventListener('keydown', function(e){ if(e.key === 'Escape') send({type:'escape'}); });
+
+  /* report the visible screen so the hub's backend trace follows along */
+  var lastScreen = null;
+  function reportScreen(){
+    var el = document.querySelector('.screen.active,.screen.on,[class*=screen].active,section.active');
+    var id = el && el.id;
+    if(id && id !== lastScreen){ lastScreen = id; send({type:'screen', screen:id}); }
+  }
+  setInterval(reportScreen, 400);
+
+  if(document.readyState === 'loading')
+    addEventListener('DOMContentLoaded', function(){ send({type:'ready'}); reportScreen(); });
+  else { send({type:'ready'}); reportScreen(); }
+})();
 </script>
 </body>
 </html>

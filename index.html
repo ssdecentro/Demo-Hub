@@ -1,6 +1,10 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- charset first: the file is UTF-8 but declared nothing, so opening it
+     locally (file://) fell back to a legacy encoding and ₹ became â‚¹.
+     GitHub Pages hid this by sending charset=utf-8 in the HTTP header. -->
 <title>Decentro Demo Hub</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,6 +57,9 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+/* components below set their own display, which would otherwise beat the UA
+   rule for [hidden] — the device status bar leaked into Full view that way */
+[hidden]{display:none!important}
 body{
   margin:0;font-family:var(--sans);background:var(--bg);color:var(--fg);
   -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.55;
@@ -172,8 +179,90 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 .stage{position:relative;flex:1;min-height:0;overflow:hidden}
 .stage iframe{display:block;width:100%;height:100%;border:0;background:var(--surface)}
 
+/* ---------- device views ----------
+   Full is the default on every desktop: the flow simply fills the stage and
+   answers to the window size. iPad and iPhone wrap the same iframe in a real
+   logical-size frame (834x1112 / 393x852) scaled to fit, never cropped, so the
+   flow inside believes it is on that device and renders its own layout for it.
+   On a real phone or tablet there is nothing to choose — the device IS the frame. */
+.pwrap{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;
+  background:var(--surface);transition:right .22s cubic-bezier(.2,.8,.3,1)}
+.pwrap.shift{right:var(--api-w)}
+.device{position:relative;width:100%;height:100%;transform-origin:center center}
+.bezel{position:relative;width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column}
+
+/* framed modes */
+.pwrap.framed{background:var(--stage);padding:18px}
+.device.framed{
+  /* content-box on purpose: --dw/--dh are the SCREEN, the bezel is added around
+     it. Under the sheet-wide border-box the bezel would eat into the screen and
+     the flow inside would get a 806px "iPad". */
+  box-sizing:content-box;
+  /* taken out of flow and centred by translate, because transform:scale leaves
+     the layout box at full size — a grid-centred 1140px iPad would overflow a
+     950px stage and get clipped top and bottom however far it was scaled down */
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  transform-origin:center center;
+  flex:none;width:var(--dw);height:var(--dh);padding:var(--dbz);
+  border-radius:var(--dr);background:#0A0C0F;
+  box-shadow:0 40px 90px -28px rgba(0,0,0,.6),0 0 0 1.5px rgba(255,255,255,.07) inset;
+}
+.device.framed .bezel{border-radius:var(--dsr);background:#fff}
+.device.framed iframe{flex:1;min-height:0;height:auto}
+/* status strip + home indicator are chrome, not overlay: the iframe starts below
+   the strip, so a flow's own header is never hidden behind a fake notch */
+.sbar{flex:none;display:flex;align-items:center;justify-content:space-between;
+  height:var(--dsb);padding:0 26px;background:#fff;color:#0B0F14;
+  font-size:13px;font-weight:700;font-family:var(--sans);position:relative}
+.sbar .ico{display:flex;align-items:center;gap:5px}
+.sbar .ico svg{width:16px;height:11px;display:block}
+.island{position:absolute;left:50%;top:9px;transform:translateX(-50%);
+  width:112px;height:30px;border-radius:999px;background:#000}
+.hbar{flex:none;height:var(--dhb);background:#fff;display:grid;place-items:center}
+.hbar i{width:132px;height:5px;border-radius:99px;background:#0B0F14;opacity:.82}
+.device.ipad .sbar{padding:0 18px;font-size:12px}
+.device.ipad .hbar i{width:200px;height:5px}
+
+/* the view switcher in the dock */
+.seg{display:inline-flex;align-items:center;gap:2px;flex:none;padding:2px;border-radius:10px;background:rgba(255,255,255,.08)}
+.seg button{height:28px;padding:0 10px;border-radius:8px;font-size:11.5px;font-weight:600;color:var(--c-dim)}
+.seg button:hover{background:rgba(255,255,255,.1);color:var(--c-fg)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg button svg{width:14px;height:14px}
+.seg[hidden]{display:none!important}
+
+/* controls relayed up from the flow — the flow's own top bar is hidden while it
+   runs in here, so this is the single place a presenter reaches for. */
+/* The flow's own controls get a row of their own. Cramming them in beside the
+   nav worked until a flow published six of them and pushed Backend off the
+   edge; a second row always fits and stays readable. */
+.xctl{display:flex;align-items:center;gap:6px;order:10;flex:1 0 100%;min-width:0;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  margin-top:5px;padding-top:7px;border-top:1px solid var(--c-line)}
+.xctl::-webkit-scrollbar{display:none}
+.xctl[hidden]{display:none!important}
+.xctl .xlbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--c-dim);white-space:nowrap;padding-left:4px}
+.xctl select{
+  height:28px;max-width:190px;padding:0 24px 0 9px;border-radius:8px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--c-fg);
+  font-family:var(--sans);font-size:11.5px;font-weight:600;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--c-dim) 50%),linear-gradient(135deg,var(--c-dim) 50%,transparent 50%);
+  background-position:calc(100% - 13px) 12px,calc(100% - 9px) 12px;background-size:4px 4px,4px 4px;background-repeat:no-repeat;
+}
+.xctl select option{background:var(--c-head);color:var(--c-fg)}
+.xctl .xbtn{height:28px;padding:0 11px;border-radius:8px;background:rgba(255,255,255,.08);color:var(--c-dim);
+  font-size:11.5px;font-weight:600;white-space:nowrap}
+.xctl .xbtn:hover{background:rgba(255,255,255,.16);color:var(--c-fg)}
+.xctl .xseg{display:inline-flex;gap:2px;padding:2px;border-radius:9px;background:rgba(255,255,255,.08);flex:none}
+.xctl .xseg button{height:24px;padding:0 9px;border-radius:7px;font-size:11px;font-weight:600;color:var(--c-dim);white-space:nowrap}
+.xctl .xseg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.xctl .xsep{width:1px;height:18px;background:var(--c-line);flex:none;margin:0 2px}
+@media (max-width:720px){
+  .xctl .xlbl{display:none}
+}
+
 .dock{
-  position:relative;flex:none;display:flex;align-items:center;gap:3px;
+  position:relative;flex:none;display:flex;align-items:center;gap:3px;flex-wrap:wrap;
   background:var(--c-head);border-top:1px solid var(--c-line);color:var(--c-fg);
   padding:5px max(10px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
 }
@@ -310,6 +399,15 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
   .search{flex:1 1 100%;order:3}
   .grid{grid-template-columns:1fr}
 }
+
+/* ── scrollbars: hidden everywhere, scrolling untouched ──────────────────
+   No visible bar on any surface. !important because several flows style
+   their own (.zone-body, .pane, .steps…) with a higher specificity than a
+   universal selector, and those would otherwise keep painting. Hiding the
+   bar does not affect wheel, trackpad, touch, keyboard or programmatic
+   scrolling — only the indicator is gone. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
 </style>
 
 <div class="bar">
@@ -329,9 +427,9 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 <div class="wrap hero">
   <div class="eyebrow">Product demos · Business showcase</div>
   <h1>Every Decentro flow, one tap away.</h1>
-  <p>Fourteen clickable product demos — identity, payments, lending and cross-border — running live inside one app. Each one opens full screen, exactly as the customer sees it — resize the window to show it on mobile.</p>
+  <p>Sixteen clickable product demos — identity, payments, lending and cross-border — running live inside one app. Each one opens full screen, exactly as the customer sees it — or switch it into an iPad or iPhone frame without leaving the page.</p>
   <div class="stats">
-    <span class="stat"><b>14</b> flows</span>
+    <span class="stat"><b>16</b> flows</span>
     <span class="stat"><b>4</b> product families</span>
     <span class="stat"><b>₹</b> India-first · IST</span>
   </div>
@@ -340,12 +438,28 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 <div class="wrap filters" id="filters"></div>
 <main class="wrap" id="list"></main>
 <footer class="wrap">
-  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. <kbd>/</kbd> to search · <kbd>Esc</kbd> or Home to come back · <kbd>&lt;/&gt;</kbd> in the cluster shows the API calls behind each screen.</p>
+  <p>Decentro Demo Hub · each flow is the real prototype, loaded live. Full / iPad / iPhone switches the device. <kbd>/</kbd> to search · <kbd>Esc</kbd> or Home to come back · <kbd>&lt;/&gt;</kbd> in the cluster shows the API calls behind each screen.</p>
 </footer>
 
 <section class="viewer" id="viewer" hidden aria-label="Demo viewer">
   <div class="stage" id="stage">
-    <iframe id="frame" title="Demo" allow="clipboard-write"></iframe>
+    <div class="pwrap" id="pwrap">
+      <div class="device" id="device">
+        <div class="bezel">
+          <div class="sbar" id="sbar" hidden>
+            <span>9:41</span>
+            <span class="island" id="island"></span>
+            <span class="ico">
+              <svg viewBox="0 0 20 14" fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="4.5" y="6.5" width="3" height="7.5" rx="1"/><rect x="9" y="3.5" width="3" height="10.5" rx="1"/><rect x="13.5" y=".5" width="3" height="13.5" rx="1" opacity=".35"/></svg>
+              <svg viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 5.5a11 11 0 0 1 14 0"/><path d="M4.6 8.4a7 7 0 0 1 8.8 0"/><path d="M7.3 11.2a3 3 0 0 1 3.4 0"/></svg>
+              <svg viewBox="0 0 26 14" fill="none"><rect x=".9" y="1.4" width="21" height="11.2" rx="3.2" stroke="currentColor" stroke-width="1.3" opacity=".45"/><rect x="2.7" y="3.2" width="15" height="7.6" rx="1.9" fill="currentColor"/><path d="M23.4 5.2v3.6a2.6 2.6 0 0 0 0-3.6Z" fill="currentColor" opacity=".45"/></svg>
+            </span>
+          </div>
+          <iframe id="frame" title="Demo" allow="clipboard-write"></iframe>
+          <div class="hbar" id="hbar" hidden><i></i></div>
+        </div>
+      </div>
+    </div>
     <div class="loading" id="loading"><div><span class="spin"></span><span id="lname">Loading…</span></div></div>
     <aside class="api" id="api" hidden aria-label="Backend API trace">
       <header class="api-h">
@@ -373,7 +487,13 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
     <button class="fill" id="fillBtn" title="Demo fill — fill every empty field on this screen">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M4 5.5h16"/><path d="M4 11h10"/><path d="M4 16.5h7"/><path d="m15.5 19 2.2 2.2L22 16.8"/></svg><span class="dlbl">Demo fill</span>
     </button>
+    <div class="xctl" id="xctl" aria-label="Flow controls" hidden></div>
     <span class="spacer"></span>
+    <div class="seg" id="viewSeg" role="group" aria-label="Device view" hidden>
+      <button data-view="full" aria-pressed="true" title="Full screen — the flow fills the window">Full</button>
+      <button data-view="ipad" aria-pressed="false" title="iPad — 834 × 1112">iPad</button>
+      <button data-view="iphone" aria-pressed="false" title="iPhone — 393 × 852">iPhone</button>
+    </div>
     <span class="now" id="dockNow"></span>
     <div class="dock-rest" id="dockRest">
       <button class="step" id="prev" aria-label="Previous flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M15 18l-6-6 6-6"/></svg><span class="dlbl">Previous flow</span></button>
@@ -386,7 +506,7 @@ footer kbd{font-family:var(--mono);font-size:11px;background:var(--surface);bord
 </section>
 
 <script>
-const LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro"><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><rect x="120.6" y="357.11" width="60.28" height="60.28"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></svg>';
+const LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg>';
 document.getElementById('mark').innerHTML = LOGO + '<span class="rule"></span><b>Demo Hub</b>';
 
 const GROUPS = [
@@ -436,6 +556,16 @@ const DEMOS = [
    name:'Aadhaar e-Sign', meta:'10 screens · merchant → ESP → merchant',
    desc:'An NBFC loan agreement signed end to end — merchant page, Decentro as the ESP, mobile OTP, the Aadhaar e-Sign screens, and the hand-back to the merchant.',
    file:'aadhaar-esign.html', view:'full'},
+
+  {slug:'checkout-page', group:'payments', tag:'Checkout', surface:'Hosted page · web + mobile',
+   name:'Checkout Page', meta:'2 steps · UPI · QR · Net Banking',
+   desc:'The page the customer actually pays on — details, then payment. UPI, QR and Banking Connect are live; cards sit in the list as Coming soon.',
+   file:'checkout-page.html', view:'full'},
+
+  {slug:'upi-payment-link', group:'payments', tag:'Payment Link', surface:'Hosted link · web + mobile',
+   name:'UPI Payment Link', meta:'5 screens · 7 outcomes · scannable QR',
+   desc:'Create a link, share it on WhatsApp, and watch the payer settle it over UPI — app, UPI ID or a QR that really scans. Every outcome state is on the switcher.',
+   file:'upi-payment-link.html', view:'full'},
 
   {slug:'checkout-builder', group:'payments', tag:'Checkout', surface:'Builder + live preview',
    name:'Checkout Builder', meta:'Drag, configure, open live',
@@ -729,8 +859,8 @@ const TRACES = {
 
 'verification-sdk': {seq:[
   {m:'POST', p:'/v3/banking/account/validate/rpd', s:201, ms:286, t:'RPD — create the ₹1 collect request',
-   req:{reference_id:'VS20261030001', purpose:'Account ownership check', amount:1, currency:'INR', expires_in:300},
-   res:{api_status:'SUCCESS', data:{rpd_id:'RPD20261030004412', status:'LINK_CREATED', pay_link:'upi://pay?pa=verify@decentro&am=1.00', expires_at:'Oct 30, 2026 12:16:40 PM'}},
+   req:{reference_id:'VS20261030001', purpose:'Account ownership check', amount:1, currency:'INR', expires_in:900},
+   res:{api_status:'SUCCESS', data:{rpd_id:'RPD20261030004412', status:'LINK_CREATED', pay_link:'upi://pay?pa=verify@decentro&am=1.00', expires_at:'Oct 30, 2026 12:39:00 PM'}},
    n:'The customer pays ₹1 from their own account, so ownership is proven by the debit itself. If this call fails the journey shows “Payment link not created” — nothing was charged.'},
   {m:'GET', p:'/v3/banking/account/validate/rpd/RPD20261030004412', s:200, ms:1840, t:'RPD — wait for the debit, then read the payer',
    res:{api_status:'SUCCESS', data:{status:'SUCCESS', account_number:'50100412887201', ifsc:'HDFC0001205', name_at_bank:'RAKESH SHARMA', name_match:0.97, utr:'HDFCR52026103004412', refund:{status:'INITIATED', eta_working_days:3}}},
@@ -738,12 +868,12 @@ const TRACES = {
   {m:'POST', p:'/v3/payments/vpa/validate', s:200, ms:312, t:'VerifyPay — validate a UPI ID',
    req:{reference_id:'VS20261030002', upi_id:'rakesh.sharma@okhdfcbank'},
    res:{api_status:'SUCCESS', data:{vpa_valid:true, name_at_bank:'RAKESH SHARMA', name_match:0.97}},
-   n:'No penny drop, no debit — a name lookup against the UPI handle. Six documented reason codes come back here: no account linked, invalid account, expired VPA, invalid VPA, inactive account, inactive app provider.'},
+   n:'No penny drop, no debit — a name lookup against the UPI handle. Six reason codes come back here: no account linked, invalid account, expired VPA, invalid VPA, inactive account, inactive app provider.'},
   {m:'POST', p:'/v3/banking/account/validate/vba', s:200, ms:962, t:'VBA — validate bank account',
    req:{reference_id:'VS20261030003', account_number:'50100412887201', ifsc:'HDFC0001205', name:'Rakesh Sharma'},
    res:{api_status:'SUCCESS', data:{account_valid:true, name_at_bank:'RAKESH SHARMA', name_match:1.0, mode:'PENNY_DROP', account_type:'SAVINGS'}},
    n:'An NRE account and an inconclusive status are their own outcomes, not failures — the journey names each one instead of showing a generic error.'},
-  {m:'NOTE', t:'Failure taxonomy', n:'Twenty outcomes in all. Every one tells the customer what happened, whether any money moved, and what to do next — declines, expiry, no UPI app, network loss while waiting, unconfirmed payment, velocity caps, server errors, masked details, device offline and session expiry.'}
+  {m:'NOTE', t:'Failure taxonomy', n:'Twenty outcomes in all. Each tells the customer what happened, whether any money moved, and what to do next — declines, expiry, no UPI app, network loss while waiting, unconfirmed payment, velocity caps, server errors, masked details, device offline and session expiry.'}
 ]},
 
 'checkout-builder': {seq:[
@@ -755,22 +885,115 @@ const TRACES = {
    res:{api_status:'SUCCESS', data:{status:'PAID', method:'UPI', payment_id:'PAY20261026004412', utr:'HDFCN52026102604412'}}},
   {m:'HOOK', p:'checkout.session.completed', t:'Webhook',
    res:{event:'checkout.session.completed', checkout_id:'CHK20261026004412', status:'PAID', amount:5189.64}}
-]}
+]},
+
+'checkout-page': {seq:[
+  {m:'GET', p:'/v3/payments/checkout/sessions/CHK20261026004412', s:200, ms:164, t:'Render the hosted page',
+   res:{api_status:'SUCCESS', data:{checkout_id:'CHK20261026004412', status:'CREATED', amount:5189.64, currency:'INR',
+        merchant:{name:'Aurora & Co.', colour:'#096EF2'}, methods:['UPI','UPI_QR','NETBANKING'],
+        disabled_methods:[{method:'CARD', reason:'NOT_ENABLED', label:'Coming soon'}], expires_in:600}},
+   n:'Cards are returned but disabled. The page renders the row greyed with a Coming soon pill rather than hiding it, so the customer can see the roadmap without being able to pick it.'},
+  {m:'POST', p:'/v3/payments/checkout/sessions/CHK20261026004412/customer', s:200, ms:218, t:'Step 1 — customer details',
+   req:{name:'Rakesh Sharma', email:'rakesh@example.in', mobile:'9876543210'},
+   res:{api_status:'SUCCESS', data:{status:'CUSTOMER_CAPTURED'}}},
+  {m:'POST', p:'/v3/payments/checkout/sessions/CHK20261026004412/pay', s:200, ms:341, t:'Step 2 — pay',
+   req:{method:'UPI', upi_app:'phonepe', amount:5189.64},
+   res:{api_status:'SUCCESS', data:{payment_id:'PAY20261026004412', status:'PENDING'}},
+   n:'method is one of UPI · UPI_QR · NETBANKING. A CARD value is rejected with 422 METHOD_NOT_ENABLED while cards are off.'},
+  {m:'GET', p:'/v3/payments/checkout/sessions/CHK20261026004412', s:200, ms:171, t:'Poll to settlement',
+   res:{api_status:'SUCCESS', data:{status:'PAID', method:'UPI', utr:'HDFCN52026102604412'}}},
+  {m:'HOOK', p:'checkout.session.completed', t:'Webhook',
+   res:{event:'checkout.session.completed', checkout_id:'CHK20261026004412', status:'PAID', amount:5189.64}}
+]},
+
+'upi-payment-link': {screens:{
+  'sc-create':[
+    {m:'NOTE', t:'Merchant side', n:'Everything on this screen is one request body. Nothing is issued until Generate is pressed.'}],
+  'sc-share':[
+    {m:'POST', p:'/v3/payments/upi/payment_link', s:201, ms:324, t:'Create the payment link',
+     req:{reference_id:'PLNK2026102900913', payee_account:'cobaltmart@decentro', amount:2499, currency:'INR',
+          purpose_message:'Order CM-48213', expiry_minutes:60,
+          customer:{name:'Rohan Mehta', mobile:'9876543210'}, generate_qr:true, generate_uri:true},
+     res:{api_status:'SUCCESS', data:{link_id:'PLNK2026102900913', short_url:'https://pay.decentro.tech/l/9f21c0',
+          upi_uri:'upi://pay?pa=cobaltmart@decentro&pn=Cobalt%20Mart&am=2499.00&cu=INR&tn=Order%20CM-48213&tr=PLNK2026102900913&mc=5411',
+          status:'ACTIVE', expires_at:'Oct 29, 2026 02:23:00 PM'}},
+     n:'One call issues the short URL, the upi:// intent and the QR payload together. The QR on the payer page is rendered from upi_uri — scan it and a real UPI app opens with the amount filled in.'}],
+  'sc-link':[
+    {m:'GET', p:'/v3/payments/upi/payment_link/PLNK2026102900913', s:200, ms:142, t:'Payer opened the link',
+     res:{api_status:'SUCCESS', data:{status:'ACTIVE', amount:2499, merchant:'Cobalt Mart', seconds_to_expiry:3540}},
+     n:'ACTIVE · PAID · EXPIRED · CANCELLED are the only link states. Read once on load, then poll.'},
+    {m:'POST', p:'/v3/payments/vpa/validate', s:200, ms:286, t:'Verify the payer’s UPI ID',
+     req:{reference_id:'PLNK2026102900913', upi_id:'rohan@okaxis'},
+     res:{api_status:'SUCCESS', data:{valid:true, name_at_bank:'ROHAN MEHTA'}},
+     n:'Only on the Pay-using-a-UPI-ID path. Showing the name back before the debit is what stops wrong-VPA payments.'}],
+  'sc-await':[
+    {m:'POST', p:'/v3/payments/upi/collect', s:200, ms:398, t:'Raise the collect request',
+     req:{reference_id:'PLNK2026102900913', payer_upi:'rohan@okaxis', payee_account:'cobaltmart@decentro',
+          amount:2499, purpose_message:'Order CM-48213', expiry_time:5},
+     res:{api_status:'SUCCESS', data:{decentro_txn_id:'7f3c1a9e2b4d48c0a1e5d6f70b8c9a21', status:'PENDING'}},
+     n:'PENDING only means NPCI accepted the request. Nothing is debited until the payer enters the UPI PIN.'},
+    {m:'GET', p:'/v3/payments/transaction/status?decentro_txn_id=7f3c1a9e2b4d48c0a1e5d6f70b8c9a21', s:200, ms:188, t:'Poll until it settles',
+     res:{api_status:'SUCCESS', data:{status:'PENDING', npci_txn_id:'AXI432910772184'}},
+     n:'Query params only, no body. Poll every 3–5s; stop at a terminal state or at expiry.'}],
+  'sc-status':[
+    {m:'GET', p:'/v3/payments/transaction/status?decentro_txn_id=7f3c1a9e2b4d48c0a1e5d6f70b8c9a21', s:200, ms:176, t:'Terminal status',
+     res:{api_status:'SUCCESS', data:{status:'SUCCESS', bank_reference_number:'432910772184', amount:2499, payer_upi:'rohan@okaxis'}},
+     n:'Terminal set: SUCCESS · PENDING · FAILURE · REFUND_INITIATED · ON_HOLD · EXPIRED · INVALID_LINK — all seven are on the outcome switcher.'},
+    {m:'HOOK', p:'payment_link.status_updated', t:'Webhook to the merchant',
+     res:{event:'payment_link.status_updated', link_id:'PLNK2026102900913',
+          decentro_txn_id:'7f3c1a9e2b4d48c0a1e5d6f70b8c9a21', status:'SUCCESS', amount:2499},
+     n:'The webhook is the source of truth, not the browser. Never mark an order paid from the redirect alone.'}]
+}}
 };
 
 /* ---------- viewer ---------- */
 let current = null, currentQ = '';
 
+/* Where the prototypes sit depends on how the folder was published: beside this
+   file in demos/, or flattened into the repo root. Rather than hard-code one and
+   404 on the other, resolve it once at startup and keep a per-load fallback for
+   the case where fetch is unavailable (file://). */
+let DEMO_DIR = 'demos/', demoDirProbed = false;
+
+function probeDemoDir(){
+  if(demoDirProbed) return Promise.resolve(DEMO_DIR);
+  demoDirProbed = true;
+  const first = DEMOS[0] && DEMOS[0].file;
+  if(!first) return Promise.resolve(DEMO_DIR);
+  return fetch('demos/' + first, {method:'HEAD'})
+    .then(r => { DEMO_DIR = r.ok ? 'demos/' : ''; return DEMO_DIR; })
+    .catch(() => DEMO_DIR);          /* file:// blocks fetch — the retry covers it */
+}
+
+let retryDemo = null;
 function load(d, q){
   currentQ = q || '';
   $('lname').textContent = 'Loading ' + d.name + '…';
   $('loading').hidden = false;
-  $('frame').src = d.file + currentQ;
+  retryDemo = d;                      /* armed until this src proves itself */
+  $('frame').src = DEMO_DIR + d.file + currentQ;
+}
+/* A flow that lands on a 404 (or an empty document) is on the wrong path —
+   swap demos/ for the root, or the other way round, and try once more. */
+function looksMissing(doc){
+  if(!doc) return false;
+  if(/404|not found/i.test(doc.title || '')) return true;
+  return !doc.body || doc.body.children.length === 0;
+}
+function retryOtherDir(d){
+  DEMO_DIR = DEMO_DIR === 'demos/' ? '' : 'demos/';
+  retryDemo = null;
+  $('frame').src = DEMO_DIR + d.file + currentQ;
 }
 let reachesFlow = false;
 
 $('frame').addEventListener('load', () => {
   if(!$('frame').src || /about:blank/.test($('frame').src)) return;
+  if(retryDemo){
+    let doc = null; try{ doc = $('frame').contentDocument; }catch(e){}
+    if(looksMissing(doc)){ retryOtherDir(retryDemo); return; }
+    retryDemo = null;
+  }
   $('loading').hidden = true;
   // same-origin, so the flow can hand us Esc and tell us the mouse is moving
   try{
@@ -798,6 +1021,8 @@ function open(slug, q){
   if(apiOn) syncPanel();
   fillable = 0; startFillWatch(); closeMore();
   $('dockNow').innerHTML = '<b>' + esc(d.name) + '</b> \u00b7 ' + esc(d.tag);
+  clearXctl();
+  applyView();
   $('back').focus();
 }
 function step(dir){
@@ -808,11 +1033,81 @@ function step(dir){
 function close(){
   stopFill(); stopWatch(); clearInterval(fillPoll); closeMore();
   $('viewer').hidden = true;
+  clearXctl();
   $('frame').src = 'about:blank';
   current = null;
   document.documentElement.style.overflow = '';
   if(location.hash) history.pushState({}, '', location.pathname + location.search);
 }
+/* ---------- device views ----------
+   Three views, but only a desktop gets to choose between them. A phone already
+   IS the phone and a tablet already IS the tablet, so there the flow just fills
+   the screen and answers to the real viewport — which is what "responsive"
+   means here. Logical sizes and the never-upscale rule come from
+   Decentro-Demo.MD §6.5. */
+const FRAMES = {
+  full:   null,
+  ipad:   {w:834, h:1112, bz:14, r:40, sr:26, sb:28, hb:22, cls:'ipad'},
+  iphone: {w:393, h:852,  bz:11, r:56, sr:45, sb:50, hb:30, cls:'iphone'}
+};
+const mqPhone  = matchMedia('(max-width:700px)');
+const mqCoarse = matchMedia('(pointer:coarse)');
+/* A touch screen narrower than a laptop is a real device, not a window to frame. */
+function deviceClass(){
+  if(mqPhone.matches) return 'phone';
+  if(mqCoarse.matches && innerWidth < 1200) return 'tablet';
+  return 'desktop';
+}
+let view = 'full';
+try{ const v = localStorage.getItem('dhub-view'); if(v && FRAMES.hasOwnProperty(v)) view = v; }catch(e){}
+
+function fit(){
+  const f = FRAMES[view], dev = $('device');
+  if(!f || deviceClass() !== 'desktop'){ dev.style.transform = ''; return; }
+  const box = $('pwrap').getBoundingClientRect();
+  const W = f.w + f.bz * 2, H = f.h + f.bz * 2;
+  /* never upscale: a 393px phone blown up to 900px looks like a bug, not a demo */
+  const s = Math.min((box.width - 36) / W, (box.height - 36) / H, 1);
+  dev.style.transform = 'translate(-50%,-50%)' + (s < 1 ? ` scale(${s.toFixed(4)})` : '');
+}
+
+function applyView(){
+  const isDesktop = deviceClass() === 'desktop';
+  $('viewSeg').hidden = !isDesktop;
+  const f = isDesktop ? FRAMES[view] : null;
+  const dev = $('device'), pw = $('pwrap');
+  pw.classList.toggle('framed', !!f);
+  dev.className = 'device' + (f ? ' framed ' + f.cls : '');
+  $('sbar').hidden = !f;
+  $('hbar').hidden = !f;
+  $('island').hidden = !(f && f.cls === 'iphone');
+  if(f){
+    dev.style.setProperty('--dw',  f.w  + 'px');
+    dev.style.setProperty('--dh',  f.h  + 'px');
+    dev.style.setProperty('--dbz', f.bz + 'px');
+    dev.style.setProperty('--dr',  f.r  + 'px');
+    dev.style.setProperty('--dsr', f.sr + 'px');
+    dev.style.setProperty('--dsb', f.sb + 'px');
+    dev.style.setProperty('--dhb', f.hb + 'px');
+  }
+  $('viewSeg').querySelectorAll('button').forEach(b =>
+    b.setAttribute('aria-pressed', String(isDesktop && b.dataset.view === view)));
+  fit();
+}
+function setView(v){
+  if(!FRAMES.hasOwnProperty(v)) return;
+  view = v;
+  try{ localStorage.setItem('dhub-view', v); }catch(e){}
+  applyView();
+}
+$('viewSeg').querySelectorAll('button').forEach(b =>
+  b.addEventListener('click', () => setView(b.dataset.view)));
+addEventListener('resize', fit);
+addEventListener('orientationchange', applyView);
+mqPhone.addEventListener('change', applyView);
+mqCoarse.addEventListener('change', applyView);
+new ResizeObserver(fit).observe($('pwrap'));
+
 /* ---------- backend panel ---------- */
 let apiOn = false, watchT = null, lastScreen = null, fillT = null;
 $('apiHost').textContent = API_HOST;
@@ -893,6 +1188,8 @@ function syncPanel(){
 function setApi(on){
   apiOn = on;
   $('api').hidden = !on;
+  $('pwrap').classList.toggle('shift', on);
+  fit();
   $('apiTog').setAttribute('aria-pressed', String(on));
   try{ localStorage.setItem('dhub-api', on ? '1' : '0'); }catch(e){}
   if(on){ syncPanel(); startWatch(); } else { stopFill(); }
@@ -986,9 +1283,99 @@ function fillOnce(){
   if(!n && typeof W.prefill === 'function'){ try{ W.prefill(true); n = -1; }catch(e){} }
   return n;
 }
+/* ---------- bridge to the flow ----------
+   Over file:// every iframe gets an opaque origin, so contentDocument is null and
+   none of the reach-in features work. Each demo carries a bridge that does the
+   filling itself and reports its screen, so the hub asks over postMessage when it
+   cannot reach in. Same code runs either way. */
+let bridgeReady = false, pendingFill = null;
+addEventListener('message', ev => {
+  const d = ev.data;
+  if(!d || d.source !== 'decentro-demo') return;
+  if(d.type === 'ready'){ bridgeReady = true; return; }
+  if(d.type === 'escape'){ if(current) close(); return; }
+  if(d.type === 'fill-result' && pendingFill){ pendingFill(d.n); pendingFill = null; return; }
+  if(d.type === 'controls'){ renderXctl(d.items || []); return; }
+  if(d.type === 'screen'){
+    const t = trace();
+    if(t && t.screens && t.screens[d.screen] && d.screen !== lastScreen){
+      lastScreen = d.screen;
+      if(apiOn && !fillT) t.screens[d.screen].forEach(c => addEntry(c, true));
+    }
+  }
+});
+/* ---------- controls relayed from the flow ----------
+   A flow publishes the controls that used to live in its own top bar; they are
+   drawn here instead, so a presenter has one controller, not two. */
+function sendControl(id, value){
+  const w = $('frame').contentWindow;
+  if(w) w.postMessage({source:'decentro-hub', type:'control', id, value}, '*');
+}
+function clearXctl(){ $('xctl').innerHTML = ''; $('xctl').hidden = true; }
+function renderXctl(items){
+  const host = $('xctl');
+  if(!items.length){ clearXctl(); return; }
+  host.innerHTML = '';
+  items.forEach((it, i) => {
+    if(i) host.insertAdjacentHTML('beforeend', '<span class="xsep"></span>');
+    /* a button already says what it is — only the pickers need a label */
+    if(it.label && (it.kind === 'select' || it.kind === 'segment'))
+      host.insertAdjacentHTML('beforeend', `<span class="xlbl">${esc(it.label)}</span>`);
+    if(it.kind === 'select'){
+      const sel = document.createElement('select');
+      sel.setAttribute('aria-label', it.label || it.id);
+      (it.options || []).forEach(o => {
+        const op = document.createElement('option');
+        op.value = o.v; op.textContent = o.l;
+        if(String(o.v) === String(it.value)) op.selected = true;
+        sel.appendChild(op);
+      });
+      sel.addEventListener('change', e => sendControl(it.id, e.target.value));
+      host.appendChild(sel);
+    } else if(it.kind === 'segment'){
+      const g = document.createElement('span'); g.className = 'xseg';
+      (it.options || []).forEach(o => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = o.l;
+        btn.setAttribute('aria-pressed', String(String(o.v) === String(it.value)));
+        btn.addEventListener('click', () => {
+          g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed','false'));
+          btn.setAttribute('aria-pressed','true');
+          sendControl(it.id, o.v);
+        });
+        g.appendChild(btn);
+      });
+      host.appendChild(g);
+    } else {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'xbtn'; btn.textContent = it.label || it.id;
+      btn.addEventListener('click', () => sendControl(it.id, true));
+      host.appendChild(btn);
+    }
+  });
+  host.hidden = false;
+}
+
+function askBridgeToFill(){
+  const w = $('frame').contentWindow;
+  if(!w){ hudToast('Cannot reach this flow'); return; }
+  const timer = setTimeout(() => {
+    if(pendingFill){ pendingFill = null; hudToast('This flow has no fillable fields'); }
+  }, 1200);
+  pendingFill = n => {
+    clearTimeout(timer);
+    $('fillBtn').classList.add('on'); setTimeout(() => $('fillBtn').classList.remove('on'), 500);
+    hudToast(n ? n + (n === 1 ? ' field filled' : ' fields filled') : 'Nothing empty on this screen');
+  };
+  w.postMessage({source:'decentro-hub', type:'fill'}, '*');
+}
 function fillFields(){
+  /* same-origin path first: it is synchronous and we can count for ourselves */
+  let reachable = false;
+  try{ reachable = !!$('frame').contentDocument; }catch(e){}
+  if(!reachable){ askBridgeToFill(); return; }
   const first = fillOnce();
-  if(first === null) return;
+  if(first === null){ askBridgeToFill(); return; }
   $('fillBtn').classList.add('on'); setTimeout(() => $('fillBtn').classList.remove('on'), 500);
   /* some screens re-render on input (the Checkout Builder repaints its canvas), which
      recreates fields empty — a second pass a beat later catches those. */
@@ -1056,5 +1443,7 @@ addEventListener('keydown', onKey);
 renderFilters();
 renderList();
 const start = location.hash.slice(1);
-if(start && DEMOS.some(d => d.slug === start)) open(start);
+probeDemoDir().then(() => {
+  if(start && DEMOS.some(d => d.slug === start)) open(start);
+});
 </script>
