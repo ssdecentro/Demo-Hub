@@ -1,47 +1,8 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-<style>
-/* ══ Decentro-Demo.MD §6 responsive baseline — appended 29 Oct 2026 ══
-   Four guarantees: no sideways scroll at any width from 320 up, nothing
-   clipped, one primary action reachable by thumb, readable without zoom. */
-html,body{overflow-x:hidden}
-img,svg,video,canvas{max-width:100%}
-/* iOS zooms any input under 16px on focus — inside an iFrame that reads as the
-   page breaking, so this one is loud on purpose. */
-@media (max-width:768px){
-  input:not([type=checkbox]):not([type=radio]):not([type=range]),
-  select,textarea{font-size:16px!important}
-}
-/* Touch ergonomics: only lifts controls that have not set their own height. */
-@media (pointer:coarse){
-  button,[role="button"],summary{min-height:44px}
-}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{
-    animation-duration:.01ms!important;animation-iteration-count:1!important;
-    transition-duration:.01ms!important;scroll-behavior:auto!important}
-}
-
-/* ── scrollbars: hidden everywhere, scrolling untouched ──────────────────
-   No visible bar on any surface. !important because several flows style
-   their own (.zone-body, .pane, .steps…) with a higher specificity than a
-   universal selector, and those would otherwise keep painting. Hiding the
-   bar does not affect wheel, trackpad, touch, keyboard or programmatic
-   scrolling — only the indicator is gone. */
-*{scrollbar-width:none!important;-ms-overflow-style:none!important}
-*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
-</style>
-
-<style>
-/* -- closed drawers must not cast a shadow --
-   These panels park off-canvas with translateX of about 102%, which clears the
-   edge by only ~7px. Their box-shadow (20px offset plus 40px blur) reached back
-   over the content, painting a grey smudge down the side of every screen. The
-   shadow now belongs to the open state only. */
-.ctl,.dev{box-shadow:none!important}
-.ctl.open{box-shadow:rgba(0,0,0,.18) 20px 0 40px!important}
-.dev.open{box-shadow:rgba(0,0,0,.18) -20px 0 40px!important}
-</style>
-</head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Verification SDK Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -367,10 +328,54 @@ li.pend small{color:var(--s-warn);font-weight:500}
 .s-sline{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:13.5px;font-weight:500}
 .s-sline span{display:inline-flex;align-items:center;gap:4px}
 .s-sline svg{width:14px;height:14px;stroke-width:3}
-.s-sline .ok{color:var(--s-ok)} .s-sline .bad{color:var(--s-err)} .s-sline .wn{color:var(--s-warn)} .s-sline .nr{color:var(--s-tx2);opacity:.7}
+.s-sline .sl-ok{color:var(--s-ok)} .s-sline .sl-bad{color:var(--s-err)} .s-sline .sl-wn{color:var(--s-warn)} .s-sline .sl-nr{color:var(--s-tx2);opacity:.7}
 .s-refund{font-size:13px;color:var(--s-tx2);text-align:center}
 
 
+
+/* status screens — every outcome except Verified */
+.st{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 0 4px}
+.st-em{position:relative;flex:none;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;color:var(--tone);background:color-mix(in srgb,var(--tone) 11%,var(--s-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tone) 30%,transparent);margin:22px 0 18px}
+.st-em::before,.st-em::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.st-em::before{inset:-11px;border:1px solid color-mix(in srgb,var(--tone) 20%,transparent)}
+.st-em::after{inset:-23px;border:1px solid color-mix(in srgb,var(--tone) 9%,transparent)}
+.st-em.spin::before{border-style:dashed;border-color:color-mix(in srgb,var(--tone) 45%,transparent);animation:rot 7s linear infinite}
+.st-em svg{width:28px;height:28px;stroke-width:2.3}
+.st-badge{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;color:var(--tone);background:color-mix(in srgb,var(--tone) 9%,var(--s-bg));border:1px solid color-mix(in srgb,var(--tone) 26%,transparent);white-space:nowrap}
+.st-badge i{width:6px;height:6px;border-radius:50%;background:var(--tone)}
+.st-t{margin:10px 0 0;font-size:calc(var(--s-ts) - 1px);font-weight:700;letter-spacing:-.015em;line-height:1.25;text-wrap:balance;max-width:300px}
+.st-d{margin:6px 0 0;font-size:14px;line-height:1.45;color:var(--s-tx2);text-wrap:balance;max-width:300px}
+.st-card{width:100%;margin-top:18px;border:1px solid var(--s-bd);border-radius:var(--card-r);background:var(--s-bg);text-align:left;overflow:hidden;flex:none}
+.st-h{padding:11px 14px 2px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--s-tx2)}
+.st-rows{list-style:none;margin:0;padding:4px 14px 8px}
+.st-row{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:11px;align-items:start;padding:7px 0}
+.st-row:not(:last-child)::after{content:"";position:absolute;left:11px;top:33px;bottom:-5px;width:2px;border-radius:1px;background:var(--s-bd)}
+.st-row.is-ok:not(:last-child)::after{background:color-mix(in srgb,var(--s-ok) 45%,var(--s-bd))}
+.st-dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none}
+.st-dot svg{width:13px;height:13px;stroke-width:3}
+.st-row.is-ok .st-dot{background:var(--s-ok);color:var(--s-bg)}
+.st-row.is-bad .st-dot{background:var(--s-err);color:var(--s-bg)}
+.st-row.is-wn .st-dot{background:var(--s-warn);color:var(--s-bg)}
+.st-row.is-nr .st-dot{border:1.5px dashed var(--s-bd);color:var(--s-tx2)}
+.st-row.is-nr .st-dot svg{opacity:.6}
+.st-row b{display:block;font-size:14px;font-weight:600;line-height:1.3}
+.st-row.is-nr b{color:var(--s-tx2)}
+.st-row small{display:block;font-size:12.5px;line-height:1.4;color:var(--s-tx2);margin-top:1px;overflow-wrap:anywhere}
+.st-row.is-bad small{color:var(--s-tx)}
+.st-tag{font-size:11.5px;font-weight:600;padding-top:3px;white-space:nowrap}
+.st-row.is-ok .st-tag{color:var(--s-ok)} .st-row.is-bad .st-tag{color:var(--s-err)} .st-row.is-wn .st-tag{color:var(--s-warn)} .st-row.is-nr .st-tag{color:var(--s-tx2);font-weight:500}
+.st-kvs{border-top:1px solid var(--s-bd);padding:4px 14px}
+.st-kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:13.5px}
+.st-kv span{color:var(--s-tx2)} .st-kv b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.st-foot{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;background:var(--s-surf);border-top:1px solid var(--s-bd);font-size:12.5px;line-height:1.45;color:var(--s-tx2)}
+.st-foot svg{width:15px;height:15px;flex:none;margin-top:1px}
+.st-foot b{color:var(--s-tx);font-weight:600}
+.st-foot code{font-family:var(--mono);font-size:11px;color:var(--s-tx);background:var(--s-bg);border:1px solid var(--s-bd);border-radius:4px;padding:0 4px}
+.st-foot + .st-foot{border-top-color:color-mix(in srgb,var(--s-bd) 60%,transparent)}
+.st-att{display:flex;align-items:center;justify-content:center;gap:10px;font-size:12.5px;color:var(--s-tx2);margin-bottom:4px}
+.st-att .bars{display:flex;gap:4px}
+.st-att i{width:20px;height:4px;border-radius:2px;background:var(--s-bd)}
+.st-att i.on{background:var(--s-tx)}
 /* payment options — production checkout component (decentro-netbanking-connect.html), themed */
 .cs{background:var(--s-surf);border-radius:var(--card-r);padding:14px 16px 12px;flex:none}
 .cs-r{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -510,15 +515,15 @@ body.devmode .main{grid-template-columns:clamp(320px,25vw,400px) minmax(0,1fr) c
 /* network */
 .nt-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:var(--fs-s);color:var(--fg-2)}
 .nt-bar label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-.nr{display:grid;grid-template-columns:42px minmax(0,1fr) auto 52px;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:7px 4px;font-size:var(--fs-s)}
-.nr:hover{background:var(--panel-2)}
-.nr.on{background:var(--panel-2)}
-.nr .mt{font:600 10.5px var(--mono)}
-.nr .pt{font:11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nr .pt small{display:block;font-family:var(--sans);font-size:10.5px;color:var(--fg-3)}
-.nr .sc{font:600 10.5px var(--mono);border-radius:5px;padding:1px 6px;border:1px solid}
+#tp-net .nr{display:grid;grid-template-columns:42px minmax(0,1fr) auto 52px;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:7px 4px;font-size:var(--fs-s)}
+#tp-net .nr:hover{background:var(--panel-2)}
+#tp-net .nr.on{background:var(--panel-2)}
+#tp-net .nr .mt{font:600 10.5px var(--mono)}
+#tp-net .nr .pt{font:11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tp-net .nr .pt small{display:block;font-family:var(--sans);font-size:10.5px;color:var(--fg-3)}
+#tp-net .nr .sc{font:600 10.5px var(--mono);border-radius:5px;padding:1px 6px;border:1px solid}
 .sc.s2{color:var(--ok);background:var(--ok-soft);border-color:var(--ok-bd)} .sc.s4,.sc.s5{color:var(--err);background:var(--err-soft);border-color:var(--err-bd)}
-.nr .du{font:10.5px var(--mono);color:var(--fg-3);text-align:right}
+#tp-net .nr .du{font:10.5px var(--mono);color:var(--fg-3);text-align:right}
 .nd{padding:8px 4px 14px;border-bottom:1px solid var(--line)}
 .nd .lbl{font-size:10px;font-weight:600;color:var(--fg-3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px;display:flex;justify-content:space-between;align-items:center}
 .nd pre.code{margin:0;max-height:260px;overflow:auto}
@@ -589,6 +594,8 @@ body.devmode .tab{padding:7px 8px 8px}
 @media (max-height:700px){ .caption{display:none} }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
+</head>
+<body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
   <symbol id="decentro-logo" viewBox="0 0 2749.67 538.23">
@@ -609,7 +616,7 @@ body.devmode .tab{padding:7px 8px 8px}
   <header class="top">
     <button class="tbtn" id="btnCtl" type="button" aria-controls="ctl"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Journey</button>
     <div class="brand">
-      <svg class="logo" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg>
+      <svg class="logo" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg>
       <span class="sep"></span>
       <b>Verification SDK</b>
       <span class="tag">RPD · VerifyPay · VBA</span>
@@ -694,7 +701,7 @@ body.devmode .tab{padding:7px 8px 8px}
                 <div class="sdk" id="sdk" aria-live="polite">
                   <div class="s-head" id="shead"></div>
                   <div class="s-body" id="sbody"></div>
-                  <div class="s-foot">Powered by <svg viewBox="0 0 2749.67 538.23" aria-label="Decentro" fill="currentColor"><g><polygon points="1589.49 315.17 1435.68 121.4 1435.23 120.87 1375.32 120.87 1375.32 417.62 1435.64 417.62 1435.64 223.31 1589.45 417.08 1589.9 417.62 1649.81 417.62 1649.81 120.87 1589.49 120.87 1589.49 315.17"/><path d="M250.46,120.82H120.69v176.27h60.11v-116h68c62.42,0,102.83,34.9,102.83,88.17s-40.41,88.16-102.83,88.16h-7.73v60.25h9.39c96.25,0,162-59.37,162-148.41s-65.77-148.44-162-148.44h0Z"/><path d="M2587.03,163.29c-27.04-27.03-64.55-41.85-105.7-41.85s-78.72,14.92-105.78,42c-27.07,27.08-42.04,64.69-42.04,105.81s14.93,78.69,42.04,105.8,64.64,42.01,105.78,42.01,78.72-14.87,105.74-41.85c27.02-26.99,42.04-64.69,42.04-105.95s-14.97-78.9-42.09-105.95l.01-.02ZM2418.6,203.4c16.03-16.67,38.28-25.86,62.69-25.86s46.6,9.19,62.69,25.86c16.09,16.67,24.97,40.13,24.97,65.84s-8.86,49.08-24.97,65.83c-16.1,16.75-38.28,25.86-62.69,25.86s-46.66-9.18-62.69-25.86-24.97-40.13-24.97-65.83,8.87-49.09,24.97-65.84Z"/><path d="M1021.78,368.71l1.07,1.17c-1.7,1.91-3.46,3.77-5.28,5.59-24.05,24.05-56.46,38.49-92.31,41.38-4.43.35-8.91.53-13.43.53s-8.91-.18-13.29-.53c-4.49-.36-8.92-.9-13.29-1.61-2.18-.36-4.35-.77-6.49-1.21h-.02c-2.15-.45-4.28-.94-6.38-1.47h-.02c-.79-.2-1.58-.41-2.37-.62-3.15-.85-6.26-1.8-9.33-2.84-.77-.26-1.53-.53-2.3-.8-1.85-.66-3.69-1.36-5.51-2.1-1.21-.5-2.41-1-3.6-1.52,0,0-.01.01-.01,0-1.19-.52-2.37-1.06-3.55-1.61-.787-.367-.79-.367-.01,0-14.71-6.92-28.07-16.23-39.55-27.72-27.11-27.15-42.04-64.75-42.04-105.92s14.97-78.82,42.04-105.93c15.66-15.67,34.81-27.28,56.15-34.3.68-.22,1.38-.44,2.07-.66h.01c2.46-.76,4.95-1.47,7.47-2.12,1.68-.43,3.37-.84,5.07-1.21h.01c5.44-1.2,11-2.12,16.65-2.75,2.26-.25,4.53-.45,6.82-.61,3.79-.26,7.61-.39,11.47-.39.97,0,1.93,0,2.89.02.54.01,1.09.03,1.63.04.86.02,1.72.05,2.57.09.64.02,1.28.05,1.91.09.72.04,1.43.08,2.14.12.14.02.27.02.4.03,2.12.15,4.23.33,6.33.56,1.06.11,2.13.24,3.18.37.9.12,1.79.24,2.68.37,2.27.33,4.52.7,6.75,1.12,1.56.3,3.1.61,4.64.95s3.06.7,4.58,1.08c.76.19,1.52.39,2.27.59,2.27.62,4.51,1.28,6.72,1.98,21.69,6.94,41.15,18.61,57.01,34.48,2.01,2,3.95,4.06,5.81,6.19l-36.33,35.62-.56.48-5.5,5.4c-1.98-2.63-4.12-5.15-6.41-7.52-16.09-16.69-38.28-25.89-62.69-25.89-22.62,0-43.38,7.9-59.06,22.34-.19.17-.37.34-.55.51-1.05.98-2.08,2-3.08,3.04-16.09,16.77-24.96,40.19-24.96,65.91s8.94,49.21,24.96,65.9c.9.94,1.83,1.86,2.77,2.75,15.78,14.96,36.89,23.14,59.92,23.14,24.41,0,46.59-9.12,62.69-25.89,2.23-2.32,4.32-4.77,6.26-7.34l31.49,31.26.54.59,8.95,8.89v-.02Z"/><polygon points="1710.09 180.9 1810.42 180.9 1810.42 416.9 1870.7 416.9 1870.7 180.9 1971.03 180.9 1971.03 120.62 1710.09 120.62 1710.09 180.9"/><path d="M2273.07,226.87c0-61.16-49.34-106.01-114.55-106.01h-127.21v296.76h60.26v-85.62h45.95c3.62,0,7.36,0,11.06-.34l57.67,85.96h66.82l-64.21-97.33c41.46-16.21,64.21-50.5,64.21-93.42h0ZM2091.59,181.14h64.33c56.97,0,56.97,38.25,56.97,45.73,0,7.93,0,44.81-56.97,44.81h-64.33v-90.54h0Z"/><polygon points="532.99 299.14 643.44 299.14 643.44 238.86 532.99 238.86 532.99 181.2 703.17 181.2 703.17 120.62 472.75 120.62 472.75 417.38 703.72 417.38 703.72 357.29 532.99 357.29 532.99 299.14"/><polygon points="1144.31 299.14 1254.76 299.14 1254.76 238.86 1144.31 238.86 1144.31 181.2 1314.48 181.2 1314.48 120.62 1084.06 120.62 1084.06 417.38 1315.04 417.38 1315.04 357.29 1144.31 357.29 1144.31 299.14"/></g><rect x="120.6" y="357.11" width="60.28" height="60.28" fill="#0092ff"/></svg></div>
+                  <div class="s-foot">Powered by <svg viewBox="0 0 2749.67 538.23" aria-label="Decentro"><use href="#decentro-logo"/></svg></div>
                 </div>
                 <div class="scrim" id="scrim"></div>
                 <div class="sheet" id="sheet"></div>
@@ -754,6 +761,14 @@ const IC = {
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>', timer:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>',
   dash:'<path d="M6 12h12"/>', dots:'<path d="M5 12h.01M12 12h.01M19 12h.01"/>',
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  wifioff:'<path d="M2 2l20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path d="M19 12.9a10 10 0 0 0-2.3-1.6"/><path d="M2 8.8a15 15 0 0 1 4.2-2.7"/><path d="M22 8.8A15 15 0 0 0 11 5.1"/><path d="M12 20h.01"/>',
+  phone:'<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>',
+  server:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+  hand:'<path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4L2.4 16a2 2 0 0 1 2.8-2.8L7 15"/>',
+  ban:'<circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/>',
+  receipt:'<path d="M5 2v20l2.5-1.5L10 22l2-1.5 2 1.5 2.5-1.5L19 22V2l-2.5 1.5L14 2l-2 1.5L10 2 7.5 3.5z"/><path d="M9 8h6M9 12h6"/>',
+  timer2:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>',
+  shield:'<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/>',
   grid:'<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
   rupee:'<path d="M6 4h11M6 8.5h11M6 13h4.5a4.5 4.5 0 000-9M6 13l7.5 7.5"/>'
 };
@@ -1205,12 +1220,12 @@ function bindEntry(){
 /* ---------- result + error screens ---------- */
 function stepMark(p){
   const s = st.steps[p]?.status || 'NOT_RUN';
-  if (['SUCCESS','VERIFIED','VALID'].includes(s)) return `<span class="ok">${svg('check')}${STEPNAME[p]}</span>`;
-  if (s === 'INCONCLUSIVE') return `<span class="wn">${svg('q')}${STEPNAME[p]}</span>`;
-  if (s === 'NRE') return `<span class="wn">${svg('bang')}${STEPNAME[p]}</span>`;
-  if (s === 'PENDING') return `<span class="wn">${svg('dots')}${STEPNAME[p]}</span>`;
-  if (s === 'NOT_RUN') return `<span class="nr">${svg('dash')}${STEPNAME[p]}</span>`;
-  return `<span class="bad">${svg('x')}${STEPNAME[p]}</span>`;
+  if (['SUCCESS','VERIFIED','VALID'].includes(s)) return `<span class="sl-ok">${svg('check')}${STEPNAME[p]}</span>`;
+  if (s === 'INCONCLUSIVE') return `<span class="sl-wn">${svg('q')}${STEPNAME[p]}</span>`;
+  if (s === 'NRE') return `<span class="sl-wn">${svg('bang')}${STEPNAME[p]}</span>`;
+  if (s === 'PENDING') return `<span class="sl-wn">${svg('dots')}${STEPNAME[p]}</span>`;
+  if (s === 'NOT_RUN') return `<span class="sl-nr">${svg('dash')}${STEPNAME[p]}</span>`;
+  return `<span class="sl-bad">${svg('x')}${STEPNAME[p]}</span>`;
 }
 const paid = () => st.steps.RPD?.status === 'SUCCESS';
 const PFKEY = k => ({ vpa:'upi_vpa', name: J().entry === 'vp' ? 'customer_name' : 'name', acct:'account_number', ifsc:'ifsc' }[k]);
@@ -1237,7 +1252,77 @@ function resultHeader(){
   if (f.status === 'NRE') return 'The account is valid, but it is an NRE account.';
   return 'Verification is taking longer than usual';
 }
+/* ---------- status screens (every outcome except Verified) ----------
+   One structure: emblem + badge + title + next step, then a "What happened" card
+   with a step tracker, account details where relevant, and a refund / reference footer. */
+const TONE = { bad:'var(--s-err)', wn:'var(--s-warn)', ok:'var(--s-ok)', nt:'var(--s-tx2)' };
+const STEP_LABEL = { RPD:'₹1 payment', VP:'UPI ID check', VBA:'Bank account check' };
+const ERR_ROW = { link:'Payment link couldn\'t be created', offline:'Device offline', noapp:'No UPI app on this phone', unconfirmed:'Payment status couldn\'t be confirmed', missing:'Payer details missing from the bank', session:'Session expired', vp:'Bank didn\'t respond', vp_timeout:'No response from the bank', velocity:'Too many attempts for this UPI ID', vba:'Validation didn\'t complete', unavail:'Verification unavailable right now', masked:'Account details came back masked' };
+const ERR_ICON = { link:'server', offline:'wifioff', noapp:'phone', unconfirmed:'receipt', missing:'receipt', session:'timer2', vp:'server', vp_timeout:'server', velocity:'hand', vba:'server', unavail:'ban', masked:'shield' };
+function stRow(p, errKey){
+  const s = st.steps[p]?.status || 'NOT_RUN', d = st.steps[p]?.data || {}, f = st.final;
+  const vpa = st.steps.RPD?.data?.payer_vpa || st.steps.VP?.data?.upi_vpa || st.form.vpa;
+  const acct = st.steps.VP?.data?.account_number || st.steps.RPD?.data?.payer_account_number || st.form.acct;
+  let t = 'nr', tag = 'Skipped', sub = 'Not run · an earlier step stopped', ic = 'dash';
+  const isErr = errKey && st.err && st.err.step === p && !['SUCCESS','VERIFIED','VALID','NRE','INCONCLUSIVE','INVALID','NOT_VERIFIED','FAILED','EXPIRED'].includes(s);
+  if (isErr){ t = 'bad'; tag = 'Interrupted'; sub = ERR_ROW[errKey] || 'Couldn\'t complete'; ic = 'x'; }
+  else if (['SUCCESS','VERIFIED','VALID'].includes(s)){ t = 'ok'; tag = 'Done'; ic = 'check';
+    sub = p === 'RPD' ? 'Received from ' + esc(vpa) : p === 'VP' ? esc(d.upi_vpa || vpa) + ' is linked to a bank account' : mask(acct) + ' is valid'; }
+  else if (s === 'FAILED'){ t = 'bad'; tag = 'Declined'; ic = 'x'; sub = 'Your bank declined the payment'; }
+  else if (s === 'EXPIRED'){ t = 'bad'; tag = 'Expired'; ic = 'x'; sub = 'Link expired before payment'; }
+  else if (s === 'NOT_VERIFIED' || s === 'INVALID'){ t = 'bad'; tag = 'Failed'; ic = 'x'; sub = f && f.failed === p && f.reason ? esc((f.reason.b + ' ' + (f.reason.s || '')).trim()) : 'Not verified'; }
+  else if (s === 'PENDING'){ t = 'wn'; tag = 'Pending'; ic = 'clock'; sub = p === 'RPD' ? 'Waiting for the payment' : 'Your bank is yet to confirm'; }
+  else if (s === 'INCONCLUSIVE'){ t = 'wn'; tag = 'Unclear'; ic = 'q'; sub = 'Your bank couldn\'t confirm the status'; }
+  else if (s === 'NRE'){ t = 'wn'; tag = 'NRE'; ic = 'bang'; sub = 'Valid account, flagged as NRE'; }
+  else if (s === 'ERROR'){ t = 'bad'; tag = 'Interrupted'; ic = 'x'; sub = 'Couldn\'t complete'; }
+  return `<li class="st-row is-${t}"><span class="st-dot">${svg(ic)}</span><span><b>${STEP_LABEL[p]}</b><small>${sub}</small></span><span class="st-tag">${tag}</span></li>`;
+}
+function stScreen(o){
+  return `<div class="st" style="--tone:${TONE[o.tone]}">
+    <div class="st-em ${o.spin ? 'spin' : ''} pop">${svg(o.icon)}</div>
+    <span class="st-badge"><i></i>${o.badge}</span>
+    <h1 class="st-t">${o.title}</h1>
+    ${o.desc ? `<p class="st-d">${o.desc}</p>` : ''}
+    <div class="st-card">
+      <div class="st-h">What happened</div>
+      <ul class="st-rows">${J().steps.map(p => stRow(p, o.errKey)).join('')}</ul>
+      ${o.details && o.details.length ? `<div class="st-kvs">${o.details.map(([k, v]) => `<div class="st-kv"><span>${k}</span><b>${esc(v ?? '—')}</b></div>`).join('')}</div>` : ''}
+      ${(o.foot || []).map(x => `<div class="st-foot">${svg(x.icon)}<span>${x.html}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+function vStatus(){
+  const f = st.final, d = st.steps, R = d.RPD?.data || {}, V = d.VP?.data || {}, j = st.j, entry = J().entry;
+  const pfv = k => st.pf[k] && st.pf[k].value;
+  const acct = V.account_number || R.payer_account_number || (j === 'VBA' ? (st.form.acct || pfv('account_number') || CUST.acct) : '');
+  const ifsc = V.ifsc || R.payer_account_ifsc || (j === 'VBA' ? (st.form.ifsc || pfv('ifsc') || CUST.ifsc) : '');
+  const vpa = V.upi_vpa || R.payer_vpa;
+  const mod = canModify();
+  const foot = paid() ? [{ icon:'rupee', html:'<b>₹1 refund</b> · back in your account within 3 working days' }] : [];
+  let o;
+  if (f.status === 'NOT_VERIFIED'){
+    const desc = f.failed === 'RPD' ? 'No money was taken. You can start again from the app.'
+      : f.failed === 'VP' ? (mod ? 'Check the UPI ID and try again, or use a different one.' : 'Try again from the app with a different UPI ID.')
+      : (mod ? 'Check the account number and IFSC, then try again.' : 'Try again from the app with a different bank account.');
+    o = { tone:'bad', icon:'x', badge:'Not verified', title:resultHeader(), desc };
+  } else if (f.status === 'PENDING'){
+    o = { tone:'wn', icon:'clock', spin:true, badge:'Pending at bank', title:resultHeader(), desc:"We'll update you once your bank confirms. You can close this screen." };
+  } else if (f.status === 'INCONCLUSIVE'){
+    o = { tone:'wn', icon:'q', badge:'Inconclusive', title:resultHeader(), desc:'Your bank didn\'t confirm whether this account is active.',
+      details: j === 'VBA' ? [] : [...(vpa ? [['UPI ID', vpa]] : []), ['Account', mask(acct)], ['IFSC', ifsc]] };
+  } else {
+    const nm = j === 'RPD_VBA' ? R.payer_name : j === 'RPD_VP_VBA' ? V.name_as_per_bank : '';
+    o = { tone:'wn', icon:'bang', badge:'NRE account', title:'Account is valid, but it\'s an NRE account', desc:'Some services don\'t accept NRE accounts. Check before you continue.',
+      details:[...(nm ? [['Name', nm]] : []), ...(j === 'VP_VBA' && vpa ? [['UPI ID', vpa]] : []), ['Account', mask(acct)], ['IFSC', ifsc], ['Account type', 'NRE']] };
+  }
+  o.foot = foot;
+  const showAttempt = entry && f.failed === (entry === 'vp' ? 'VP' : 'VBA') && (mod || st.attempt > 1);
+  const meter = showAttempt ? `<div class="st-att"><span>Attempt ${st.attempt} of 3</span><span class="bars">${[1,2,3].map(n => `<i class="${n <= st.attempt ? 'on' : ''}"></i>`).join('')}</span></div>` : '';
+  const acts = mod ? `<button class="s-btn pri" data-act="modify">Modify details</button><button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`;
+  return stScreen(o) + `<div class="s-act">${meter}${acts}</div>`;
+}
 function vResult(){
+  if (st.final.status !== 'VERIFIED') return vStatus();
   const f = st.final, d = st.steps, R = d.RPD?.data || {}, V = d.VP?.data || {}, B = d.VBA?.data || {};
   const ic = { VERIFIED:['ok','check'], NOT_VERIFIED:['bad','x'], INCONCLUSIVE:['wn','q'], NRE:['wn','bang'], PENDING:['wn','clock'] }[f.status];
   const acct = V.account_number || R.payer_account_number || (st.j === 'VBA' ? st.form.acct : '');
@@ -1294,9 +1379,13 @@ function errDef(key, step){
   return { key, ...D[key] };
 }
 function vError(){
-  const e = st.err;
-  return `<div class="s-center" style="gap:12px;margin-top:8px"><div class="r-ic tri pop">${svg('tri')}</div><h1 class="r-h">${e.h}</h1><p class="s-sub" style="max-width:270px">${e.r}</p></div>
-  <div class="s-act">${e.retry ? `<button class="s-btn pri" data-act="retry">${st.retrying ? '<span class="spin"></span>' : 'Retry'}</button><button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`}</div>`;
+  const e = st.err, step = e.step;
+  const sent = step && st.steps[step]?.reference_id;
+  const foot = [];
+  if (paid() && e.key !== 'unconfirmed' && e.key !== 'missing') foot.push({ icon:'rupee', html:'<b>₹1 refund</b> · back in your account within 3 working days' });
+  foot.push({ icon:'info', html:`Reference <code>${esc(sent || st.base)}</code> · <code>${e.code}</code>` });
+  const o = { tone: e.retry ? 'wn' : 'bad', icon: ERR_ICON[e.key] || 'tri', badge: e.retry ? 'Temporary issue' : 'Couldn\'t continue', title:e.h, desc:e.r, errKey:e.key, foot };
+  return stScreen(o) + `<div class="s-act">${e.retry ? `<button class="s-btn pri" data-act="retry">${st.retrying ? '<span class="spin"></span>' : 'Try again'}</button><button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`}</div>`;
 }
 
 /* ---------- host (merchant) app ---------- */
@@ -1610,7 +1699,7 @@ const RUN = {
       R(200, envl(txn, 'SUCCESS', 'success_account_validation_failed', data), 'rf', 'account_status invalid');
       st.steps.VBA = { ...base, status:'INVALID', api_status:'SUCCESS', response_key:'success_account_validation_failed', data };
       recordAttempt('VBA', ref, inputMasked, 'INVALID', 'success_account_validation_failed'); setProg('VBA', 'fail');
-      endResult('NOT_VERIFIED', 'VBA', { b:'Invalid account number or IFSC', s:msg }); return false;
+      endResult('NOT_VERIFIED', 'VBA', { b:msg, s:'' }); return false;
     }
     if (m.vba === 'inconclusive' && failNow){
       const msg = 'Bank account details could not be verified.';
@@ -2234,6 +2323,7 @@ function edChanged(){
   return q;
 }
 function devApply(){
+  st.pvRestore = null; st.pv = null;
   const ed = $('#reqEd'); let q;
   try { q = JSON.parse(ed.value); } catch(e){ edChanged(); toast('Fix the JSON before running'); return false; }
   applyRequest(q); theme(); syncControls(); buildTabsCounts();
@@ -2257,6 +2347,7 @@ const snapDemo = () => ({ j:st.j, cfg:{ ...cfg } });
 const restoreDemo = s => { if (!s) return; st.j = s.j; Object.assign(cfg, s.cfg); };
 function setMode(m){
   if (m === st.mode) return;
+  if (st.pvRestore){ st.pvRestore(); st.pvRestore = null; } st.pv = null;
   if (m === 'dev'){ st.demoSnap = snapDemo(); applyDemo(); st.mode = 'dev'; buildDevLeft(); }
   else { st.mode = 'demo'; st.tov = null; restoreDemo(st.demoSnap); setInspect(false); }
   document.body.classList.toggle('devmode', st.mode === 'dev');
@@ -2359,6 +2450,7 @@ function renderState(){
 setInterval(() => { if (st.mode === 'dev' && st.tab === 'state') renderState(); }, 1000);
 
 /* ---------- screen gallery ---------- */
+const errStep = k => k === 'masked' ? (has('VP') ? 'VP' : 'RPD') : J().steps[0];
 function pvList(){
   const j = J(), L = [], add = (g, id, l, t) => L.push({ g, id, l, t });
   if (j.entry){ add('Entry','entry','As configured'); add('Entry','entry-err','Validation errors','bad'); add('Entry','entry-skip','SKIP mode'); add('Entry','entry-lock','Fields locked'); add('Entry','entry-a2','Attempt 2 of 3'); }
@@ -2375,7 +2467,7 @@ function pvList(){
   if (has('VP')) errs.push('vp','vp_timeout','velocity');
   if (has('VBA')) errs.push('vba','unavail');
   if (has('VBA') && j.steps.length > 1) errs.push('masked');
-  errs.forEach(k => { const d = errDef(k, j.steps[0]); add('Errors', 'e-' + k, d.code + (d.retry ? ' · Retry' : ''), 'bad'); });
+  errs.forEach(k => { const d = errDef(k, errStep(k)); add('Errors', 'e-' + k, d.code + (d.retry ? ' · Retry' : ''), 'bad'); });
   return L;
 }
 function renderScreens(){
@@ -2428,17 +2520,17 @@ function preview(id){
   else if (id === 'r-expired'){ upTo('RPD', 'EXPIRED'); result('NOT_VERIFIED', 'RPD', { b:'Payment link expired', s:'No money was taken.' }); }
   else if (id === 'r-vpfail'){ upTo('VP', 'NOT_VERIFIED'); result('NOT_VERIFIED', 'VP', { b:VPR[0].b, s:VPR[0].s }); }
   else if (id === 'r-pending'){ upTo('VP', 'PENDING'); result('PENDING', 'VP'); }
-  else if (id === 'r-invalid'){ upTo('VBA', 'INVALID'); result('NOT_VERIFIED', 'VBA', { b:'Invalid account number or IFSC', s:'The account number/IFSC passed is invalid.' }); }
+  else if (id === 'r-invalid'){ upTo('VBA', 'INVALID'); result('NOT_VERIFIED', 'VBA', { b:'The account number/IFSC passed is invalid.', s:'' }); }
   else if (id === 'r-inconc'){ upTo('VBA', 'INCONCLUSIVE'); result('INCONCLUSIVE', 'VBA', { b:'Bank account details', s:'could not be verified.' }); }
   else if (id === 'r-nre'){ upTo('VBA', 'NRE'); result('NRE'); }
   else if (id === 'r-modify'){
     saveCfg(); cfg.mode = 'COLLECT'; st.pf = {}; fill();
     const p = J().entry === 'vp' ? 'VP' : 'VBA';
     upTo(p, p === 'VP' ? 'NOT_VERIFIED' : 'INVALID');
-    result('NOT_VERIFIED', p, p === 'VP' ? { b:VPR[0].b, s:VPR[0].s } : { b:'Invalid account number or IFSC', s:'The account number/IFSC passed is invalid.' });
+    result('NOT_VERIFIED', p, p === 'VP' ? { b:VPR[0].b, s:VPR[0].s } : { b:'The account number/IFSC passed is invalid.', s:'' });
   }
   else if (id.startsWith('e-')){
-    const k = id.slice(2), E = errDef(k, seq[0]);
+    const k = id.slice(2), E = errDef(k, errStep(k));
     if (E.step && seq.includes(E.step) && E.step !== seq[0]) upTo(E.step, 'ERROR');
     st.err = E; go('error');
   }
@@ -2475,6 +2567,15 @@ const ANN = [
   ['.s-link',['TextLink','text_primary']],
   ['.s-prog',['ProgressList','text_primary · border · warning · error']],
   ['.r-ic',['ResultIcon','success · warning · error']],
+  ['.st-em',['StatusEmblem','success · warning · error (tone by outcome)']],
+  ['.st-badge',['StatusBadge','warning · error · surface']],
+  ['.st-t',['StatusTitle','title_size · text_primary']],
+  ['.st-d',['StatusDescription','body_size · text_secondary']],
+  ['.st-card',['WhatHappenedCard','border · card_corner_radius · background']],
+  ['.st-row',['StepRow','success · warning · error · border']],
+  ['.st-kvs',['AccountDetails','border · text_secondary · masking fixed by Decentro']],
+  ['.st-foot',['CardFooter','surface · text_secondary']],
+  ['.st-att',['AttemptMeter','text_primary · border']],
   ['.s-call',['ReasonCallout','surface · border · card_corner_radius']],
   ['.s-card',['DetailsCard','border · card_corner_radius · account masking fixed by Decentro']],
   ['.s-sline',['StepLine','success · error · warning']],
@@ -2619,167 +2720,5 @@ requestAnimationFrame(fit);
 document.fonts && document.fonts.ready.then(fit);
 
 </script>
-
-
-<script>
-/* controls that used to sit in this demo's own top bar */
-window.__decentroControls = {
-  bar: 'header.top',
-  items: [
-    { id:'journey', kind:'button', label:'Journey',
-      set:function(){ var b=document.getElementById('btnCtl'); if(b) b.click(); } },
-    { id:'mode', kind:'segment', label:'Mode',
-      options:[{v:'demo',l:'Demo'},{v:'dev',l:'Developer'}],
-      get:function(){ var b=document.querySelector('header.top [data-v].on,header.top [data-v].active,header.top [data-v][aria-pressed="true"]'); return b?b.getAttribute('data-v'):'demo'; },
-      set:function(v){ var b=document.querySelector('header.top [data-v="'+v+'"]'); if(b) b.click(); } },
-    { id:'os', kind:'segment', label:'OS',
-      options:[{v:'android',l:'Android'},{v:'ios',l:'iOS'}],
-      get:function(){ var d=document.querySelector('.device'); return d?(d.getAttribute('data-os')||'ios'):'ios'; },
-      set:function(v){ var b=document.querySelector('header.top [data-os="'+v+'"]'); if(b) b.click(); } },
-    { id:'inspector', kind:'button', label:'Inspector',
-      set:function(){ var b=document.getElementById('btnDev'); if(b) b.click(); } }
-  ]
-};
-</script>
-
-<script>
-/* ══ Demo Hub bridge · 29 Oct 2026 ══════════════════════════════════════════
-   Opened from file://, every iframe gets an opaque origin, so the hub cannot
-   touch this document and its reach-in Demo fill silently fails. The hub then
-   asks over postMessage instead — this is the half that answers. Same code
-   serves http, so behaviour is identical either way. */
-(function(){
-  if (window.__dcnBridge) return; window.__dcnBridge = 1;
-
-  var RULES = [
-    [/otp|passcode|\bpin\b/i,            '482913'],
-    [/mobile|phone|contact|msisdn|tel/i, '9876543210'],
-    [/e-?mail/i,                         'rakesh.sharma@example.in'],
-    [/\bpan\b/i,                         'ABCDE1234F'],
-    [/ifsc/i,                            'HDFC0001205'],
-    [/upi|vpa|handle/i,                  'rakesh.sharma@okhdfcbank'],
-    [/account.*(number|no)|acc.*num/i,   '50100412887201'],
-    [/passport/i,                        'Z4821907'],
-    [/aadhaar|uid/i,                     '9821'],
-    [/pin ?code|postal|zip/i,            '560025'],
-    [/first.*name|given/i,               'Rakesh'],
-    [/middle/i,                          'Kumar'],
-    [/last.*name|surname|family/i,       'Sharma'],
-    [/company|business|merchant|entity/i,'Aurora & Co.'],
-    [/\bcity\b/i,                        'Bengaluru'],
-    [/\bstate\b/i,                       'Karnataka'],
-    [/address|street|line ?1/i,          '12 Residency Road'],
-    [/amount|value|price/i,              '2499'],
-    [/\bdate\b|dob|birth/i,              '1991-04-12'],
-    [/\bname\b/i,                        'Rakesh Sharma'],
-    [/reference|ref ?id|order/i,         'DEC20261029001']
-  ];
-
-  function hint(el){
-    var t = [el.id, el.name, el.getAttribute('placeholder') || '',
-             el.getAttribute('aria-label') || '', el.className || ''].join(' ');
-    try{
-      var lab = (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
-      if(lab) t += ' ' + lab.textContent;
-      var fld = el.closest('.fld,.field,.form-row,.b-field,.inp');
-      if(fld) t += ' ' + (fld.textContent || '').slice(0, 80);
-    }catch(e){}
-    return t;
-  }
-  function valueFor(el){
-    var type = (el.getAttribute('type') || 'text').toLowerCase();
-    if(type === 'date') return '1991-04-12';
-    if(type === 'email') return 'rakesh.sharma@example.in';
-    if(type === 'tel') return '9876543210';
-    /* single-character boxes are OTP/PIN digits */
-    if(el.maxLength === 1) return String(Math.floor(Math.random() * 10));
-    var h = hint(el);
-    for(var i = 0; i < RULES.length; i++) if(RULES[i][0].test(h)) return RULES[i][1];
-    var ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
-    if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
-    if(type === 'number') return '100';
-    return 'Demo value';
-  }
-  /* React and friends track value on the node, so poke the native setter */
-  function setVal(el, v){
-    var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-    var d = Object.getOwnPropertyDescriptor(proto, 'value');
-    if(d && d.set) d.set.call(el, v); else el.value = v;
-    ['input','change','keyup','blur'].forEach(function(ev){
-      el.dispatchEvent(new Event(ev, {bubbles:true}));
-    });
-  }
-  function visible(el){
-    if(el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
-    var r = el.getBoundingClientRect();
-    return r.width > 8 && r.height > 6;
-  }
-
-  function fill(){
-    var n = 0;
-    var els = document.querySelectorAll(
-      'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select');
-    Array.prototype.forEach.call(els, function(el){
-      if(el.disabled || el.readOnly || !visible(el)) return;
-      var type = (el.getAttribute('type') || '').toLowerCase();
-      if(type === 'checkbox' || type === 'radio'){
-        if(!el.checked){ el.click(); n++; }      /* consents gate the primary action */
-        return;
-      }
-      if(el.tagName === 'SELECT'){
-        if(el.selectedIndex > 0) return;
-        var opt = Array.prototype.filter.call(el.options, function(o){ return o.value && !o.disabled; })[0];
-        if(opt){ el.value = opt.value; el.dispatchEvent(new Event('change', {bubbles:true})); n++; }
-        return;
-      }
-      if((el.value || '').trim()) return;
-      setVal(el, valueFor(el)); n++;
-    });
-    /* a flow that ships its own sample data knows its persona better than we do */
-    if(!n){
-      var own = window.prefill || window.useSample || window.fillSample;
-      if(typeof own === 'function'){ try{ own(true); return -1; }catch(e){} }
-      var btn = Array.prototype.filter.call(
-        document.querySelectorAll('button,[onclick],.btn'),
-        function(b){ return /use sample|sample details|fill sample|demo data/i.test(b.innerText || ''); })[0];
-      if(btn && visible(btn)){ btn.click(); return -1; }
-    }
-    return n;
-  }
-
-  function send(msg){
-    msg.source = 'decentro-demo';
-    try{ parent.postMessage(msg, '*'); }catch(e){}
-  }
-
-  addEventListener('message', function(ev){
-    var d = ev.data;
-    if(!d || d.source !== 'decentro-hub') return;
-    if(d.type === 'fill'){
-      var n = fill();
-      /* some screens repaint on input and recreate fields empty */
-      setTimeout(function(){
-        var more = fill();
-        var total = (n < 0 || more < 0) ? -1 : n + (more > 0 ? more : 0);
-        send({type:'fill-result', n: total});
-      }, 260);
-    }
-  });
-
-  addEventListener('keydown', function(e){ if(e.key === 'Escape') send({type:'escape'}); });
-
-  /* report the visible screen so the hub's backend trace follows along */
-  var lastScreen = null;
-  function reportScreen(){
-    var el = document.querySelector('.screen.active,.screen.on,[class*=screen].active,section.active');
-    var id = el && el.id;
-    if(id && id !== lastScreen){ lastScreen = id; send({type:'screen', screen:id}); }
-  }
-  setInterval(reportScreen, 400);
-
-  if(document.readyState === 'loading')
-    addEventListener('DOMContentLoaded', function(){ send({type:'ready'}); reportScreen(); });
-  else { send({type:'ready'}); reportScreen(); }
-})();
-</script>
-</body></html>
+</body>
+</html>
