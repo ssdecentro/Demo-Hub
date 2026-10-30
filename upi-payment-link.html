@@ -256,15 +256,13 @@ h2{font-size:var(--fs-t);font-weight:700;line-height:1.35}
 .redir{font-size:var(--fs-s);color:var(--grey);font-weight:600}
 
 /* ─────────── developer console ─────────── */
-.dev{
-  position:fixed;z-index:60;top:0;right:0;bottom:0;width:min(440px,100vw);
+.dev{position:fixed;z-index:60;top:0;right:0;bottom:0;width:min(440px,100vw);
   display:flex;flex-direction:column;background:#0C0E11;color:#E6E8EB;
-  border-left:1px solid #22262C;box-shadow:-24px 0 60px -30px rgba(0,0,0,.85);
+  border-left:1px solid #22262C;
   font-family:'JetBrains Mono',ui-monospace,monospace;
   transform:translateX(100%);transition:transform .26s var(--ease);
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.dev.on{transform:none}
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dev.on{transform:none;box-shadow:-24px 0 60px -30px rgba(0,0,0,.85)!important}
 .dev-h{flex:none;display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid #22262C;background:#14171B}
 .dev-h b{flex:1;min-width:0;font-family:'Montserrat',sans-serif;font-size:var(--fs-s);font-weight:700;color:#fff}
 .dev-h button{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.06);color:#9BA3AE;display:grid;place-items:center}

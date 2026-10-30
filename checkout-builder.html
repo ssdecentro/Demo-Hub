@@ -813,13 +813,13 @@ body.dev-mode .topbar{z-index:95;}
 
 /* ─────────────── RESPONSIVE ─────────────── */
 @media (max-width:1200px){
-  .inspector{position:fixed;right:0;top:60px;bottom:0;transform:translateX(105%);transition:transform .25s ease;z-index:60;box-shadow:-10px 0 34px rgba(2,11,30,.14);}
-  .inspector.open{transform:none;}
+  .inspector{position:fixed;right:0;top:60px;bottom:0;transform:translateX(105%);transition:transform .25s ease;z-index:60}
+  .inspector.open{transform:none;;box-shadow:-10px 0 34px rgba(2,11,30,.14)!important}
   .ins-close{display:flex;}
 }
 @media (max-width:920px){
-  .palette{position:fixed;left:0;top:60px;bottom:0;transform:translateX(-105%);transition:transform .25s ease;z-index:60;box-shadow:10px 0 34px rgba(2,11,30,.14);}
-  .palette.open{transform:none;}
+  .palette{position:fixed;left:0;top:60px;bottom:0;transform:translateX(-105%);transition:transform .25s ease;z-index:60}
+  .palette.open{transform:none;;box-shadow:10px 0 34px rgba(2,11,30,.14)!important}
   .fab-panel{display:flex;}
   .pal-hint{display:none;}
 }
