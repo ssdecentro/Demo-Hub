@@ -376,6 +376,43 @@ li.pend small{color:var(--s-warn);font-weight:500}
 .st-att .bars{display:flex;gap:4px}
 .st-att i{width:20px;height:4px;border-radius:2px;background:var(--s-bd)}
 .st-att i.on{background:var(--s-tx)}
+/* methods model: chooser rows, try-another-way card, back button */
+.op-r.mr{height:auto;min-height:72px;padding:12px 14px;align-items:center}
+.op-r.mr .op-ic{width:42px;height:42px;background:color-mix(in srgb,var(--s-p) 8%,var(--s-surf));color:var(--s-p)}
+.op-r.mr .op-ic svg{width:20px;height:20px}
+.op-r.mr .op-t small{font-size:12.5px;line-height:1.35;margin-top:3px;white-space:normal}
+.mr-tag{flex:none;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--s-ok) 12%,var(--s-bg));color:var(--s-ok);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--s-ok) 28%,transparent)}
+.mops{gap:10px;margin-top:4px}
+.op-r.mr.cmp{min-height:58px;padding:9px 12px;box-shadow:none}
+.op-r.mr.cmp .op-ic{width:36px;height:36px}
+.op-r.mr.cmp .op-ic svg{width:17px;height:17px}
+.op-r.mr.cmp .op-t{font-size:14px}
+.op-r.mr.cmp .op-t small{font-size:11.5px}
+.fb-card{width:100%;margin-top:16px;text-align:left;flex:none}
+.fb-h{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--s-tx2);margin:0 2px 8px}
+.fb-card .ops{gap:8px}
+.st.has-fb{justify-content:flex-start;padding-top:10px}
+.st.has-fb .st-em{width:56px;height:56px}
+.st.has-fb .st-em::after{inset:-19px}
+.st.has-fb .st-em::before{inset:-9px}
+.st.has-fb .st-em svg{width:24px;height:24px}
+.st.has-fb .st-card{margin-top:14px}
+.s-bk{margin-left:-10px;margin-right:-4px}
+.fmeth{margin-left:8px;font:500 10.5px var(--mono);color:var(--fg-2);border:1px dashed var(--line-2);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.jc.mc .r1 b{font-size:var(--fs-b);font-weight:600}
+.jc.mc .mck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line-2);display:grid;place-items:center;flex:none;background:var(--panel)}
+.jc.mc[aria-pressed="true"] .mck{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.jc.mc .mck svg{width:11px;height:11px;stroke-width:3.2}
+.jc.mc[aria-pressed="false"]{opacity:.78}
+#scn .seg{display:flex;width:100%}
+#scn .seg button{flex:1}
+.mc-box{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel)}
+.mc-ms{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mc-m{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font:600 11.5px var(--mono);color:var(--fg-2)}
+.mc-m[aria-pressed="true"]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.mc-m svg{width:12px;height:12px;stroke-width:3}
+.mc-n{font:500 10.5px var(--mono);color:var(--fg-3);margin-left:auto}
+.mc-box .mk-g{border:0;padding:0}
 /* payment options — production checkout component (decentro-netbanking-connect.html), themed */
 .cs{background:var(--s-surf);border-radius:var(--card-r);padding:14px 16px 12px;flex:none}
 .cs-r{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -569,14 +606,14 @@ body.devmode .tab{padding:7px 8px 8px}
 
 @media (max-width:1320px){
   .main{grid-template-columns:292px minmax(0,1fr)}
-  .dev{position:fixed;right:0;top:0;bottom:0;width:min(440px,94vw);z-index:70;transform:translateX(102%);transition:transform .28s}
-  .dev.open{transform:none;box-shadow:-20px 0 40px rgba(0,0,0,.18)!important}
+  .dev{position:fixed;right:0;top:0;bottom:0;width:min(440px,94vw);z-index:70;transform:translateX(102%);transition:transform .28s,box-shadow .28s;box-shadow:none}
+  .dev.open{transform:none;box-shadow:-20px 0 40px rgba(0,0,0,.18)}
   #btnDev{display:inline-flex}
 }
 @media (max-width:980px){
   .main{grid-template-columns:minmax(0,1fr)}
-  .ctl{position:fixed;left:0;top:0;bottom:0;width:min(330px,90vw);z-index:70;transform:translateX(-102%);transition:transform .28s}
-  .ctl.open{transform:none;box-shadow:20px 0 40px rgba(0,0,0,.18)!important}
+  .ctl{position:fixed;left:0;top:0;bottom:0;width:min(330px,90vw);z-index:70;transform:translateX(-102%);transition:transform .28s,box-shadow .28s;box-shadow:none}
+  .ctl.open{transform:none;box-shadow:20px 0 40px rgba(0,0,0,.18)}
   #btnCtl{display:inline-flex}
 }
 @media (max-width:720px){
@@ -614,7 +651,7 @@ body.devmode .tab{padding:7px 8px 8px}
 
 <div class="app">
   <header class="top">
-    <button class="tbtn" id="btnCtl" type="button" aria-controls="ctl"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Journey</button>
+    <button class="tbtn" id="btnCtl" type="button" aria-controls="ctl"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Setup</button>
     <div class="brand">
       <svg class="logo" viewBox="0 0 2749.67 538.23" role="img" aria-label="Decentro"><use href="#decentro-logo"/></svg>
       <span class="sep"></span>
@@ -632,28 +669,25 @@ body.devmode .tab{padding:7px 8px 8px}
   </header>
 
   <div class="main">
-    <aside class="ctl" id="ctl" aria-label="Journey controls">
+    <aside class="ctl" id="ctl" aria-label="Setup">
       <div id="devLeft" class="dev-only"></div>
       <div id="demoLeft" class="demo-only">
       <section class="sec">
-        <h3>Journey</h3>
-        <div class="jl" id="jlist"></div>
+        <h3>Merchant configuration</h3>
+        <p class="ctx-note" style="margin-top:-4px">Saved with Decentro for each merchant. The SDK reads it at launch and shows only these methods.</p>
+        <div class="jl" id="mlist"></div>
+        <p class="ctx-note" id="mNote"></p>
       </section>
 
       <section class="sec">
         <h3>Outcome to demo</h3>
-        <div class="fld">
-          <select class="sel" id="outSel" aria-label="Outcome"></select>
-        </div>
-        <div class="fld" id="vprWrap" hidden>
-          <label for="vprSel">VerifyPay failure reason</label>
-          <select class="sel" id="vprSel"></select>
-        </div>
+        <div id="scn"></div>
+        <div id="outs" class="jl" style="gap:10px"></div>
         <p class="ctx-note" id="outNote"></p>
       </section>
 
       <section class="sec" id="cfgSec">
-        <h3>Journey settings</h3>
+        <h3>Method settings</h3>
         <div id="cfg" class="jl"></div>
       </section>
 
@@ -676,7 +710,7 @@ body.devmode .tab{padding:7px 8px 8px}
     </aside>
 
     <main class="stage">
-      <nav class="flowbar" id="flowbar" aria-label="Journey screens"></nav>
+      <nav class="flowbar" id="flowbar" aria-label="Session screens"></nav>
       <div class="pwrap" id="pwrap">
         <div class="sizer" id="sizer">
           <div class="device" id="device" data-os="android">
@@ -721,7 +755,7 @@ body.devmode .tab{padding:7px 8px 8px}
         <button class="tbtn" id="btnBack" type="button" title="Android system back"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>System back</button>
         <button class="tbtn dev-only" id="btnInspect" type="button" aria-pressed="false" title="Inspect elements (I)"><svg class="i" viewBox="0 0 24 24"><path d="M3 3l7 18 2.5-7.5L20 11z"/></svg>Inspect</button>
         <button class="tbtn" id="btnFill" type="button" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Fill sample details</button>
-        <button class="tbtn" id="btnRestart" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Restart journey</button>
+        <button class="tbtn" id="btnRestart" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Restart</button>
       </div>
     </main>
 
@@ -745,7 +779,10 @@ body.devmode .tab{padding:7px 8px 8px}
 /* ============================================================
    Decentro Verification SDK — demo + frontend handoff
    Source of truth: "[Internal] Verification Services SDK – Documentation" (30-09-2026)
-   Every screen, copy string, API call, reference ID and callback below follows that doc.
+   Every screen, copy string, API call, reference ID and callback below follows that doc,
+   updated 02-11-2026 to the methods model: one SDK, three standalone methods
+   (RPD, VerifyPay, VBA) enabled per merchant in the config saved with Decentro;
+   the first method that succeeds ends the session and a failure offers the others.
    ============================================================ */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -770,48 +807,68 @@ const IC = {
   timer2:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>',
   shield:'<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/>',
   grid:'<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
-  rupee:'<path d="M6 4h11M6 8.5h11M6 13h4.5a4.5 4.5 0 000-9M6 13l7.5 7.5"/>'
+  rupee:'<path d="M6 4h11M6 8.5h11M6 13h4.5a4.5 4.5 0 000-9M6 13l7.5 7.5"/>',
+  at:'<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9"/>',
+  bank:'<path d="M3 21h18M5 10v8M9.5 10v8M14.5 10v8M19 10v8M12 3 3 8v2h18V8z"/>',
+  left:'<path d="M15 18l-6-6 6-6"/>'
 };
 const svg = (n, cls='i') => `<svg class="${cls}" viewBox="0 0 24 24">${IC[n]}</svg>`;
 
-/* ---------- product definitions ---------- */
+/* ---------- product definitions ----------
+   One SDK, three standalone verification methods. The merchant enables any one,
+   two or all three in its merchant configuration saved with Decentro, and the SDK
+   reads that configuration at launch. The customer picks a method; the first one
+   that succeeds ends the session with the verified name and account. If a method
+   fails, the enabled methods not yet tried are offered. Methods never chain. */
 const BASE = 'ORD12345';
 const CUST = { name:'ADITI SHARMA', typed:'Aditi Sharma', vpa:'aditi@okhdfc', acct:'50100234567890', ifsc:'HDFC0000123', type:'SAVINGS' };
-const JOURNEYS = {
-  RPD_VP_VBA:{ steps:['RPD','VP','VBA'], p:'P0', grp:'Combined', d:'Customer pays ₹1. UPI ID and bank account are then checked with no typing.' },
-  RPD_VP:    { steps:['RPD','VP'],  p:'P1', grp:'Combined', d:'Pay ₹1, then confirm the UPI ID and linked account.' },
-  VP_VBA:    { steps:['VP','VBA'],  p:'P1', grp:'Combined', entry:'vp', d:'Customer enters a UPI ID; the account behind it is validated.' },
-  RPD_VBA:   { steps:['RPD','VBA'], p:'P1', grp:'Combined', d:'Pay ₹1, then validate the paying account.' },
-  RPD:       { steps:['RPD'], p:'P1', grp:'Single', d:'Reverse penny drop: ₹1 from any UPI app.' },
-  VP:        { steps:['VP'],  p:'P1', grp:'Single', entry:'vp', d:'VerifyPay: confirm a UPI ID and its account.' },
-  VBA:       { steps:['VBA'], p:'P1', grp:'Single', entry:'vba', d:'Validate Bank Account from account number + IFSC.' }
+const METHODS = {
+  RPD:{ steps:['RPD'], name:'Reverse penny drop', title:'Pay ₹1 from a UPI app', sub:'No typing. Your bank shares your account details.', short:'₹1 UPI payment', icon:'rupee', d:'Customer pays ₹1 from any UPI app. Payer name and account come back from the bank.' },
+  VP:{ steps:['VP'], entry:'vp', name:'VerifyPay', title:'Enter your UPI ID', sub:'We confirm the bank account linked to it.', short:'UPI ID', icon:'at', d:'Customer enters a UPI ID. The linked account and name as per bank are returned.' },
+  VBA:{ steps:['VBA'], entry:'vba', name:'Validate Bank Account', title:'Enter bank account details', sub:'Account number and IFSC.', short:'bank account details', icon:'bank', d:'Customer enters account number and IFSC. The bank confirms the account and holder name.' }
 };
-const J = () => JOURNEYS[st.j];
+const MORDER = ['RPD','VP','VBA'];
+const JOURNEYS = METHODS;            // st.j is the method in progress; every method screen reads it
+const J = () => METHODS[st.j];
 const has = p => J().steps.includes(p);
-const STEPNAME = { RPD:'Payment', VP:'UPI ID', VBA:'Account' };
+const STEPNAME = { RPD:'₹1 payment', VP:'UPI ID', VBA:'Bank account' };
 
-const OUT = [
-  { id:'verified', g:'Results', l:'Verified', ok:()=>true, n:'Every step succeeds.' },
-  { id:'names_differ', g:'Results', l:'Verified · names differ slightly', ok:j=>j.steps.length>1, n:'Verified, but sources spell the name differently. See cross_checks in the result object.' },
-  { id:'rpd_declined', g:'Results', l:'Payment declined', ok:j=>j.steps.includes('RPD'), n:'GTS Basic returns FAILED. The journey stops at RPD.' },
-  { id:'rpd_expired', g:'Results', l:'Payment link expires', ok:j=>j.steps.includes('RPD'), n:'Customer never pays. The demo fast-forwards the timer to expiry.' },
-  { id:'vp_fail', g:'Results', l:'UPI ID not verified', ok:j=>j.steps.includes('VP'), n:'VerifyPay returns a failure key. Pick the reason below.' },
-  { id:'vp_pending', g:'Results', l:'VerifyPay stays pending', ok:j=>j.steps.includes('VP'), n:'VP returns PENDING and is still pending when the polling window ends.' },
-  { id:'vba_invalid', g:'Results', l:'Account invalid', ok:j=>j.steps.includes('VBA'), n:'VBA returns account_status invalid.' },
-  { id:'vba_inconclusive', g:'Results', l:'Account status inconclusive', ok:j=>j.steps.includes('VBA'), n:'VBA returns account_status inconclusive.' },
-  { id:'vba_nre', g:'Results', l:'NRE account', ok:j=>j.steps.includes('VBA'), n:'VBA returns NRE. Valid, but flagged for the merchant.' },
-  { id:'err_link', g:'Errors', l:'Payment link not created', ok:j=>j.steps.includes('RPD'), n:'RPD Intent fails. Retry is safe because no payment has happened.' },
-  { id:'err_noapp', g:'Errors', l:'No UPI app installed', ok:j=>j.steps.includes('RPD'), n:'Close only. Fires onError(NO_UPI_APP).' },
-  { id:'err_netwait', g:'Errors', l:'Network drops while waiting', ok:j=>j.steps.includes('RPD'), n:'Awaiting payment switches to "Waiting for network", then recovers.' },
-  { id:'err_unconfirmed', g:'Errors', l:'Payment unconfirmed', ok:j=>j.steps.includes('RPD'), n:'Status polls fail until the link expires. No retry, so a second ₹1 is never taken.' },
-  { id:'err_vp', g:'Errors', l:'Bank not responding (VerifyPay)', ok:j=>j.steps.includes('VP'), n:'Retry repeats VerifyPay only, with the next reference ID.' },
-  { id:'err_velocity', g:'Errors', l:'Too many attempts (VerifyPay)', ok:j=>j.steps.includes('VP'), n:'VP velocity limit hit. Close only.' },
-  { id:'err_vba', g:'Errors', l:'Server error at VBA', ok:j=>j.steps.includes('VBA'), n:'Retry repeats VBA only. VBA has no status API, so a retry may drop a second penny (OP-12).' },
-  { id:'err_unavail', g:'Errors', l:'Verification unavailable', ok:j=>j.steps.includes('VBA'), n:'Merchant plan, credit or balance issue on VBA. Close only.' },
-  { id:'err_masked', g:'Errors', l:'Account number returned masked', ok:j=>j.steps.includes('VBA') && j.steps.length>1, n:'The next step needs the full account number (OP-1). Close only.' },
-  { id:'err_offline', g:'Errors', l:'Device offline', ok:()=>true, n:'First call cannot leave the phone. Retry repeats it.' },
-  { id:'err_session', g:'Errors', l:'Session expired', ok:()=>true, n:'Token fails after one refresh. Fires onError(AUTH_FAILED).' }
+const OUT = {
+  RPD:[
+    { id:'verified', g:'Results', l:'Verified', n:'₹1 is paid; payer name and account come back from the bank.' },
+    { id:'rpd_declined', g:'Results', l:'Payment declined', n:'GTS Basic returns FAILED.' },
+    { id:'rpd_expired', g:'Results', l:'Payment link expires', n:'The customer never pays. The demo fast-forwards to expiry.' },
+    { id:'err_link', g:'Errors', l:'Payment link not created', n:'RPD Intent fails once. Try again creates a fresh link.' },
+    { id:'err_netwait', g:'Errors', l:'Network drops while waiting', n:'"Waiting for network", then the payment is confirmed.' },
+    { id:'err_unconfirmed', g:'Errors', l:'Payment unconfirmed', n:'Status polls fail until expiry. No retry, so ₹1 is never taken twice.' },
+    { id:'err_missing', g:'Errors', l:'Payer details missing', n:'The payment succeeds but the bank returns no account details.' }
+  ],
+  VP:[
+    { id:'verified', g:'Results', l:'Verified', n:'The linked account and name as per bank are returned.' },
+    { id:'names_differ', g:'Results', l:'Verified · name differs slightly', n:'Verified with a lower name_match_score.' },
+    { id:'vp_fail', g:'Results', l:'UPI ID not verified', n:'VerifyPay returns a failure key (pick the reason below).' },
+    { id:'vp_pending', g:'Results', l:'Stays pending at the bank', n:'PENDING, and still pending when the polling window ends.' },
+    { id:'err_vp', g:'Errors', l:'Bank not responding', n:'Fails once. Try again repeats VerifyPay with the next reference ID.' },
+    { id:'err_vptimeout', g:'Errors', l:'No response in 30 s', n:'The SDK checks GTS Verify by reference_id before offering Try again.' },
+    { id:'err_velocity', g:'Errors', l:'Too many attempts', n:'Velocity limit on this UPI ID. No retry.' }
+  ],
+  VBA:[
+    { id:'verified', g:'Results', l:'Verified', n:'account_status valid, with the beneficiary name.' },
+    { id:'names_differ', g:'Results', l:'Verified · name differs slightly', n:'Valid with a lower name_match_percentage.' },
+    { id:'vba_invalid', g:'Results', l:'Account invalid', n:'account_status invalid.' },
+    { id:'vba_inconclusive', g:'Results', l:'Status inconclusive', n:'account_status inconclusive.' },
+    { id:'vba_nre', g:'Results', l:'NRE account', n:'Valid but NRE. This ends the session and the merchant applies its policy.' },
+    { id:'err_vba', g:'Errors', l:'Server error', n:'Fails once. VBA has no status API, so Try again may drop a second penny (OP-12).' },
+    { id:'err_unavail', g:'Errors', l:'Verification unavailable', n:'Merchant plan, credit or balance issue. No retry.' }
+  ]
+};
+const ISSUES = [
+  { id:'none', l:'None' },
+  { id:'noapp', l:'No UPI app on the phone', n:'RPD is hidden from the method list; if RPD is the only method, the SDK shows No UPI app found.' },
+  { id:'offline', l:'Device offline at launch', n:'The merchant config call cannot leave the phone. Try again repeats it.' },
+  { id:'session', l:'Session expired', n:'The token fails after one refresh, which ends the session with AUTH_FAILED.' }
 ];
+const FAILK = { RPD:'rpd_declined', VP:'vp_fail', VBA:'vba_invalid' };
 const VPR = [
   { k:'failure_no_account_mapped', b:'No bank account is linked', s:'to this UPI ID.' },
   { k:'success_account_details_invalid', b:'An invalid account is linked', s:'to this UPI ID.' },
@@ -821,12 +878,8 @@ const VPR = [
   { k:'failure_inactive_psp', b:"This UPI ID's app provider", s:'is not active.' }
 ];
 const CONSENT = {
-  RPD_VP_VBA:{ title:'Verify your bank account', steps:['Pay ₹1 from any UPI app','We confirm your UPI ID','We validate your bank account'], text:'I consent to a ₹1 payment and to verifying my UPI ID and bank account as per the terms and conditions' },
-  RPD_VP:{ title:'Verify your UPI ID', steps:['Pay ₹1 from any UPI app','We confirm your UPI ID'], text:'I consent to a ₹1 payment and to verifying my UPI ID and linked bank account, as per the terms and conditions' },
-  RPD_VBA:{ title:'Verify your bank account', steps:['Pay ₹1 from any UPI app','We validate your account'], text:'I consent to a ₹1 payment and to the verification of my bank account details, as per the terms and conditions' },
-  RPD:{ title:'Verify your bank account', steps:['Pay ₹1 from any UPI app to confirm your bank account.'], text:'I consent to a ₹1 UPI payment to verify my bank account as per the terms and conditions' },
+  RPD:{ title:'Verify your bank account', steps:['Pay ₹1 from any UPI app. Your bank shares the account details with us, so there is nothing to type.'], text:'I consent to a ₹1 UPI payment to verify my bank account as per the terms and conditions' },
   VP:{ text:'I consent to the verification of my UPI ID and linked bank account, including a small credit to that account, as per the terms and conditions' },
-  VP_VBA:{ text:'I consent to the verification of my UPI ID and linked bank account, including small credits to that account, as per the terms and conditions' },
   VBA:{ text:'I consent to the verification of my bank account details as per the terms and conditions' }
 };
 /* App icons and row component reused from the production Decentro checkout
@@ -864,12 +917,13 @@ const PRESETS = {
 
 /* ---------- state ---------- */
 const st = {
-  j:'RPD_VP_VBA', out:'verified', vpr:0,
+  j:'RPD', dm:['RPD','VP','VBA'], outs:{ RPD:'verified', VP:'verified', VBA:'verified' }, issue:'none', vpr:0,
   cfg:{ expiry:15, vpNM:true, vbaNM:true, vbaType:'pennydrop', mode:'COLLECT', prefill:'editable', keepFail:false, autoClose:0, xob:true },
   th:{ preset:'decentro', dark:false, primary:null, btnStyle:null, btnCase:null },
   os:'android', speed:1, run:0, logN:0, t0:Date.now(),
   mode:'demo', base:BASE, urn:{ decfin:'DECFINURN123', decentro:'DECENTROURN456' }, env:'PRODUCTION', xobVal:'SUBMERCHANT01',
-  req:null, pf:{}, tov:null, devMock:null, inspect:false, net:[], cbs:[]
+  mcfg:{ methods:['RPD','VP','VBA'] }, devMcfg:null,
+  req:null, pf:{}, tov:null, devMock:null, inspect:false, net:[], cbs:[], history:[], methods:null
 };
 const cfg = st.cfg;
 
@@ -899,17 +953,33 @@ function freshRun(){
   st.pv = null;
   st.run++;
   if (st.mode === 'demo') applyDemo();
-  const pv = k => st.pf[k] && st.pf[k].value ? st.pf[k].value : '';
+  if (!st.mcfg.methods.includes(st.j)) st.j = st.mcfg.methods[0] || 'RPD';
   Object.assign(st, {
     screen:'host', sdkOpen:false, steps:{}, cnt:{RPD:0,VP:0,VBA:0}, fired:{}, attempt:1, tried:[], attempts:[],
-    errRetries:{RPD:0,VP:0,VBA:0}, tokens:{}, consent:false, consentAt:null, app:null, edited:[], prog:{},
+    errRetries:{RPD:0,VP:0,VBA:0}, tokens:{}, consent:false, consentAt:null, consents:[], app:null, edited:[], prog:{},
     expiryEnd:0, ff:0, back:false, showTry:false, netLost:false, final:null, err:null, last:null, jid:uuid(),
-    t0:Date.now(), startedAt:null, touched:{}, showAll:false, hostNote:null, cancelledAt:null, retrying:false,
-    form:{ vpa:pv('upi_vpa'), name: J().entry === 'vp' ? pv('customer_name') : pv('name'), acct:pv('account_number'), acct2:'', ifsc:pv('ifsc') },
+    t0:Date.now(), startedAt:null, touched:{}, showAll:false, hostNote:null, hostCode:null, cancelledAt:null, retrying:false, busy:false, expiredOnApps:false,
+    methods:null, history:[], ended:false, rpdTxn:null,
     mock: st.mode === 'dev' && st.devMock ? { ...st.devMock } : mockFromOutcome(), net:[], netN:0, polls:{ gts:0, gtv:0 }, cbs:[], polled:false
   });
+  initForm();
+}
+function initForm(){
+  const pv = k => st.pf[k] && st.pf[k].value ? st.pf[k].value : '';
+  st.form = { vpa:pv('upi_vpa'), name:pv('name'), acct:pv('account_number'), acct2:'', ifsc:pv('ifsc') };
   st.init = { ...st.form };
 }
+/* Fresh per-method state when the customer picks (or falls back to) a method. */
+function resetMethod(){
+  Object.assign(st, { consent:false, consentAt:null, attempt:1, touched:{}, showAll:false, final:null, err:null, prog:{}, expiryEnd:0, ff:0, app:null,
+    showTry:false, netLost:false, busy:false, retrying:false, expiredOnApps:false, polled:false, rpdTxn:null, edited:[], overlay:null });
+  initForm();
+}
+/* Methods the customer can still pick: enabled, available on this phone, not yet tried. */
+const triedM = k => st.history.some(h => h.method === k);
+const chooserList = () => (st.methods || []).filter(k => !triedM(k));
+const remaining = () => (st.methods || []).filter(k => k !== st.j && !triedM(k));
+const planMethods = () => st.methods || MORDER.filter(k => st.mcfg.methods.includes(k));
 
 /* ============================================================
    EVENT LOG
@@ -979,50 +1049,68 @@ function paintBars(){
    CONTROLS
    ============================================================ */
 function segSet(sel, v){ document.querySelectorAll(sel + ' button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v ?? b.dataset.os) === String(v))); }
-function buildJourneys(){
-  const L = $('#jlist'); let html = '', g = '';
-  Object.entries(JOURNEYS).forEach(([k, j]) => {
-    if (j.grp !== g){ g = j.grp; html += `<div class="jgrp">${g === 'Combined' ? 'Combined journeys' : 'Single products'}</div>`; }
-    html += `<button type="button" class="jc" data-j="${k}" aria-pressed="${k === st.j}"><span class="r1"><span class="chain">${j.steps.map(s => `<span>${s}</span>`).join('<i>›</i>')}</span><span class="p ${j.p === 'P0' ? 'p0' : ''}">${j.p}</span></span><span class="d">${j.d}</span></button>`;
-  });
-  L.innerHTML = html;
+function buildMethods(){
+  const on = st.dm;
+  $('#mlist').innerHTML = MORDER.map(k => { const m = METHODS[k], p = on.includes(k);
+    return `<button type="button" class="jc mc" data-m="${k}" aria-pressed="${p}"><span class="r1"><span class="mck">${p ? svg('check') : ''}</span><b>${m.name}</b><span class="p">${k}</span></span><span class="d">${m.d}</span></button>`; }).join('');
+  $('#mNote').textContent = on.length > 1
+    ? `The customer chooses from ${on.length} methods. The first one that succeeds ends the session; if one fails, the others are offered.`
+    : `Only ${METHODS[on[0]].name} is on, so the SDK opens straight into it and there is nothing to fall back to.`;
 }
+const outcomeOf = k => OUT[k].find(o => o.id === st.outs[k]) || OUT[k][0];
+function scenarioNow(){
+  const en = st.dm;
+  if (en.every(k => st.outs[k] === 'verified')) return 'happy';
+  if (en.every(k => st.outs[k] === FAILK[k])) return 'allfail';
+  if (en.length > 1 && st.outs[en[0]] === FAILK[en[0]] && en.slice(1).every(k => st.outs[k] === 'verified')) return 'fallback';
+  return '';
+}
+function setScenario(v){ st.dm.forEach((k, i) => st.outs[k] = v === 'happy' ? 'verified' : v === 'allfail' ? FAILK[k] : i === 0 ? FAILK[k] : 'verified'); }
 function buildOutcomes(){
-  const sel = $('#outSel'), ok = OUT.filter(o => o.ok(J()));
-  if (!ok.find(o => o.id === st.out)) st.out = 'verified';
-  const groups = [...new Set(ok.map(o => o.g))];
-  sel.innerHTML = groups.map(g => `<optgroup label="${g}">${ok.filter(o => o.g === g).map(o => `<option value="${o.id}" ${o.id === st.out ? 'selected' : ''}>${o.l}</option>`).join('')}</optgroup>`).join('');
-  $('#vprWrap').hidden = st.out !== 'vp_fail';
-  $('#vprSel').innerHTML = VPR.map((r,i) => `<option value="${i}" ${i === st.vpr ? 'selected' : ''}>${r.b} ${r.s}</option>`).join('');
-  $('#outNote').textContent = (OUT.find(o => o.id === st.out) || {}).n || '';
+  const en = st.dm, sc = scenarioNow();
+  const opts = [['happy','All succeed'], ...(en.length > 1 ? [['fallback','First fails']] : []), ['allfail', en.length > 1 ? 'All fail' : 'Fails']];
+  $('#scn').innerHTML = `<div class="seg">${opts.map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${v === sc}">${l}</button>`).join('')}</div>`;
+  let h = '';
+  en.forEach(k => {
+    const L = OUT[k], gs = [...new Set(L.map(o => o.g))];
+    h += `<div class="fld"><label for="out-${k}">${METHODS[k].name}</label><select class="sel" id="out-${k}" data-out="${k}">${gs.map(g => `<optgroup label="${g}">${L.filter(o => o.g === g).map(o => `<option value="${o.id}" ${o.id === st.outs[k] ? 'selected' : ''}>${o.l}</option>`).join('')}</optgroup>`).join('')}</select></div>`;
+    if (k === 'VP' && st.outs.VP === 'vp_fail') h += `<div class="fld"><label for="vprSel">VerifyPay failure reason</label><select class="sel" id="vprSel">${VPR.map((r, i) => `<option value="${i}" ${i === st.vpr ? 'selected' : ''}>${r.b} ${r.s}</option>`).join('')}</select></div>`;
+  });
+  h += `<div class="fld"><label for="issueSel">Device or session</label><select class="sel" id="issueSel">${ISSUES.map(o => `<option value="${o.id}" ${o.id === st.issue ? 'selected' : ''}>${o.l}</option>`).join('')}</select></div>`;
+  $('#outs').innerHTML = h;
+  const notes = en.filter(k => st.outs[k] !== 'verified').map(k => `${METHODS[k].name}: ${outcomeOf(k).n}`);
+  const iss = ISSUES.find(o => o.id === st.issue); if (iss && iss.n) notes.push(iss.n);
+  $('#outNote').textContent = notes.length ? notes.join(' ') : 'Whichever method the customer picks succeeds.';
 }
 function sw(id, on, label, sub){ return `<div class="row2"><span class="lb">${label}${sub ? `<small>${sub}</small>` : ''}</span><button type="button" class="sw" role="switch" data-cfg="${id}" aria-checked="${on}" aria-label="${label}"></button></div>`; }
 function seg(id, val, opts, label, sub){ return `<div class="row2"><span class="lb">${label}${sub ? `<small>${sub}</small>` : ''}</span><div class="seg" data-cfgseg="${id}">${opts.map(([v,l]) => `<button type="button" data-v="${v}" aria-pressed="${String(v) === String(val)}">${l}</button>`).join('')}</div></div>`; }
 function buildCfg(){
-  const j = J(); let h = '';
-  if (has('RPD')) h += `<div class="row2"><span class="lb">Payment link expiry<small>rpd.expiry_minutes · 1–60</small></span><input class="num" id="expIn" type="number" min="1" max="60" value="${cfg.expiry}" aria-label="Payment link expiry in minutes"></div>`;
-  if (j.entry){
-    h += seg('mode', cfg.mode, [['COLLECT','Collect'],['SKIP','Skip']], 'Entry screen', 'data_entry_mode');
-    h += seg('prefill', cfg.prefill, [['empty','Empty'],['editable','Editable'],['locked','Locked']], 'Prefill', 'prefill.*.value / editable');
+  const on = k => st.dm.includes(k), entry = on('VP') || on('VBA'); let h = '';
+  if (on('RPD')) h += `<div class="row2"><span class="lb">Payment link expiry<small>config · rpd.expiry_minutes · 1–60</small></span><input class="num" id="expIn" type="number" min="1" max="60" value="${cfg.expiry}" aria-label="Payment link expiry in minutes"></div>`;
+  if (on('VP')) h += sw('vpNM', cfg.vpNM, 'VerifyPay name match', 'config · adds the name field');
+  if (on('VBA')) h += sw('vbaNM', cfg.vbaNM, 'VBA name match', 'config · name becomes required');
+  if (on('VBA')) h += seg('vbaType', cfg.vbaType, [['penniless','Penniless'],['pennydrop','Penny drop'],['hybrid','Hybrid']], 'VBA validation', 'config · vba.validation_type');
+  if (entry){
+    h += seg('mode', cfg.mode, [['COLLECT','Collect'],['SKIP','Skip']], 'Entry screens', 'request · data_entry_mode');
+    h += seg('prefill', cfg.prefill, [['empty','Empty'],['editable','Editable'],['locked','Locked']], 'Prefill', 'request · prefill.*');
   }
-  if (has('VP')) h += sw('vpNM', cfg.vpNM, 'VerifyPay name match', has('RPD') ? 'Name comes from RPD payer_name' : 'Adds the name field');
-  if (has('VBA')) h += sw('vbaNM', cfg.vbaNM, 'VBA name match', has('VP') ? 'Name comes from VP name_as_per_bank' : has('RPD') ? 'Name comes from RPD payer_name' : 'Name field becomes required');
-  if (has('VBA')) h += seg('vbaType', cfg.vbaType, [['penniless','Penniless'],['pennydrop','Penny drop'],['hybrid','Hybrid']], 'VBA validation', 'vba.validation_type');
-  if (has('RPD') || has('VP')) h += sw('xob', cfg.xob, 'Send x_on_behalf_of', 'Header on RPD and VerifyPay only');
-  if (j.entry && ['vp_fail','vba_invalid','vba_inconclusive'].includes(st.out)) h += sw('keepFail', cfg.keepFail, 'Fail every attempt', 'Shows the 3-attempt cap on Modify details');
-  h += seg('autoClose', cfg.autoClose, [[0,'Off'],[5,'5 s']], 'Auto-close result', 'auto_close_seconds');
+  if (on('RPD') || on('VP')) h += sw('xob', cfg.xob, 'Send x_on_behalf_of', 'request · RPD and VerifyPay only');
+  const failing = (on('VP') && st.outs.VP === 'vp_fail') || (on('VBA') && ['vba_invalid','vba_inconclusive'].includes(st.outs.VBA));
+  if (entry && failing) h += sw('keepFail', cfg.keepFail, 'Fail every attempt', 'Shows the 3-attempt cap on Modify details');
+  h += seg('autoClose', cfg.autoClose, [[0,'Off'],[5,'5 s']], 'Auto-close on success', 'request · auto_close_seconds');
+  h += `<p class="ctx-note"><b>config</b> lives in the merchant configuration saved with Decentro. <b>request</b> is sent by the app on each startJourney.</p>`;
   $('#cfg').innerHTML = h;
   const e = $('#expIn'); if (e) e.addEventListener('change', () => { cfg.expiry = Math.min(60, Math.max(1, parseInt(e.value,10) || 15)); e.value = cfg.expiry; restart(); });
 }
 function buildPresets(){
   $('#presets').innerHTML = Object.entries(PRESETS).map(([k, p]) => `<button type="button" class="pc" data-p="${k}" aria-pressed="${k === st.th.preset}"><span class="dot" style="background:${(p.darkDefault ? p.dark : p.light).primary};color:${(p.darkDefault ? p.dark : p.light).on_primary}">${p.mono}</span><span>${p.name}</span></button>`).join('');
 }
-function syncControls(){ buildJourneys(); buildOutcomes(); buildCfg(); segSet('#spSeg', st.speed); segSet('#osSeg', st.os); $('#btnBack').hidden = st.os !== 'android'; }
+function syncControls(){ buildMethods(); buildOutcomes(); buildCfg(); segSet('#spSeg', st.speed); segSet('#osSeg', st.os); $('#btnBack').hidden = st.os !== 'android'; }
 
 /* ============================================================
    NAVIGATION
    ============================================================ */
-const SCREEN_LABEL = { host:'Merchant app', consent:'Consent', entry:'Entry and consent', apps:'Choose UPI app', awaiting:'Awaiting payment', verifying:'Verifying', processing:'Verifying', result:'Final result', error:'Error' };
+const SCREEN_LABEL = { host:'Merchant app', boot:'Loading config', methods:'Choose a method', consent:'Consent', entry:'Entry and consent', apps:'Choose UPI app', awaiting:'Awaiting payment', processing:'Verifying', result:'Result', error:'Error' };
 function go(screen){
   st.screen = screen; closeOverlays();
   if (screen !== 'host' && !st.sdkOpen){ st.sdkOpen = true; $('#sdk').classList.add('open'); paintBars(); }
@@ -1033,33 +1121,42 @@ function go(screen){
 }
 function screenTitle(s){
   if (s === 'entry') return J().entry === 'vp' ? 'UPI ID entry + consent' : 'Bank details entry + consent';
-  if (s === 'result') return 'Final result · ' + (st.final?.status || '');
+  if (s === 'result') return 'Result · ' + st.j + ' · ' + (st.final?.status || '');
   if (s === 'error') return 'Error · ' + (st.err?.h || '');
+  if (s === 'consent' || s === 'apps' || s === 'awaiting' || s === 'processing') return SCREEN_LABEL[s] + ' · ' + st.j;
   return SCREEN_LABEL[s] || s;
 }
 function flowSeq(){
-  const j = J();
-  if (j.entry) return ['host','entry', j.steps.length > 1 ? 'verifying' : 'processing', 'result'];
-  const s = ['host','consent','apps','awaiting']; if (j.steps.length > 1) s.push('verifying'); s.push('result'); return s;
+  const s = ['host'];
+  if (planMethods().length > 1) s.push('methods');
+  if (J().entry) s.push('entry', 'processing'); else s.push('consent', 'apps', 'awaiting');
+  s.push('result'); return s;
 }
 function flowbar(){
-  const seq = flowSeq(); let cur = st.screen === 'error' ? 'result' : st.screen;
+  const seq = flowSeq();
+  const cur = st.screen === 'error' ? 'result' : st.screen === 'boot' ? seq[1] : st.screen;
   const closed = st.screen === 'host' && st.last;
   const ci = closed ? seq.length : seq.indexOf(cur);
-  const lab = k => ({ host:'Your app', consent:'Consent', entry: J().entry === 'vp' ? 'UPI ID + consent' : 'Bank details + consent', apps:'UPI app', awaiting:'Payment', verifying:'Verifying', processing:'Verifying', result: st.screen === 'error' ? 'Error' : 'Result' }[k]);
-  $('#flowbar').innerHTML = seq.map((k,i) => `<span class="fchip ${i < ci ? 'done' : ''} ${i === ci ? 'cur' : ''} ${i === ci && st.screen === 'error' ? 'bad' : ''}"><span class="n">${i+1}</span>${lab(k)}</span>`).join('<span class="farr">›</span>');
+  const lab = k => ({ host:'Your app', methods:'Choose method', consent:'Consent', entry: J().entry === 'vp' ? 'UPI ID + consent' : 'Bank details + consent', apps:'UPI app', awaiting:'Payment', processing:'Verifying', result: st.screen === 'error' ? 'Error' : 'Result' }[k]);
+  const tried = st.history.length ? `<span class="fmeth">${[...new Set(st.history.map(h => h.method))].concat(triedM(st.j) ? [] : [st.j]).join(' → ')}</span>` : '';
+  $('#flowbar').innerHTML = seq.map((k,i) => `<span class="fchip ${i < ci ? 'done' : ''} ${i === ci ? 'cur' : ''} ${i === ci && st.screen === 'error' ? 'bad' : ''}"><span class="n">${i+1}</span>${lab(k)}</span>`).join('<span class="farr">›</span>') + tried;
 }
 function caption(){
-  const s = st.screen, j = st.j; let t = '';
-  if (s === 'host') t = st.last ? 'Your app receives one structured result for the whole journey, then decides what to do next.' : 'This is the merchant\'s own app. One startJourney call opens the SDK with the merchant\'s branding.';
-  else if (s === 'consent') t = j === 'RPD_VP_VBA' ? 'One consent covers all three checks. The customer never types an account number.' : 'Consent is captured once, before any money moves.';
+  const s = st.screen, multi = planMethods().length > 1, f = st.final; let t = '';
+  if (s === 'host') t = st.last ? 'Your app gets one result for the session: the verified name and account, or why no method could verify it.' : 'The merchant\'s own app. One startJourney call opens the SDK; which methods it shows comes from the merchant config saved with Decentro.';
+  else if (s === 'boot') t = 'The SDK reads the merchant configuration from Decentro to decide which methods to show.';
+  else if (s === 'methods') t = st.history.length ? 'Methods already tried are not offered again.' : 'Only the methods this merchant enabled are listed. The customer picks one; there is no fixed order and no chaining.';
+  else if (s === 'consent') t = 'Consent is captured once, before any money moves.' + (multi ? ' Back returns to the method list.' : '');
   else if (s === 'entry') t = cfg.mode === 'SKIP' ? 'SKIP mode: the merchant already has the details, so the customer only reviews and consents.' : 'The merchant decides which fields are prefilled, editable or locked.';
   else if (s === 'apps') t = 'The same payment-option list as Decentro checkout. Only UPI apps on the phone are shown; the ₹1 link expires in ' + cfg.expiry + ' min.';
   else if (s === 'awaiting') t = 'The SDK polls payment status while the customer pays in their UPI app.';
-  else if (s === 'verifying') t = 'The remaining checks run back to back on one screen, with no customer input.';
   else if (s === 'processing') t = 'A single synchronous check. Back and close are disabled until it answers.';
-  else if (s === 'result') t = 'onResult fires before this screen renders, so the merchant app can prepare its next step.';
-  else if (s === 'error') t = st.err?.retry ? 'Retry repeats only the step that failed. The ₹1 payment is never taken twice.' : 'This error ends the journey. Close returns the customer to the merchant app.';
+  else if (s === 'result') t = f?.status === 'VERIFIED' ? 'Verified, so the SDK\'s job is done. onResult carries the name and account; no other method runs.'
+    : f?.status === 'NRE' ? 'The account is valid but NRE. This ends the session and the merchant applies its own policy.'
+    : remaining().length ? 'This method didn\'t work, so the other enabled methods are offered. The session ends when one succeeds or the customer closes.'
+    : 'No other method is left, so this outcome is final and onResult has fired.';
+  else if (s === 'error') t = st.err?.retry ? 'Try again repeats only this method\'s failed call.' + (st.err.fallback !== false && remaining().length ? ' The customer can also switch to another method.' : '')
+    : st.err?.fallback !== false && remaining().length ? 'This method cannot continue, but the customer can switch to another enabled method.' : 'This error ends the session. Close returns the customer to the merchant app.';
   $('#caption').textContent = t;
   pvBanner();
 }
@@ -1067,13 +1164,34 @@ function caption(){
 /* ============================================================
    RENDER — SDK SCREENS
    ============================================================ */
-function headClose(){ return ['consent','entry','apps','awaiting'].includes(st.screen); }
+function headClose(){ return ['methods','consent','entry','apps','awaiting'].includes(st.screen); }
+function canGoBack(){ return ['consent','entry'].includes(st.screen) && chooserList().length > 1; }
 function renderSdk(){
   const P = PRESETS[st.th.preset];
-  $('#shead').innerHTML = `<span class="s-logo">${P.mono}</span><b>${esc(effTheme().header)}</b>${headClose() ? `<button class="s-x" data-act="x" aria-label="Close">${svg('x')}</button>` : ''}`;
-  const R = { consent:vConsent, entry:vEntry, apps:vApps, awaiting:vAwaiting, verifying:vVerifying, processing:vProcessing, result:vResult, error:vError }[st.screen];
+  $('#shead').innerHTML = `${canGoBack() ? `<button class="s-x s-bk" data-act="chooser" aria-label="Back to verification methods">${svg('left')}</button>` : ''}<span class="s-logo">${P.mono}</span><b>${esc(effTheme().header)}</b>${headClose() ? `<button class="s-x" data-act="x" aria-label="Close">${svg('x')}</button>` : ''}`;
+  const R = { boot:vBoot, methods:vMethods, consent:vConsent, entry:vEntry, apps:vApps, awaiting:vAwaiting, processing:vProcessing, result:vResult, error:vError }[st.screen];
   if (R){ $('#sbody').innerHTML = R(); if (st.screen === 'entry') bindEntry(); tick(); }
   annotate(); pvBanner();
+}
+function vBoot(){
+  return `<div class="s-center" style="margin:auto 0;gap:12px"><div class="spinner"></div>
+  <h1 class="s-title" style="margin-top:12px">Getting things ready</h1>
+  <p class="s-sub">Loading your verification options…</p></div>`;
+}
+function methodRow(k, compact){
+  const m = METHODS[k];
+  return `<button class="op-r mr ${compact ? 'cmp' : ''}" data-act="method:${k}"><span class="op-ic">${svg(m.icon)}</span><span class="op-t">${m.title}<small>${m.sub}</small></span>${!compact && k === 'RPD' ? '<span class="mr-tag">Fastest</span>' : ''}${svg('chev','i chv')}</button>`;
+}
+function vMethods(){
+  const P = PRESETS[st.th.preset], L = chooserList();
+  return `<div style="display:flex;flex-direction:column;gap:6px"><h1 class="s-title">Verify your bank account</h1>
+    <p class="s-sub">${esc(P.merchant)} needs to confirm the bank account in your name. Choose any one way.</p></div>
+  <div class="ops mops">${L.map(k => methodRow(k, false)).join('')}</div>
+  <div class="s-note" style="margin-top:auto">${svg('shield')}<span>Verified securely by Decentro. Your details are shared only with ${esc(P.merchant)}.</span></div>`;
+}
+function fallbackCard(){
+  const r = remaining(); if (!r.length) return '';
+  return `<div class="fb-card"><div class="fb-h">Try another way</div><div class="ops">${r.map(k => methodRow(k, true)).join('')}</div></div>`;
 }
 function chk(text){
   const t = esc(text).replace('terms and conditions', '<a class="s-link-inline" href="#" data-act="terms">terms and conditions</a>');
@@ -1110,21 +1228,6 @@ function vAwaiting(){
     <p class="s-cap" style="margin:0">Opened in ${esc(st.app || '')}</p>
     ${st.showTry && !st.netLost ? `<button class="s-link" data-act="try" style="margin-top:14px">Try another UPI app</button>` : ''}
   </div>`;
-}
-function progItem(p){
-  const s = st.prog[p] || 'wait', d = st.steps;
-  const vpa = d.RPD?.data?.payer_vpa || d.VP?.data?.upi_vpa || st.form.vpa;
-  let b, sm;
-  if (p === 'RPD'){ b = 'Payment received'; sm = '₹1 from ' + esc(vpa); }
-  if (p === 'VP'){ b = s === 'done' ? 'UPI ID confirmed' : 'Confirming your UPI ID'; sm = { done:esc(vpa), active:'In progress', wait:'Waiting', pend:'Your bank is taking a moment', fail:'Stopped' }[s]; }
-  if (p === 'VBA'){ b = s === 'done' ? 'Bank account validated' : 'Validating bank account'; sm = { done:mask(d.VP?.data?.account_number || d.RPD?.data?.payer_account_number), active:'In progress', wait:'Waiting', fail:'Stopped' }[s]; }
-  const ic = s === 'done' ? svg('check') : s === 'fail' ? svg('x') : s === 'pend' ? svg('dots') : '';
-  return `<li class="${s}"><span class="pi">${ic}</span><span><b>${b}</b><small>${sm}</small></span></li>`;
-}
-function vVerifying(){
-  return `<h1 class="s-title">${st.j === 'RPD_VP' ? 'Verifying your UPI ID' : 'Verifying your account'}</h1>
-  <ol class="s-prog">${J().steps.map(progItem).join('')}</ol>
-  <p class="s-cap" style="margin-top:auto;text-align:center">This takes a few seconds.<br>Do not close this screen.</p>`;
 }
 function vProcessing(){
   const vp = st.j === 'VP', pend = st.prog.VP === 'pend';
@@ -1171,7 +1274,6 @@ function validate(){
   if (e === 'vp'){
     const v = f.vpa.trim();
     if (!(v.length >= 4 && /^[^\s@]+@[^\s@]+$/.test(v))) er.vpa = 'Please enter a valid UPI ID.';
-    else if (st.j === 'VP_VBA' && st.tried.includes(v.toLowerCase())) er.vpa = 'This UPI ID was already tried.';
     if (cfg.vpNM){ const n = f.name.trim(); if (n.length < 2) er.name = 'Please enter the account holder name.'; else if (/[@#$%^&*]/.test(n)) er.name = 'Name must not contain special characters.'; }
   } else {
     const n = f.name.trim();
@@ -1228,11 +1330,11 @@ function stepMark(p){
   return `<span class="sl-bad">${svg('x')}${STEPNAME[p]}</span>`;
 }
 const paid = () => st.steps.RPD?.status === 'SUCCESS';
-const PFKEY = k => ({ vpa:'upi_vpa', name: J().entry === 'vp' ? 'customer_name' : 'name', acct:'account_number', ifsc:'ifsc' }[k]);
+const PFKEY = k => ({ vpa:'upi_vpa', name:'name', acct:'account_number', ifsc:'ifsc' }[k]);
 function locked(k){ const f = st.pf[PFKEY(k)]; return !!(f && f.value && f.editable === false); }
 function anyEditable(){
   const e = J().entry;
-  if (e === 'vp') return st.j === 'VP_VBA' ? !locked('vpa') : (!locked('vpa') || (cfg.vpNM && !locked('name')));
+  if (e === 'vp') return !locked('vpa') || (cfg.vpNM && !locked('name'));
   return !locked('name') || !locked('acct') || !locked('ifsc');
 }
 function canModify(){
@@ -1242,12 +1344,8 @@ function canModify(){
 }
 function resultHeader(){
   const f = st.final, j = st.j;
-  if (f.status === 'VERIFIED') return j === 'VBA' ? 'Account is Valid' : (j === 'VP' || j === 'RPD_VP') ? 'UPI ID verified' : 'Bank account verified';
-  if (f.status === 'NOT_VERIFIED'){
-    if (j === 'VBA') return 'Account is Invalid';
-    if (j === 'VP' || j === 'RPD_VP' || (j === 'VP_VBA' && f.failed === 'VP')) return "We couldn't verify your UPI ID";
-    return "We couldn't verify your bank account";
-  }
+  if (f.status === 'VERIFIED') return j === 'VBA' ? 'Account is Valid' : j === 'VP' ? 'UPI ID verified' : 'Bank account verified';
+  if (f.status === 'NOT_VERIFIED') return j === 'VBA' ? 'Account is Invalid' : j === 'VP' ? "We couldn't verify your UPI ID" : (f.reason ? f.reason.b : "Payment didn't go through");
   if (f.status === 'INCONCLUSIVE') return 'Account status could not be determined';
   if (f.status === 'NRE') return 'The account is valid, but it is an NRE account.';
   return 'Verification is taking longer than usual';
@@ -1257,20 +1355,20 @@ function resultHeader(){
    with a step tracker, account details where relevant, and a refund / reference footer. */
 const TONE = { bad:'var(--s-err)', wn:'var(--s-warn)', ok:'var(--s-ok)', nt:'var(--s-tx2)' };
 const STEP_LABEL = { RPD:'₹1 payment', VP:'UPI ID check', VBA:'Bank account check' };
-const ERR_ROW = { link:'Payment link couldn\'t be created', offline:'Device offline', noapp:'No UPI app on this phone', unconfirmed:'Payment status couldn\'t be confirmed', missing:'Payer details missing from the bank', session:'Session expired', vp:'Bank didn\'t respond', vp_timeout:'No response from the bank', velocity:'Too many attempts for this UPI ID', vba:'Validation didn\'t complete', unavail:'Verification unavailable right now', masked:'Account details came back masked' };
+const ERR_ROW = { link:'Payment link couldn\'t be created', offline:'Device offline', noapp:'No UPI app on this phone', unconfirmed:'Payment status couldn\'t be confirmed', missing:'Bank sent no account details', session:'Session expired', vp:'Bank didn\'t respond', vp_timeout:'No response from the bank', velocity:'Too many attempts for this UPI ID', vba:'Validation didn\'t complete', unavail:'Verification unavailable right now', masked:'Account details came back masked' };
 const ERR_ICON = { link:'server', offline:'wifioff', noapp:'phone', unconfirmed:'receipt', missing:'receipt', session:'timer2', vp:'server', vp_timeout:'server', velocity:'hand', vba:'server', unavail:'ban', masked:'shield' };
 function stRow(p, errKey){
   const s = st.steps[p]?.status || 'NOT_RUN', d = st.steps[p]?.data || {}, f = st.final;
   const vpa = st.steps.RPD?.data?.payer_vpa || st.steps.VP?.data?.upi_vpa || st.form.vpa;
-  const acct = st.steps.VP?.data?.account_number || st.steps.RPD?.data?.payer_account_number || st.form.acct;
-  let t = 'nr', tag = 'Skipped', sub = 'Not run · an earlier step stopped', ic = 'dash';
+  const acct = p === 'VP' ? d.account_number : p === 'RPD' ? d.payer_account_number : st.form.acct;
+  let t = 'nr', tag = 'Not started', sub = 'Not started', ic = 'dash';
   const isErr = errKey && st.err && st.err.step === p && !['SUCCESS','VERIFIED','VALID','NRE','INCONCLUSIVE','INVALID','NOT_VERIFIED','FAILED','EXPIRED'].includes(s);
   if (isErr){ t = 'bad'; tag = 'Interrupted'; sub = ERR_ROW[errKey] || 'Couldn\'t complete'; ic = 'x'; }
   else if (['SUCCESS','VERIFIED','VALID'].includes(s)){ t = 'ok'; tag = 'Done'; ic = 'check';
-    sub = p === 'RPD' ? 'Received from ' + esc(vpa) : p === 'VP' ? esc(d.upi_vpa || vpa) + ' is linked to a bank account' : mask(acct) + ' is valid'; }
+    sub = p === 'RPD' ? 'Received from ' + esc(d.payer_vpa || vpa) : p === 'VP' ? esc(d.upi_vpa || vpa) + ' is linked to a bank account' : mask(acct) + ' is valid'; }
   else if (s === 'FAILED'){ t = 'bad'; tag = 'Declined'; ic = 'x'; sub = 'Your bank declined the payment'; }
   else if (s === 'EXPIRED'){ t = 'bad'; tag = 'Expired'; ic = 'x'; sub = 'Link expired before payment'; }
-  else if (s === 'NOT_VERIFIED' || s === 'INVALID'){ t = 'bad'; tag = 'Failed'; ic = 'x'; sub = f && f.failed === p && f.reason ? esc((f.reason.b + ' ' + (f.reason.s || '')).trim()) : 'Not verified'; }
+  else if (s === 'NOT_VERIFIED' || s === 'INVALID'){ t = 'bad'; tag = 'Failed'; ic = 'x'; sub = f && f.failed === p && p !== st.j ? 'Not verified' : f && f.failed === p && f.reason ? esc((f.reason.b + ' ' + (f.reason.s || '')).trim()) : p === 'VBA' ? 'Account number or IFSC is invalid' : 'Not verified'; }
   else if (s === 'PENDING'){ t = 'wn'; tag = 'Pending'; ic = 'clock'; sub = p === 'RPD' ? 'Waiting for the payment' : 'Your bank is yet to confirm'; }
   else if (s === 'INCONCLUSIVE'){ t = 'wn'; tag = 'Unclear'; ic = 'q'; sub = 'Your bank couldn\'t confirm the status'; }
   else if (s === 'NRE'){ t = 'wn'; tag = 'NRE'; ic = 'bang'; sub = 'Valid account, flagged as NRE'; }
@@ -1278,103 +1376,81 @@ function stRow(p, errKey){
   return `<li class="st-row is-${t}"><span class="st-dot">${svg(ic)}</span><span><b>${STEP_LABEL[p]}</b><small>${sub}</small></span><span class="st-tag">${tag}</span></li>`;
 }
 function stScreen(o){
-  return `<div class="st" style="--tone:${TONE[o.tone]}">
+  const rows = o.noRows ? [] : [...new Set([...st.history.map(h => h.method), st.j])];
+  return `<div class="st ${o.after ? 'has-fb' : ''}" style="--tone:${TONE[o.tone]}">
     <div class="st-em ${o.spin ? 'spin' : ''} pop">${svg(o.icon)}</div>
     <span class="st-badge"><i></i>${o.badge}</span>
     <h1 class="st-t">${o.title}</h1>
     ${o.desc ? `<p class="st-d">${o.desc}</p>` : ''}
     <div class="st-card">
-      <div class="st-h">What happened</div>
-      <ul class="st-rows">${J().steps.map(p => stRow(p, o.errKey)).join('')}</ul>
+      <div class="st-h">${rows.length ? 'What happened' : 'Details'}</div>
+      ${rows.length ? `<ul class="st-rows">${rows.map(p => stRow(p, o.errKey)).join('')}</ul>` : ''}
       ${o.details && o.details.length ? `<div class="st-kvs">${o.details.map(([k, v]) => `<div class="st-kv"><span>${k}</span><b>${esc(v ?? '—')}</b></div>`).join('')}</div>` : ''}
       ${(o.foot || []).map(x => `<div class="st-foot">${svg(x.icon)}<span>${x.html}</span></div>`).join('')}
     </div>
+    ${o.after || ''}
   </div>`;
 }
 function vStatus(){
-  const f = st.final, d = st.steps, R = d.RPD?.data || {}, V = d.VP?.data || {}, j = st.j, entry = J().entry;
+  const f = st.final, j = st.j, entry = J().entry;
   const pfv = k => st.pf[k] && st.pf[k].value;
-  const acct = V.account_number || R.payer_account_number || (j === 'VBA' ? (st.form.acct || pfv('account_number') || CUST.acct) : '');
-  const ifsc = V.ifsc || R.payer_account_ifsc || (j === 'VBA' ? (st.form.ifsc || pfv('ifsc') || CUST.ifsc) : '');
-  const vpa = V.upi_vpa || R.payer_vpa;
-  const mod = canModify();
+  const acct = j === 'VBA' ? (st.form.acct || pfv('account_number') || CUST.acct) : '';
+  const ifsc = j === 'VBA' ? (st.form.ifsc || pfv('ifsc') || CUST.ifsc) : '';
+  const mod = canModify(), rest = remaining().length > 0;
   const foot = paid() ? [{ icon:'rupee', html:'<b>₹1 refund</b> · back in your account within 3 working days' }] : [];
+  const other = rest ? 'Or choose another way to verify below.' : '';
   let o;
   if (f.status === 'NOT_VERIFIED'){
-    const desc = f.failed === 'RPD' ? 'No money was taken. You can start again from the app.'
-      : f.failed === 'VP' ? (mod ? 'Check the UPI ID and try again, or use a different one.' : 'Try again from the app with a different UPI ID.')
-      : (mod ? 'Check the account number and IFSC, then try again.' : 'Try again from the app with a different bank account.');
+    const desc = j === 'RPD' ? 'No money was taken. ' + (rest ? 'Choose another way to verify below.' : 'You can start again from the app.')
+      : j === 'VP' ? (mod ? 'Check the UPI ID and try again. ' + other : rest ? 'Choose another way to verify below.' : 'Try again later with a different UPI ID.')
+      : (mod ? 'Check the account number and IFSC, then try again. ' + other : rest ? 'Choose another way to verify below.' : 'Try again later with a different bank account.');
     o = { tone:'bad', icon:'x', badge:'Not verified', title:resultHeader(), desc };
   } else if (f.status === 'PENDING'){
-    o = { tone:'wn', icon:'clock', spin:true, badge:'Pending at bank', title:resultHeader(), desc:"We'll update you once your bank confirms. You can close this screen." };
+    o = { tone:'wn', icon:'clock', spin:true, badge:'Pending at bank', title:resultHeader(), desc:"We'll update you once your bank confirms. " + (rest ? 'Meanwhile, you can verify another way.' : 'You can close this screen.') };
   } else if (f.status === 'INCONCLUSIVE'){
-    o = { tone:'wn', icon:'q', badge:'Inconclusive', title:resultHeader(), desc:'Your bank didn\'t confirm whether this account is active.',
-      details: j === 'VBA' ? [] : [...(vpa ? [['UPI ID', vpa]] : []), ['Account', mask(acct)], ['IFSC', ifsc]] };
+    o = { tone:'wn', icon:'q', badge:'Inconclusive', title:resultHeader(), desc:'Your bank didn\'t confirm whether this account is active. ' + (mod ? 'Check the details and try again. ' + other : other) };
   } else {
-    const nm = j === 'RPD_VBA' ? R.payer_name : j === 'RPD_VP_VBA' ? V.name_as_per_bank : '';
+    const nm = st.steps.VBA?.data?.beneficiary_name;
     o = { tone:'wn', icon:'bang', badge:'NRE account', title:'Account is valid, but it\'s an NRE account', desc:'Some services don\'t accept NRE accounts. Check before you continue.',
-      details:[...(nm ? [['Name', nm]] : []), ...(j === 'VP_VBA' && vpa ? [['UPI ID', vpa]] : []), ['Account', mask(acct)], ['IFSC', ifsc], ['Account type', 'NRE']] };
+      details:[...(nm ? [['Name', nm]] : []), ['Account', mask(acct)], ['IFSC', ifsc], ['Account type', 'NRE']] };
   }
   o.foot = foot;
+  if (f.status !== 'NRE') o.after = fallbackCard();
   const showAttempt = entry && f.failed === (entry === 'vp' ? 'VP' : 'VBA') && (mod || st.attempt > 1);
   const meter = showAttempt ? `<div class="st-att"><span>Attempt ${st.attempt} of 3</span><span class="bars">${[1,2,3].map(n => `<i class="${n <= st.attempt ? 'on' : ''}"></i>`).join('')}</span></div>` : '';
-  const acts = mod ? `<button class="s-btn pri" data-act="modify">Modify details</button><button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`;
+  const acts = mod ? `<button class="s-btn pri" data-act="modify">Modify details</button><button class="s-btn txt" data-act="close">Close</button>`
+    : o.after ? `<button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`;
   return stScreen(o) + `<div class="s-act">${meter}${acts}</div>`;
 }
 function vResult(){
   if (st.final.status !== 'VERIFIED') return vStatus();
-  const f = st.final, d = st.steps, R = d.RPD?.data || {}, V = d.VP?.data || {}, B = d.VBA?.data || {};
-  const ic = { VERIFIED:['ok','check'], NOT_VERIFIED:['bad','x'], INCONCLUSIVE:['wn','q'], NRE:['wn','bang'], PENDING:['wn','clock'] }[f.status];
-  const acct = V.account_number || R.payer_account_number || (st.j === 'VBA' ? st.form.acct : '');
-  const ifsc = V.ifsc || R.payer_account_ifsc || (st.j === 'VBA' ? st.form.ifsc : '');
-  const vpa = V.upi_vpa || R.payer_vpa;
+  const d = st.steps, R = d.RPD?.data || {}, V = d.VP?.data || {}, B = d.VBA?.data || {}, j = st.j;
   const rows = [];
-  if (f.status === 'VERIFIED'){
-    rows.push(['Name', B.beneficiary_name || V.name_as_per_bank || R.payer_name]);
-    if (vpa) rows.push(['UPI ID', vpa]);
-    rows.push(['Account', mask(acct)], ['IFSC', ifsc]);
-    if (['RPD','VP','RPD_VP','RPD_VP_VBA'].includes(st.j)) rows.push(['Account type', V.account_type || R.payer_account_type]);
-    const sc = has('VBA') && cfg.vbaNM ? B.name_match_percentage : has('VP') && cfg.vpNM ? V.name_match_score : null;
-    if (sc != null) rows.push(['Name match', sc + '/100']);
-  } else if (f.status === 'INCONCLUSIVE' && st.j !== 'VBA'){
-    if (vpa) rows.push(['UPI ID', vpa]); rows.push(['Account', mask(acct)], ['IFSC', ifsc]);
-  } else if (f.status === 'NRE'){
-    const nm = st.j === 'RPD_VBA' ? R.payer_name : st.j === 'RPD_VP_VBA' ? V.name_as_per_bank : '';
-    if (nm) rows.push(['Name', nm]);
-    if (st.j === 'VP_VBA' && vpa) rows.push(['UPI ID', vpa]);
-    rows.push(['Account', mask(acct)], ['IFSC', ifsc], ['Account type', 'NRE']);
-  }
-  let h = `<div class="s-center" style="gap:12px"><div class="r-ic ${ic[0]} pop">${svg(ic[1])}</div><h1 class="r-h">${resultHeader()}</h1>`;
-  if (f.status === 'PENDING') h += `<p class="s-sub" style="max-width:250px">We'll update you once your bank confirms.</p>`;
-  if (f.reason) h += `<div class="s-call"><b>${esc(f.reason.b)}</b>${f.reason.s ? `<span>${esc(f.reason.s)}</span>` : ''}</div>`;
-  if (rows.length) h += `<div class="s-card">${rows.map(([k,v]) => `<div><span>${k}</span><b>${esc(v ?? '—')}</b></div>`).join('')}</div>`;
-  if (st.j === 'VBA' && f.status === 'VERIFIED') h += `<p class="s-cap" style="margin:0">Bank ref ${esc(B.bank_reference_number)}</p>`;
-  if (J().steps.length > 1) h += `<div class="s-sline">${J().steps.map(stepMark).join('')}</div>`;
+  if (j === 'RPD') rows.push(['Name', R.payer_name], ['UPI ID', R.payer_vpa || '—'], ['Account', mask(R.payer_account_number)], ['IFSC', R.payer_account_ifsc], ['Account type', R.payer_account_type]);
+  if (j === 'VP'){ rows.push(['Name', V.name_as_per_bank], ['UPI ID', V.upi_vpa], ['Account', mask(V.account_number)], ['IFSC', V.ifsc], ['Account type', V.account_type]); if (cfg.vpNM && V.name_match_score != null) rows.push(['Name match', V.name_match_score + '/100']); }
+  if (j === 'VBA'){ rows.push(['Name', B.beneficiary_name], ['Account', mask(st.form.acct)], ['IFSC', st.form.ifsc]); if (cfg.vbaNM && B.name_match_percentage != null) rows.push(['Name match', B.name_match_percentage + '/100']); }
+  const tried = [...new Set(st.history.map(h => h.method))];
+  let h = `<div class="s-center" style="gap:12px"><div class="r-ic ok pop">${svg('check')}</div><h1 class="r-h">${resultHeader()}</h1>`;
+  h += `<div class="s-card">${rows.map(([k,v]) => `<div><span>${k}</span><b>${esc(v ?? '—')}</b></div>`).join('')}</div>`;
+  h += `<p class="s-cap" style="margin:0">Verified with ${METHODS[j].short}${j === 'VBA' && B.bank_reference_number ? ' · Bank ref ' + esc(B.bank_reference_number) : ''}</p>`;
+  if (tried.length > 1) h += `<div class="s-sline">${tried.map(stepMark).join('')}</div>`;
   if (paid()) h += `<p class="s-refund" style="margin:0">₹1 refund in 3 working days</p>`;
-  h += `</div>`;
-  const mod = canModify();
-  const showAttempt = J().entry && f.status !== 'VERIFIED' && f.failed === (J().entry === 'vp' ? 'VP' : 'VBA') && (mod || st.attempt > 1);
-  h += `<div class="s-act">${showAttempt ? `<p class="s-cap" style="text-align:center;margin:0 0 6px">Attempt ${st.attempt} of 3</p>` : ''}`;
-  if (f.status === 'VERIFIED') h += `${cfg.autoClose ? `<p class="s-cap" style="text-align:center;margin:0 0 4px" id="acNote">Closing in ${cfg.autoClose} s</p>` : ''}<button class="s-btn pri" data-act="done">Done</button>`;
-  else if (mod) h += `<button class="s-btn pri" data-act="modify">Modify details</button><button class="s-btn txt" data-act="close">Close</button>`;
-  else h += `<button class="s-btn sec" data-act="close">Close</button>`;
-  return h + `</div>`;
+  h += `</div><div class="s-act">${cfg.autoClose ? `<p class="s-cap" style="text-align:center;margin:0 0 4px" id="acNote">Closing in ${cfg.autoClose} s</p>` : ''}<button class="s-btn pri" data-act="done">Done</button></div>`;
+  return h;
 }
 function errDef(key, step){
-  const rpdJ = has('RPD'), j = st.j;
   const D = {
     link:{ h:'Something went wrong', r:"We're experiencing technical difficulties. Please try again.", retry:true, code:'PROVIDER_ERROR', step:'RPD', rk:'error_provider_error', http:502 },
-    offline:{ h:'Something went wrong', r:'Please check your internet connection and try again.', retry:true, code:'NETWORK_ERROR', step, rk:null, http:null },
-    noapp:{ h:'No UPI app found', r:`Install a UPI app to pay ₹1 and verify your ${j === 'RPD_VP' ? 'UPI ID' : 'bank account'}.`, retry:false, code:'NO_UPI_APP', step:'RPD', rk:null, http:null },
+    offline:{ h:'Something went wrong', r:'Please check your internet connection and try again.', retry:true, code:'NETWORK_ERROR', step:null, fallback:false, rk:null, http:null },
+    noapp:{ h:'No UPI app found', r:'Install a UPI app to pay ₹1 and verify your bank account.', retry:false, code:'NO_UPI_APP', step:'RPD', rk:null, http:null },
     unconfirmed:{ h:"We couldn't confirm your payment", r:'Any ₹1 debited will be refunded within 3 working days.', retry:false, code:'PAYMENT_UNCONFIRMED', step:'RPD', rk:null, http:null },
-    session:{ h:'Your session has expired', r:'Please restart the verification.', retry:false, code:'AUTH_FAILED', step, rk:null, http:401 },
-    vp:{ h:'Something went wrong', r: j === 'VP' ? "We're experiencing technical difficulties. Please try again later." : 'Your bank is not responding. Please try again.', retry:true, code:'PROVIDER_ERROR', step:'VP', rk:'error_provider_error', http:500 },
+    session:{ h:'Your session has expired', r:'Please restart the verification.', retry:false, code:'AUTH_FAILED', step:null, fallback:false, rk:null, http:401 },
+    vp:{ h:'Something went wrong', r:'Your bank is not responding. Please try again.', retry:true, code:'PROVIDER_ERROR', step:'VP', rk:'error_provider_error', http:500 },
     velocity:{ h:'Too many attempts', r:'Please wait a while before verifying this UPI ID again.', retry:false, code:'VELOCITY_LIMIT', step:'VP', rk:'error_frequency_limit_breached', http:429 },
-    vba:{ h:'Something went wrong', r: j === 'RPD_VBA' ? "We couldn't validate your account. Please try again." : "We're experiencing technical difficulties. Please try again.", retry:true, code:'PROVIDER_ERROR', step:'VBA', rk:'error_internal_server_error', http:500 },
-    unavail:{ h:'Verification unavailable', r:"We can't verify your account right now. Please try later.", retry:false, code:'SERVICE_UNAVAILABLE', step:'VBA', rk:'error_insufficient_credits', http:400 },
-    masked:{ h:'Verification unavailable', r:"We can't verify your account right now. Please try later.", retry:false, code:'MASKED_ACCOUNT_DATA', step, rk:null, http:null },
-    missing:{ h:"We couldn't confirm your payment", r:'Any ₹1 debited will be refunded within 3 working days.', retry:false, code:'MISSING_PAYER_DATA', step:'RPD', rk:'success_transaction_status_fetched', http:200 },
-    vp_timeout:{ h:'Something went wrong', r: j === 'VP' ? "We're experiencing technical difficulties. Please try again later." : 'Your bank is not responding. Please try again.', retry:true, code:'TIMEOUT', step:'VP', rk:null, http:null }
+    vba:{ h:'Something went wrong', r:"We couldn't validate your account. Please try again.", retry:true, code:'PROVIDER_ERROR', step:'VBA', rk:'error_internal_server_error', http:500 },
+    unavail:{ h:'Verification unavailable', r:"We can't verify your account this way right now.", retry:false, code:'SERVICE_UNAVAILABLE', step:'VBA', rk:'error_insufficient_credits', http:400 },
+    missing:{ h:"We couldn't get your account details", r:'Your bank did not share the account details. Your ₹1 is refunded within 3 working days.', retry:false, code:'MISSING_PAYER_DATA', step:'RPD', rk:'success_transaction_status_fetched', http:200 },
+    vp_timeout:{ h:'Something went wrong', r:'Your bank is not responding. Please try again.', retry:true, code:'TIMEOUT', step:'VP', rk:null, http:null }
   };
   return { key, ...D[key] };
 }
@@ -1384,22 +1460,25 @@ function vError(){
   const foot = [];
   if (paid() && e.key !== 'unconfirmed' && e.key !== 'missing') foot.push({ icon:'rupee', html:'<b>₹1 refund</b> · back in your account within 3 working days' });
   foot.push({ icon:'info', html:`Reference <code>${esc(sent || st.base)}</code> · <code>${e.code}</code>` });
-  const o = { tone: e.retry ? 'wn' : 'bad', icon: ERR_ICON[e.key] || 'tri', badge: e.retry ? 'Temporary issue' : 'Couldn\'t continue', title:e.h, desc:e.r, errKey:e.key, foot };
-  return stScreen(o) + `<div class="s-act">${e.retry ? `<button class="s-btn pri" data-act="retry">${st.retrying ? '<span class="spin"></span>' : 'Try again'}</button><button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`}</div>`;
+  const after = e.fallback === false ? '' : fallbackCard();
+  const o = { tone: e.retry ? 'wn' : 'bad', icon: ERR_ICON[e.key] || 'tri', badge: e.retry ? 'Temporary issue' : 'Couldn\'t continue', title:e.h, desc:e.r, errKey:e.key, foot, after, noRows:!step };
+  const acts = e.retry ? `<button class="s-btn pri" data-act="retry">${st.retrying ? '<span class="spin"></span>' : 'Try again'}</button><button class="s-btn txt" data-act="close">Close</button>`
+    : after ? `<button class="s-btn txt" data-act="close">Close</button>` : `<button class="s-btn sec" data-act="close">Close</button>`;
+  return stScreen(o) + `<div class="s-act">${acts}</div>`;
 }
 
 /* ---------- host (merchant) app ---------- */
 function renderHost(){
   const P = PRESETS[st.th.preset], L = st.last, h = P.host;
   let card;
-  if (st.hostNote) card = `<div class="h-card h-res"><span class="st" style="background:color-mix(in srgb,var(--s-err) 14%,transparent);color:var(--s-err)">onError · INVALID_CONFIG</span><p>${esc(st.hostNote)}</p></div>`;
+  if (st.hostNote) card = `<div class="h-card h-res"><span class="st" style="background:color-mix(in srgb,var(--s-err) 14%,transparent);color:var(--s-err)">onError · ${st.hostCode || 'INVALID_CONFIG'}</span><p>${esc(st.hostNote)}</p></div>`;
   else if (L){
     const r = L.res, s = r ? r.status : 'ERROR';
     const tone = s === 'VERIFIED' ? 'var(--s-ok)' : s === 'NRE' || s === 'PENDING' || s === 'INCONCLUSIVE' || s === 'CANCELLED' ? 'var(--s-warn)' : 'var(--s-err)';
-    const a = r?.account;
-    const msg = { VERIFIED:'Account verified. Payouts can start.', NOT_VERIFIED:'Verification failed. Ask for another account.', INCONCLUSIVE:'Bank could not confirm. Send for manual review.', NRE:'NRE account. Check your policy before paying out.', PENDING:'Waiting on the bank. Confirm from your backend.', ERROR:'Technical error. Offer to try again later.', CANCELLED:'Customer left before finishing.' }[s];
-    card = `<div class="h-card h-res"><span class="st" style="background:color-mix(in srgb,${tone} 15%,transparent);color:${tone}">${s.replace('_',' ')}${r?.failed_step ? ' at ' + r.failed_step : ''}</span><h4>${msg}</h4>
-      <div class="kv">${a ? `<span>Name</span><b>${esc(a.name_as_per_bank || '—')}</b><span>Account</span><b>${mask(a.account_number)}</b><span>IFSC</span><b>${esc(a.ifsc || '—')}</b>` : ''}<span>Reference</span><b>${esc(st.base)}</b></div></div>`;
+    const a = r?.account, tried = r ? [...new Set((r.method_attempts || []).map(m => m.method))] : [];
+    const msg = { VERIFIED:'Account verified. Payouts can start.', NOT_VERIFIED:'No method could verify the account. Ask the customer to try later.', INCONCLUSIVE:'Bank could not confirm. Send for manual review.', NRE:'NRE account. Check your policy before paying out.', PENDING:'Waiting on the bank. Confirm from your backend.', ERROR:'Technical error. Offer to try again later.', CANCELLED:'Customer left before finishing.' }[s];
+    card = `<div class="h-card h-res"><span class="st" style="background:color-mix(in srgb,${tone} 15%,transparent);color:${tone}">${s.replace('_',' ')}${r?.verified_by ? ' via ' + r.verified_by : ''}</span><h4>${msg}</h4>
+      <div class="kv">${a ? `<span>Name</span><b>${esc(a.name_as_per_bank || '—')}</b><span>Account</span><b>${mask(a.account_number)}</b><span>IFSC</span><b>${esc(a.ifsc || '—')}</b>` : ''}${tried.length ? `<span>Methods tried</span><b>${tried.join(' → ')}</b>` : ''}<span>Reference</span><b>${esc(st.base)}</b></div></div>`;
   } else card = `<div class="h-card"><h4>Bank account verification</h4><p>${esc(h.body)}</p></div>`;
   $('#host').innerHTML = `<div class="h-bar"><span class="s-logo">${P.mono}</span><b>${esc(P.merchant)}</b><span class="h-tag">Merchant app</span></div>
   <div class="h-body"><div class="h-hero"><small>${esc(h.eyebrow)}</small><b>${esc(h.title)}</b></div>${card}
@@ -1433,16 +1512,14 @@ async function handoff(app){
    ============================================================ */
 const MOCK_DEFAULT = { token:'ok', network:'online', apps:5, rpd_intent:'success', gts:'success', payer_name:'ADITI SHARMA', vp:'retrieved', vp_name:'ADITI SHARMA', vba:'valid', vba_name:'ADITI SHARMA', failMode:'first' };
 function mockFromOutcome(){
-  const m = { ...MOCK_DEFAULT }, o = st.out;
-  ({ names_differ: () => { if (has('RPD')) m.payer_name = 'ADITI S'; else m.vba_name = 'ADITI S SHARMA'; },
-     rpd_declined: () => m.gts = 'failed', rpd_expired: () => m.gts = 'expired',
-     vp_fail: () => m.vp = VPR[st.vpr].k, vp_pending: () => m.vp = 'pending_timeout',
-     vba_invalid: () => m.vba = 'invalid', vba_inconclusive: () => m.vba = 'inconclusive', vba_nre: () => m.vba = 'nre',
-     err_link: () => m.rpd_intent = 'provider_error', err_noapp: () => m.apps = 0, err_netwait: () => m.network = 'drop_while_polling',
-     err_unconfirmed: () => m.gts = 'api_failure', err_vp: () => m.vp = 'provider_error', err_velocity: () => m.vp = 'frequency_limit',
-     err_vba: () => m.vba = 'internal_error', err_unavail: () => m.vba = 'insufficient_credits',
-     err_masked: () => { if (st.j === 'RPD_VBA') m.gts = 'success_masked'; else m.vp = 'masked'; },
-     err_offline: () => m.network = 'offline_first', err_session: () => m.token = 'fail' }[o] || (() => {}))();
+  const m = { ...MOCK_DEFAULT }, o = st.outs, on = k => st.dm.includes(k), run = (map, k) => (map[k] || (() => {}))();
+  if (on('RPD')) run({ rpd_declined:() => m.gts = 'failed', rpd_expired:() => m.gts = 'expired', err_link:() => m.rpd_intent = 'provider_error',
+    err_netwait:() => m.network = 'drop_while_polling', err_unconfirmed:() => m.gts = 'api_failure', err_missing:() => m.gts = 'success_no_account' }, o.RPD);
+  if (on('VP')) run({ names_differ:() => m.vp_name = 'ADITI S', vp_fail:() => m.vp = VPR[st.vpr].k, vp_pending:() => m.vp = 'pending_timeout',
+    err_vp:() => m.vp = 'provider_error', err_vptimeout:() => m.vp = 'timeout', err_velocity:() => m.vp = 'frequency_limit' }, o.VP);
+  if (on('VBA')) run({ names_differ:() => m.vba_name = 'A SHARMA', vba_invalid:() => m.vba = 'invalid', vba_inconclusive:() => m.vba = 'inconclusive', vba_nre:() => m.vba = 'nre',
+    err_vba:() => m.vba = 'internal_error', err_unavail:() => m.vba = 'insufficient_credits' }, o.VBA);
+  run({ noapp:() => m.apps = 0, offline:() => m.network = 'offline_first', session:() => m.token = 'fail' }, st.issue);
   m.failMode = cfg.keepFail ? 'every' : 'first';
   return m;
 }
@@ -1479,24 +1556,64 @@ async function token(set, call){
     st.tokens[set] = { value:'eyJhbGciOiJIUzI1NiJ9.' + hex32().slice(0,18).toLowerCase() + '…', exp:Date.now() + 900000 };
     log('TOKEN', `tokenProvider(<b>${set}</b>) → token issued`);
     await sl(500);
-    net({ step:J().steps[0], set, method:call.m, path:call.p, http:401, res:{ api_status:'FAILURE', response_key:'error_unauthorized', message:'Token expired or invalid' }, ms:ms(80,160), cls:'rf', txt:'401 Unauthorized', sum:'Auth failure · SDK refreshes the token once and retries' });
+    net({ step:call.step || 'CONFIG', set, method:call.m, path:call.p, http:401, res:{ api_status:'FAILURE', response_key:'error_unauthorized', message:'Token expired or invalid' }, ms:ms(80,160), cls:'rf', txt:'401 Unauthorized', sum:'Auth failure · SDK refreshes the token once and retries' });
     log('TOKEN', `Refresh once: tokenProvider(<b>${set}</b>) → <span class="rf">rejected again</span>`);
     delete st.tokens[set];
-    await sl(300); showError('session', J().steps[0]); return false;
+    await sl(300); showError('session', null); return false;
   }
   if (!st.tokens[set]){
     st.tokens[set] = { value:'eyJhbGciOiJIUzI1NiJ9.' + hex32().slice(0,18).toLowerCase() + '…', exp:Date.now() + 900000 };
-    log('TOKEN', `tokenProvider(<b>${set}</b>) → short-lived token, cached until expiry`, set === 'DECFIN' ? 'Merchant backend issues it. Used for RPD, VerifyPay, GTS Basic and GTS Verify on api.decentro.tech' : 'Merchant backend issues it. Used for VBA only, on in.decentro.tech');
+    log('TOKEN', `tokenProvider(<b>${set}</b>) → short-lived token, cached until expiry`, set === 'DECFIN' ? 'Merchant backend issues it. Used for the config call, RPD, VerifyPay, GTS Basic and GTS Verify on api.decentro.tech' : 'Merchant backend issues it. Used for VBA only, on in.decentro.tech');
   }
   return true;
 }
-async function offline(p){
-  if (M().network === 'offline_first' && !st.fired.offline && J().steps[0] === p){
-    st.fired.offline = true; await sl(500);
-    log('SDK', `<span class="rf">Device offline</span> · ${p === 'RPD' ? 'RPD Intent' : p === 'VP' ? 'VerifyPay' : 'VBA'} not sent`);
-    showError('offline', p); return true;
+/* Session start: read the merchant config saved with Decentro, check the phone,
+   then show the method chooser (2–3 methods) or open the only method directly. */
+function mcfgJson(){
+  const en = MORDER.filter(k => st.mcfg.methods.includes(k)), o = { merchant_id:'MERCHANT01', enabled_methods:en };
+  if (en.includes('RPD')) o.rpd = { expiry_minutes:cfg.expiry };
+  if (en.includes('VP')) o.vp = { perform_name_match:cfg.vpNM };
+  if (en.includes('VBA')) o.vba = { validation_type:cfg.vbaType, perform_name_match:cfg.vbaNM };
+  o.updated_at = '2026-10-28T11:20:00+05:30';
+  return o;
+}
+const bootSession = guard(async function(){
+  const path = '/v3/sdk/verification/config';
+  if (!await token('DECFIN', { m:'GET', p:path, step:'CONFIG' })) return;
+  await sl(700);
+  if (M().network === 'offline_first' && !st.fired.offline){
+    st.fired.offline = true; log('SDK', '<span class="rf">Device offline</span> · merchant config not fetched'); showError('offline', null); return;
   }
-  return false;
+  const en = MORDER.filter(k => st.mcfg.methods.includes(k)), txn = hex32();
+  net({ step:'CONFIG', set:'DECFIN', method:'GET', path, http:200, res:envl(txn, 'SUCCESS', 'success_merchant_config_fetched', mcfgJson(), 'Merchant configuration fetched'), ms:ms(120,260), cls:'rs', txt:'200 · ' + (en.join(', ') || 'no methods enabled'), sum:'Illustrative endpoint · enabled_methods [' + en.join(', ') + ']', label:'Merchant config' });
+  if (!en.length){
+    st.hostNote = 'No verification method is enabled in the merchant config saved with Decentro. The SDK closed without showing a method.'; st.hostCode = 'NO_METHOD_ENABLED';
+    const err = { code:'NO_METHOD_ENABLED', method:null, message:st.hostNote, retryable:false };
+    st.ended = true; fire('onError', null, err); closeSdk('error'); return;
+  }
+  let av = en;
+  if (en.includes('RPD')){
+    if (!installed().length){
+      log('SDK', 'Installed UPI apps → <span class="rf">none found</span>');
+      if (en.length === 1){ st.methods = en; st.j = 'RPD'; showError('noapp'); return; }
+      av = en.filter(k => k !== 'RPD'); log('SDK', 'RPD hidden from the method list: it needs a UPI app on this phone');
+    } else log('SDK', 'Installed UPI apps → ' + installed().map(a => a.n).join(', '));
+  }
+  st.methods = av;
+  if (!av.includes(st.j)) st.j = av[0];
+  log('SDK', `Methods to offer → <b>${av.join(', ')}</b>` + (av.length > 1 ? ' · show the method chooser' : ' · only one, open it directly'));
+  if (av.length === 1) startMethod(av[0], 'only'); else go('methods');
+});
+function startMethod(k, via){
+  st.run++; closeOverlays(); $('#handoff').classList.remove('on'); $('#scr').classList.remove('ho');
+  const prev = st.j; st.j = k; resetMethod();
+  log('SDK', via === 'fallback' ? `Try another way → <b>${METHODS[k].name}</b> · ${prev} is not repeated` : via === 'chooser' ? `Customer chose <b>${METHODS[k].name}</b>` : `<b>${METHODS[k].name}</b> is the only method · opened directly`);
+  go(J().entry ? 'entry' : 'consent');
+}
+function backToChooser(){
+  st.run++; closeOverlays(); resetMethod();
+  log('SDK', 'Back to the method list · nothing was sent');
+  go('methods');
 }
 function setProg(p, s){ st.prog[p] = s; if (st.screen === 'verifying' || st.screen === 'processing') renderSdk(); }
 function recordAttempt(step, ref, input, status, rk){
@@ -1507,8 +1624,7 @@ function recordAttempt(step, ref, input, status, rk){
 
 const rpdIntent = guard(async function(){
   const path = '/v3/payments/rpd/intent';
-  if (!await token('DECFIN', { m:'POST', p:path })) return;
-  if (await offline('RPD')) return;
+  if (!await token('DECFIN', { m:'POST', p:path, step:'RPD' })) return;
   await sl(800);
   const n = ++st.cnt.RPD, ref = st.base + 'RPD' + n;
   const body = { reference_id:ref, consumer_urn:st.urn.decfin, expiry_time:cfg.expiry, generate_psp_uri:true, generate_qr:false };
@@ -1526,8 +1642,6 @@ const rpdIntent = guard(async function(){
   net({ step:'RPD', set:'DECFIN', method:'POST', path, ref, body, xob:true, http:200,
     res:envl(txn, 'SUCCESS', 'success_validation_link_created', { validation_link:'upi://pay?' + q, gpay_uri:'tez://upi/pay?' + q, phonepe_uri:'phonepe://pay?' + q, paytm_uri:'paytmmp://pay?' + q, expiry_time:cfg.expiry }, 'Validation link created'),
     ms:ms(500,900), cls:'rs', txt:'200 success_validation_link_created', sum:sum + '\n→ decentro_txn_id ' + txn });
-  if (!installed().length){ log('SDK', 'Installed UPI apps (TPAPs) → <span class="rf">none found</span>'); showError('noapp'); return; }
-  log('SDK', 'Installed UPI apps → ' + installed().map(a => a.n).join(', '));
   st.expiryEnd = Date.now() + cfg.expiry*60000; st.ff = 0; st.busy = false; st.retrying = false;
   go('apps');
 });
@@ -1581,34 +1695,26 @@ async function pollRpd(){
     Object.assign(st.steps.RPD, { status:'EXPIRED' });
     await hold(); return endResult('NOT_VERIFIED', 'RPD', { b:'Payment link expired', s:'No money was taken.' });
   }
-  const masked = m.gts === 'success_masked', novpa = m.gts === 'success_no_vpa';
-  const d = { payer_vpa: novpa ? '' : CUST.vpa, payer_name:m.payer_name, payer_account_number: masked ? 'XXXXXXXXXX7890' : CUST.acct, payer_account_ifsc:CUST.ifsc, payer_account_type:CUST.type, bank_reference_number:'106395651870', npci_txn_id:'HDF1c9555cc3fa64cd2b9dc7c698ee83792' };
+  const masked = m.gts === 'success_masked', noacct = m.gts === 'success_no_account';
+  const d = { payer_vpa:CUST.vpa, payer_name: noacct ? '' : m.payer_name, payer_account_number: noacct ? '' : masked ? 'XXXXXXXXXX7890' : CUST.acct, payer_account_ifsc: noacct ? '' : CUST.ifsc, payer_account_type: noacct ? '' : CUST.type, bank_reference_number:'106395651870', npci_txn_id:'HDF1c9555cc3fa64cd2b9dc7c698ee83792' };
   Object.assign(st.steps.RPD, { status:'SUCCESS', response_key:'success_transaction_status_fetched', is_masked:masked, data:{ ...d, upi_app_used:st.app } });
-  P(200, envl(txn, 'SUCCESS', 'success_transaction_status_fetched', { transaction_status:'SUCCESS', ...d }), 'rs', 'transaction_status SUCCESS', `payer_vpa ${d.payer_vpa || '(empty)'} · payer_name ${d.payer_name} · ${d.payer_account_number} · ${d.payer_account_ifsc}`);
+  P(200, envl(txn, 'SUCCESS', 'success_transaction_status_fetched', { transaction_status:'SUCCESS', ...d }), 'rs', 'transaction_status SUCCESS', `payer_name ${d.payer_name || '(empty)'} · ${d.payer_account_number || '(no account)'} · ${d.payer_account_ifsc || '(no IFSC)'}`);
   await hold();
-  if (novpa){ log('WARN', 'SUCCESS without payer_vpa · cannot continue'); st.steps.RPD.status = 'ERROR'; return showError('missing', 'RPD'); }
-  if (masked && has('VBA') && !has('VP')){ log('WARN', 'payer_account_number came back masked · VBA cannot run (OP-1)'); return showError('masked', 'RPD'); }
-  const seq = J().steps;
-  if (seq.length === 1) return endResult('VERIFIED');
-  st.prog = { RPD:'done' }; go('verifying'); await sl(600);
-  await runFrom(seq[1]);
-}
-async function runFrom(p){
-  const seq = J().steps;
-  for (let i = seq.indexOf(p); i < seq.length; i++){ if (!await RUN[seq[i]]()) return; }
+  if (noacct){ log('WARN', 'SUCCESS without payer account details · RPD cannot verify the account'); st.steps.RPD.status = 'ERROR'; return showError('missing', 'RPD'); }
+  if (masked) log('WARN', 'payer_account_number came back masked · result.account.is_masked is true');
   endResult('VERIFIED');
 }
+async function runFrom(p){ if (await RUN[p]()) endResult('VERIFIED'); }
 const RUN = {
   async VP(){
     setProg('VP', 'active');
     const path = '/v3/banking/verify_pay';
-    if (!await token('DECFIN', { m:'POST', p:path })) return false;
-    if (await offline('VP')) return false;
-    const m = M(), fromRpd = has('RPD');
+    if (!await token('DECFIN', { m:'POST', p:path, step:'VP' })) return false;
+    const m = M();
     const n = ++st.cnt.VP, ref = st.base + 'VP' + n;
-    const vpa = fromRpd ? st.steps.RPD.data.payer_vpa : st.form.vpa.trim();
-    const cname = cfg.vpNM ? (fromRpd ? st.steps.RPD.data.payer_name : st.form.name.trim()) : null;
-    const body = { reference_id:ref, consumer_urn:st.urn.decfin, upi_vpa:vpa, is_consent_granted:true, perform_name_match:cfg.vpNM, ...(cname ? { customer_name:cname } : {}), ...(st.req?.vp?.purpose_message ? { purpose_message:st.req.vp.purpose_message } : {}), fetch_branch_details:!!st.req?.vp?.fetch_branch_details };
+    const vpa = st.form.vpa.trim();
+    const cname = cfg.vpNM ? st.form.name.trim() : null;
+    const body = { reference_id:ref, consumer_urn:st.urn.decfin, upi_vpa:vpa, is_consent_granted:true, perform_name_match:cfg.vpNM, ...(cname ? { customer_name:cname } : {}), fetch_branch_details:false };
     const sum = `reference_id ${ref} · upi_vpa ${vpa}` + (cname ? ` · customer_name ${cname}` : '');
     await sl(1300);
     const txn = hex32();
@@ -1653,7 +1759,7 @@ const RUN = {
       const rounds = m.vp === 'pending_then_success' ? 2 : 3;
       for (let i = 0; i < rounds; i++){ await sl(1300); G(200, envl(txn, 'PENDING', 'success_transaction_pending'), 'rp', 'PENDING'); }
       if (m.vp === 'pending_timeout'){
-        await sl(500); log('SDK', 'Polling window ended, VerifyPay still PENDING (OP-14)' + (has('VBA') ? ' · VBA does not run' : ''));
+        await sl(500); log('SDK', 'Polling window ended, VerifyPay still PENDING (OP-14)');
         recordAttempt('VP', ref, vpa, 'PENDING', 'success_transaction_pending');
         endResult('PENDING', 'VP'); return false;
       }
@@ -1663,18 +1769,17 @@ const RUN = {
     }
     st.steps.VP = { ...base, status:'VERIFIED', api_status:'SUCCESS', response_key:'success_account_details_retrieved', is_masked:masked, data };
     recordAttempt('VP', ref, vpa, 'VERIFIED', 'success_account_details_retrieved');
-    if (masked && has('VBA')){ log('WARN', 'account_number came back masked · VBA cannot run (OP-1)'); setProg('VP', 'fail'); showError('masked', 'VP'); return false; }
+    if (masked) log('WARN', 'account_number came back masked · result.account.is_masked is true');
     setProg('VP', 'done'); await sl(500); return true;
   },
   async VBA(){
     setProg('VBA', 'active');
     const path = '/v3/banking/money_transfer/validate_bank_account';
-    if (!await token('DECENTRO', { m:'POST', p:path })) return false;
-    if (await offline('VBA')) return false;
-    const m = M(), alone = st.j === 'VBA', V = st.steps.VP?.data, Rd = st.steps.RPD?.data;
+    if (!await token('DECENTRO', { m:'POST', p:path, step:'VBA' })) return false;
+    const m = M();
     const n = ++st.cnt.VBA, ref = st.base + 'VBA' + n;
-    const src = V ? { acct:V.account_number, ifsc:V.ifsc, name:V.name_as_per_bank, from:'VP' } : Rd ? { acct:Rd.payer_account_number, ifsc:Rd.payer_account_ifsc, name:Rd.payer_name, from:'RPD' } : { acct:st.form.acct, ifsc:st.form.ifsc, name:st.form.name.trim(), from:'entry screen' };
-    const body = { reference_id:ref, consumer_urn:st.urn.decentro, purpose_message:st.req?.vba?.purpose_message || 'Account Verification', validation_type:cfg.vbaType, perform_name_match:cfg.vbaNM, beneficiary_details:{ account_number:src.acct, ifsc:src.ifsc, ...(cfg.vbaNM && src.name ? { name:src.name } : {}) } };
+    const src = { acct:st.form.acct, ifsc:st.form.ifsc, name:st.form.name.trim(), from:'entry screen' };
+    const body = { reference_id:ref, consumer_urn:st.urn.decentro, purpose_message:'Account Verification', validation_type:cfg.vbaType, perform_name_match:cfg.vbaNM, beneficiary_details:{ account_number:src.acct, ifsc:src.ifsc, ...(cfg.vbaNM && src.name ? { name:src.name } : {}) } };
     const sum = `reference_id ${ref} · ${cfg.vbaType} · ${mask(src.acct)} · ${src.ifsc} (from ${src.from}) · no x_on_behalf_of, no mobile_number`;
     await sl(1300);
     const txn = hex32();
@@ -1691,7 +1796,7 @@ const RUN = {
       st.steps.VBA = { ...base, status:'ERROR', api_status:'FAILURE', response_key:'error_insufficient_credits', data:{} };
       setProg('VBA', 'fail'); showError('unavail'); return false;
     }
-    const failNow = !alone || st.attempt === 1 || m.failMode === 'every';
+    const failNow = st.attempt === 1 || m.failMode === 'every';
     const inputMasked = mask(src.acct) + ' · ' + src.ifsc;
     if (m.vba === 'invalid' && failNow){
       const msg = 'The account number/IFSC passed is invalid.';
@@ -1726,11 +1831,31 @@ const RUN = {
   }
 };
 
-/* ---------- outcomes ---------- */
+/* ---------- outcomes ----------
+   onMethodResult fires after every method attempt. onResult / onError fire once,
+   when the session outcome is final: at once on VERIFIED or NRE (or when nothing
+   is left to try), otherwise when the customer closes the screen. */
+function recordMethod(status, err, E){
+  const s = st.steps[st.j] || {};
+  const h = { method:st.j, attempt:st.attempt, status, ref:s.reference_id || null, txn:s.decentro_txn_id || null, rk:s.response_key || null, code:err ? err.code : null, at:ist(new Date()) };
+  st.history.push(h);
+  const ok = status === 'VERIFIED' || status === 'NRE';
+  fire('onMethodResult', { session_id:st.jid, method:st.j, attempt:st.attempt, status, reference_id:h.ref, decentro_txn_id:h.txn, response_key:h.rk,
+    ends_session:ok, fallback_methods: ok || (E && E.fallback === false) ? [] : remaining(), modify_available: !ok && !err ? canModify() : false, retry_available: !!(err && err.retryable), error:err || null }, err);
+}
+function endSession(cb, status, err){
+  if (st.ended) return; st.ended = true;
+  fire(cb, makeResult(status, err || null), err);
+}
+function endOnClose(){
+  if (st.ended) return;
+  if (st.screen === 'result' && st.final) endSession('onResult', st.final.status);
+  else if (st.screen === 'error' && st.err) endSession('onError', 'ERROR', errObjOf(st.err));
+}
 function endResult(status, failed = null, reason = null){
   st.final = { status, failed, reason };
-  const res = makeResult(status, failed, null);
-  fire('onResult', res);
+  recordMethod(status, null);
+  if (status === 'VERIFIED' || status === 'NRE' || (!canModify() && !remaining().length)) endSession('onResult', status);
   go('result');
   if (status === 'VERIFIED' && cfg.autoClose) autoClose();
 }
@@ -1738,28 +1863,30 @@ const autoClose = guard(async function(){
   for (let s = cfg.autoClose; s > 0; s--){ const n = $('#acNote'); if (n) n.textContent = `Closing in ${s} s`; await sl(1000 * st.speed); }
   closeSdk('auto-close');
 });
+const errObjOf = E => ({ code:E.code, method:E.step || null, message:E.r, retryable:E.retry, response_key:E.rk, http_status:E.http });
 function showError(key, step){
   const E = errDef(key, step); st.err = E; st.retrying = false; st.busy = false;
-  const errObj = { code:E.code, step:E.step || null, message:E.r, retryable:E.retry, response_key:E.rk, http_status:E.http };
-  const res = makeResult('ERROR', E.step || null, errObj);
-  fire('onError', res, errObj);
+  const errObj = errObjOf(E);
+  if (E.step) recordMethod('ERROR', errObj, E);
+  if (!E.retry && !(E.fallback !== false && remaining().length)) endSession('onError', 'ERROR', errObj);
   go('error');
 }
 const retry = guard(async function(){
   const e = st.err; if (!e || !e.retry || st.retrying) return;
   st.retrying = true; renderSdk();
-  log('SDK', `[Retry] · ${e.key === 'link' ? 'new payment link with the next reference ID' : e.step === 'RPD' ? 'repeat RPD Intent' : 'repeat ' + e.step + ' only, next reference ID'}`);
   const step = e.step;
-  if (step) st.errRetries[step]++;
-  if (step === 'RPD'){ await sl(300); await rpdIntent(); return; }
-  await sl(300); st.retrying = false;
-  if (J().steps.length > 1) go('verifying'); else go('processing');
+  log('SDK', `[Try again] · ${!step ? 'fetch the merchant config again' : e.key === 'link' ? 'new payment link with the next reference ID' : 'repeat ' + step + ' only, next reference ID'}`);
+  await sl(300);
+  if (!step){ st.retrying = false; st.err = null; go('boot'); await bootSession(); return; }
+  st.errRetries[step]++;
+  if (step === 'RPD'){ await rpdIntent(); return; }
+  st.retrying = false; go('processing');
   await runFrom(step);
 });
 function fire(cb, res, err){
   st.last = { cb, res, err }; st.cbs.push({ cb, res, err, at:(Date.now()-st.t0)/1000 }); renderCbs();
   const s = res ? res.status : '';
-  log('CALLBACK', `<b>${cb}</b>(${cb === 'onError' ? `<span class="rf">${err.code}</span>, result` : `result · <span class="${s === 'VERIFIED' ? 'rs' : s === 'NOT_VERIFIED' || s === 'ERROR' ? 'rf' : 'rp'}">${s}</span>`})${res && res.retry_available ? ' · retry_available true' : ''}`);
+  log('CALLBACK', `<b>${cb}</b>(${cb === 'onError' ? `<span class="rf">${err.code}</span>, result` : `${cb === 'onMethodResult' ? res.method + ' · ' : 'result · '}<span class="${s === 'VERIFIED' ? 'rs' : s === 'NOT_VERIFIED' || s === 'ERROR' ? 'rf' : 'rp'}">${s}</span>`})${cb === 'onMethodResult' && res.fallback_methods.length ? ' · fallback ' + res.fallback_methods.join(', ') : ''}`);
   renderRes();
 }
 function closeSdk(how){
@@ -1772,60 +1899,35 @@ function closeSdk(how){
 }
 function cancelJourney(){
   st.cancelledAt = st.screen;
-  const res = makeResult('CANCELLED', null, null);
-  fire('onCancelled', res);
+  if (!st.ended){ st.ended = true; fire('onCancelled', makeResult('CANCELLED', null)); }
   closeSdk('cancel');
 }
 
 /* ============================================================
-   RESULT OBJECT (spec §5.5)
+   RESULT OBJECT — one per session
    ============================================================ */
-function makeResult(status, failed, error){
-  const seq = J().steps, now = new Date();
-  const steps = seq.map(p => st.steps[p] ? { ...st.steps[p] } : { product:p, status:'NOT_RUN' });
-  const R = st.steps.RPD?.data || {}, V = st.steps.VP?.data || {}, B = st.steps.VBA?.data || {};
-  const vbaSt = st.steps.VBA?.status;
-  let account = null;
-  const anyAcct = R.payer_account_number || V.account_number || (st.j === 'VBA' && ['VALID','NRE','INCONCLUSIVE'].includes(vbaSt));
-  if (anyAcct){
-    const src = {};
-    const pick = (field, opts) => { for (const [k, v] of opts) if (v){ src[field] = k; return v; } return null; };
-    const name = pick('name_as_per_bank', [['VBA', B.beneficiary_name], ['VP', V.name_as_per_bank], ['RPD', R.payer_name]]);
-    const upi = pick('upi_vpa', [['VP', V.upi_vpa], ['RPD', R.payer_vpa], ['ENTERED', J().entry === 'vp' ? st.form.vpa : null]]);
-    const an = pick('account_number', [['VP', V.account_number], ['RPD', R.payer_account_number], ['ENTERED', st.j === 'VBA' ? st.form.acct : null]]);
-    const ifsc = pick('ifsc', [['VP', V.ifsc], ['RPD', R.payer_account_ifsc], ['ENTERED', st.j === 'VBA' ? st.form.ifsc : null]]);
-    let type = vbaSt === 'NRE' ? 'NRE' : (V.account_type || R.payer_account_type || null);
-    if (type) src.account_type = vbaSt === 'NRE' ? 'VBA' : V.account_type ? 'VP' : 'RPD';
-    const vs = has('VP') && cfg.vpNM ? (V.name_match_score ?? null) : null, bs = has('VBA') && cfg.vbaNM ? (B.name_match_percentage ?? null) : null;
-    const nmOn = (has('VP') && cfg.vpNM) || (has('VBA') && cfg.vbaNM);
-    account = { name_as_per_bank:name, upi_vpa:upi, account_number:an, ifsc, account_type:type, name_match: nmOn ? { vp_score:vs, vba_score:bs } : null, is_masked: !!(st.steps.VP?.is_masked || st.steps.RPD?.is_masked), sources:src };
-  }
-  const fin = p => st.steps[p] && !['NOT_RUN','PENDING','ERROR'].includes(st.steps[p].status);
-  const cc = [];
-  const name = { RPD:R.payer_name, VP:V.name_as_per_bank, VBA:B.beneficiary_name };
-  [['RPD','VP'],['RPD','VBA'],['VP','VBA']].forEach(([a,b]) => {
-    if (!has(a) || !has(b) || !fin(a) || !fin(b)) return;
-    cc.push({ field:'name', left:{ source:a, value:name[a] || null }, right:{ source:b, value:name[b] || null }, method:'TEXT_SIMILARITY', score: name[a] && name[b] ? sim(name[a], name[b]) : null });
-  });
-  if (has('RPD') && has('VP') && fin('RPD') && fin('VP')){
-    const mk = !!(st.steps.VP.is_masked || st.steps.RPD.is_masked);
-    const ex = (f, l, r, ci) => cc.push({ field:f, left:{ source:'RPD', value:l ?? null }, right:{ source:'VP', value:r ?? null }, method:'EXACT', score: l == null || r == null || (mk && f === 'account_number') ? null : ((ci ? String(l).toLowerCase() === String(r).toLowerCase() : l === r) ? 100 : 0) });
-    ex('upi_vpa', R.payer_vpa, V.upi_vpa, true); ex('account_number', R.payer_account_number, V.account_number); ex('ifsc', R.payer_account_ifsc, V.ifsc); ex('account_type', R.payer_account_type, V.account_type);
-  }
-  if (has('VBA') && vbaSt === 'NRE'){
-    const other = has('VP') ? 'VP' : has('RPD') ? 'RPD' : null;
-    if (other && fin(other)){ const t = other === 'VP' ? V.account_type : R.payer_account_type; cc.push({ field:'account_type', left:{ source:other, value:t }, right:{ source:'VBA', value:'NRE' }, method:'EXACT', score: t === 'NRE' ? 100 : 0 }); }
-  }
-  const retryAvail = status === 'ERROR' ? !!(error && error.retryable) : ['NOT_VERIFIED','INCONCLUSIVE'].includes(status) ? (st.final ? canModify() : false) : false;
+function accountFrom(k, status){
+  const s = st.steps[k] || {}, d = s.data || {};
+  if (k === 'RPD') return { name_as_per_bank:d.payer_name || null, upi_vpa:d.payer_vpa || null, account_number:d.payer_account_number, ifsc:d.payer_account_ifsc, account_type:d.payer_account_type || null, name_match_score:null, is_masked:!!s.is_masked, source:'RPD' };
+  if (k === 'VP') return { name_as_per_bank:d.name_as_per_bank || null, upi_vpa:d.upi_vpa, account_number:d.account_number, ifsc:d.ifsc, account_type:d.account_type || null, name_match_score: cfg.vpNM ? (d.name_match_score ?? null) : null, is_masked:!!s.is_masked, source:'VP' };
+  return { name_as_per_bank:d.beneficiary_name || null, upi_vpa:null, account_number:st.form.acct, ifsc:st.form.ifsc, account_type: status === 'NRE' ? 'NRE' : null, name_match_score: cfg.vbaNM ? (d.name_match_percentage ?? null) : null, is_masked:false, source:'VBA' };
+}
+function makeResult(status, error){
+  const now = new Date(), H = st.history, last = H[H.length - 1];
+  const ok = status === 'VERIFIED' || status === 'NRE';
   return {
-    journey_id:st.jid, journey_type:st.j, base_reference_id:st.base, status,
-    failed_step: ['VERIFIED','NRE','CANCELLED'].includes(status) ? null : failed,
-    retry_available:retryAvail, attempt:st.attempt,
+    session_id:st.jid, base_reference_id:st.base, status,
+    verified_by: ok && last ? last.method : null,
+    account: ok && last ? accountFrom(last.method, status) : null,
+    last_method: last ? last.method : null,
+    methods_enabled: MORDER.filter(k => st.mcfg.methods.includes(k)),
+    methods_offered: st.methods || [],
+    methods_not_tried: ok ? (st.methods || []).filter(k => !triedM(k)) : chooserList(),
+    method_attempts: H.map(h => ({ method:h.method, attempt:h.attempt, status:h.status, reference_id:h.ref, decentro_txn_id:h.txn, response_key:h.rk, error_code:h.code, completed_at:h.at })),
     started_at:ist(st.startedAt || now), completed_at:ist(now),
     environment:st.env, sdk_version:'1.0.0', platform: st.os === 'ios' ? 'IOS' : 'ANDROID',
-    steps, account, cross_checks: J().steps.length > 1 ? cc : [], attempts: J().entry ? st.attempts : [],
-    consent:{ captured_at: st.consentAt ? ist(st.consentAt) : null, text_version: st.j.toLowerCase() + '_v1', terms_url:'https://merchant.example/terms' },
-    ui:{ data_entry_mode: J().entry ? cfg.mode : null, fields_edited:st.edited, upi_app_used:st.app, cancelled_at: status === 'CANCELLED' ? (st.cancelledAt || st.screen) : null },
+    consents: st.consents.map(c => ({ method:c.method, captured_at:ist(c.at), text_version:c.method.toLowerCase() + '_v1' })),
+    ui:{ data_entry_mode: planMethods().some(k => METHODS[k].entry) ? cfg.mode : null, fields_edited:st.edited, upi_app_used:st.app, cancelled_at: status === 'CANCELLED' ? (st.cancelledAt || st.screen) : null },
     error
   };
 }
@@ -1836,33 +1938,36 @@ function makeResult(status, failed, error){
 function launch(){
   if (st.mode === 'dev'){ const v = devApply(); if (!v) return; }
   freshRun(); clearLog(); st.startedAt = new Date();
-  const j = J();
-  log('SDK', `startJourney(<b>${st.j}</b>) · base_reference_id ${esc(st.base)}`, 'Request validated against the StartJourneyRequest schema before any screen opens');
+  log('SDK', `startJourney(request) · base_reference_id ${esc(st.base)}`, 'Request validated against the StartJourneyRequest schema before any screen opens');
   const v = validateRequest(st.req);
   v.warnings.forEach(w => log('WARN', esc(w)));
   if (v.errors.length){
-    st.hostNote = v.errors.map(e => e.path + ': ' + e.msg).join(' · ') + '. No screen opened and no API was called.';
+    st.hostNote = v.errors.map(e => e.path + ': ' + e.msg).join(' · ') + '. No screen opened and no API was called.'; st.hostCode = 'INVALID_CONFIG';
     log('CALLBACK', `<b>onError</b>(<span class="rf">INVALID_CONFIG</span>, null)`, st.hostNote);
-    const err = { code:'INVALID_CONFIG', step:null, message:st.hostNote, retryable:false };
-    st.last = { cb:'onError', res:null, err }; st.cbs.push({ cb:'onError', res:null, err, at:0 });
+    const err = { code:'INVALID_CONFIG', method:null, message:st.hostNote, retryable:false };
+    st.ended = true; st.last = { cb:'onError', res:null, err }; st.cbs.push({ cb:'onError', res:null, err, at:0 });
     renderRes(); renderCbs(); renderHost(); flowbar(); caption(); return;
   }
-  go(j.entry ? 'entry' : 'consent');
+  go('boot'); bootSession();
 }
-function restart(){ freshRun(); clearLog(); closeOverlays(); $('#handoff').classList.remove('on'); $('#sdk').classList.remove('open'); st.sdkOpen = false; paintBars(); renderHost(); renderSdk(); flowbar(); caption(); renderSpec(); renderReq(); renderRes(); $('#btnFill').hidden = true; log('SDK', st.mode === 'dev' ? `Ready · ${st.j} · Developer mode · request and mocks from the left panel` : `Ready · ${st.j} · outcome: ${(OUT.find(o => o.id === st.out) || {}).l}`); renderNet(); renderCbs(); renderState(); renderScreens(); }
+function restart(){
+  freshRun(); clearLog(); closeOverlays(); $('#handoff').classList.remove('on'); $('#sdk').classList.remove('open'); st.sdkOpen = false; paintBars();
+  renderHost(); renderSdk(); flowbar(); caption(); renderSpec(); renderReq(); renderRes(); $('#btnFill').hidden = true;
+  const en = MORDER.filter(k => st.mcfg.methods.includes(k));
+  log('SDK', st.mode === 'dev' ? `Ready · merchant config: ${en.join(', ') || 'none'} · Developer mode · request, config and mocks from the left panel`
+    : `Ready · merchant config: ${en.join(', ')} · ` + en.map(k => `${k} ${outcomeOf(k).l.toLowerCase()}`).join(' · '));
+  renderNet(); renderCbs(); renderState(); renderScreens();
+}
 function submitEntry(){
   st.showAll = true; const v = paintEntry(); if (!v.ok) return;
-  st.consentAt = new Date();
-  st.edited = Object.keys(st.init).filter(k => k !== 'acct2' && st.init[k] && st.init[k] !== st.form[k]).map(k => ({ vpa:'upi_vpa', name: J().entry === 'vp' ? 'customer_name' : 'name', acct:'account_number', ifsc:'ifsc' }[k]));
+  st.consentAt = new Date(); st.consents.push({ method:st.j, at:st.consentAt });
+  st.edited = Object.keys(st.init).filter(k => k !== 'acct2' && st.init[k] && st.init[k] !== st.form[k]).map(k => PFKEY(k));
   log('SDK', `Consent captured · text_version ${st.j.toLowerCase()}_v1` + (st.attempt > 1 ? ` · attempt ${st.attempt} of 3` : ''));
-  if (J().entry === 'vp'){
-    if (st.j === 'VP_VBA') st.tried.push(st.form.vpa.trim().toLowerCase());
-    st.prog = { VP:'active' };
-    go(st.j === 'VP' ? 'processing' : 'verifying'); guard(() => runFrom('VP'))();
-  } else { st.prog = {}; go('processing'); guard(() => runFrom('VBA'))(); }
+  st.prog = { [st.j]:'active' };
+  go('processing'); guard(() => runFrom(st.j))();
 }
 function modify(){
-  st.attempt++; st.consent = false; st.showAll = false; st.touched = {}; st.steps = {}; st.prog = {}; st.final = null;
+  st.attempt++; st.consent = false; st.showAll = false; st.touched = {}; delete st.steps[st.j]; st.prog = {}; st.final = null;
   log('SDK', `[Modify details] · back to the entry screen, values kept, consent unticked · attempt ${st.attempt} of 3`);
   go('entry');
 }
@@ -1871,10 +1976,11 @@ function handleBack(){
   const s = st.screen;
   if (s === 'host'){ toast('System back · merchant app handles this'); return; }
   log('SDK', `System back on <b>${screenTitle(s)}</b>`);
-  if (s === 'consent' || s === 'entry') return cancelJourney();
+  if (s === 'boot' || s === 'methods') return cancelJourney();
+  if (s === 'consent' || s === 'entry') return canGoBack() ? backToChooser() : cancelJourney();
   if (s === 'apps' || s === 'awaiting') return openDialog();
-  if (s === 'verifying' || s === 'processing'){ toast('Back is disabled while checks run'); return; }
-  if (s === 'result' || s === 'error') return closeSdk('system back');
+  if (s === 'processing'){ toast('Back is disabled while checks run'); return; }
+  if (s === 'result' || s === 'error'){ endOnClose(); return closeSdk('system back'); }
 }
 function fillSample(){
   const e = J().entry;
@@ -1893,8 +1999,10 @@ document.addEventListener('click', ev => {
     if (st.screen === 'entry') paintEntry(); else renderSdk();
     return;
   }
-  if (a === 'pay'){ if (!st.consent || st.busy) return; st.busy = true; st.consentAt = new Date(); log('SDK', `Consent captured · text_version ${st.j.toLowerCase()}_v1 · screen locked during the call`); renderSdk(); rpdIntent(); return; }
+  if (a === 'pay'){ if (!st.consent || st.busy) return; st.busy = true; st.consentAt = new Date(); st.consents.push({ method:'RPD', at:st.consentAt }); log('SDK', `Consent captured · text_version ${st.j.toLowerCase()}_v1 · screen locked during the call`); renderSdk(); rpdIntent(); return; }
   if (a === 'submit') return submitEntry();
+  if (a.startsWith('method:')) return startMethod(a.slice(7), st.screen === 'methods' ? 'chooser' : 'fallback');
+  if (a === 'chooser') return backToChooser();
   if (a.startsWith('app:')){ closeOverlays(); st.overlay = null; return launchApp(a.slice(4)); }
   if (a === 'other') return openSheet();
   if (a === 'try'){ st.run++; log('SDK', 'Try another UPI app · same payment link, no new RPD call'); go('apps'); return; }
@@ -1902,7 +2010,7 @@ document.addEventListener('click', ev => {
   if (a === 'keep'){ closeOverlays(); st.overlay = null; renderSpec(); log('SDK', 'Keep waiting'); return; }
   if (a === 'yescancel'){ st.overlay = null; return cancelJourney(); }
   if (a === 'done') return closeSdk('Done');
-  if (a === 'close') return closeSdk('Close');
+  if (a === 'close'){ endOnClose(); return closeSdk('Close'); }
   if (a === 'modify') return modify();
   if (a === 'retry') return retry();
 });
@@ -1929,20 +2037,18 @@ function hl(json){
   });
 }
 function requestJson(){
-  const j = J(), r = { journey_type:st.j, base_reference_id:st.base };
-  if (j.entry){
+  const on = k => st.mcfg.methods.includes(k), r = { base_reference_id:st.base };
+  if (on('VP') || on('VBA')){
     r.data_entry_mode = cfg.mode;
     if (cfg.prefill !== 'empty'){
       const ed = cfg.prefill !== 'locked', p = {};
-      if (j.entry === 'vp'){ p.upi_vpa = { value:CUST.vpa, editable:ed }; if (cfg.vpNM) p.customer_name = { value:CUST.typed, editable:ed }; }
-      else { p.account_number = { value:CUST.acct, editable:ed }; p.ifsc = { value:CUST.ifsc, editable:ed }; p.name = { value:CUST.typed, editable:ed }; }
+      if (on('VP')) p.upi_vpa = { value:CUST.vpa, editable:ed };
+      if (on('VBA')){ p.account_number = { value:CUST.acct, editable:ed }; p.ifsc = { value:CUST.ifsc, editable:ed }; }
+      if (on('VBA') || cfg.vpNM) p.name = { value:CUST.typed, editable:ed };
       r.prefill = p;
     }
   }
-  if (has('RPD')) r.rpd = { expiry_minutes:cfg.expiry };
-  if (has('VP')) r.vp = { perform_name_match:cfg.vpNM };
-  if (has('VBA')) r.vba = { validation_type:cfg.vbaType, perform_name_match:cfg.vbaNM };
-  if (cfg.xob && (has('RPD') || has('VP'))) r.x_on_behalf_of = st.xobVal || 'SUBMERCHANT01';
+  if (cfg.xob && (on('RPD') || on('VP'))) r.x_on_behalf_of = st.xobVal || 'SUBMERCHANT01';
   r.auto_close_seconds = cfg.autoClose;
   return r;
 }
@@ -1961,7 +2067,7 @@ function renderReq(){
     config = SdkConfig(
         environment = Environment.${st.env},
         consumerUrns = ConsumerUrns(
-            decfin = "${st.urn.decfin}",     // RPD and VerifyPay
+            decfin = "${st.urn.decfin}",     // config call, RPD and VerifyPay
             decentro = "${st.urn.decentro}"  // VBA
         ),
         tokenProvider = { set -> myBackend.fetchToken(set) },
@@ -1981,14 +2087,16 @@ function renderReq(){
     )
 )
 
+// Which methods appear comes from the merchant config saved with Decentro,
+// not from the request. The first method that succeeds ends the session.
 DecentroVerification.startJourney(activity, request, object : JourneyCallbacks {
-    override fun onResult(result: VerificationResult) { /* confirm on your backend */ }
+    override fun onResult(result: VerificationResult) { /* once per session */ }
+    override fun onMethodResult(attempt: MethodAttempt) { /* optional · after every method */ }
     override fun onDismiss() { /* SDK UI closed: show your next screen */ }
     override fun onCancelled(result: VerificationResult) { }
     override fun onError(error: SdkError, result: VerificationResult?) { }
 })`;
-  const swift = `// iOS SDK: planned. v1 of the spec ships Android; the journey
-// definition is platform-neutral, so iOS takes the same request JSON.
+  const swift = `// iOS SDK: planned. The session model and request JSON are platform-neutral.
 DecentroVerification.initialize(
     config: SdkConfig(
         environment: .production,
@@ -2001,63 +2109,79 @@ DecentroVerification.initialize(
     )
 )
 DecentroVerification.startJourney(from: viewController, request: request, delegate: self)`;
-  const steps = J().steps;
-  const routes = [];
-  if (has('RPD')) routes.push(['RPD Intent','api.decentro.tech','Decfin','Sent if provided'],['GTS Basic (poll)','api.decentro.tech','Decfin','Not sent']);
-  if (has('VP')) routes.push(['VerifyPay','api.decentro.tech','Decfin','Sent if provided'],['GTS Verify (only on PENDING)','api.decentro.tech','Decfin','Not sent']);
-  if (has('VBA')) routes.push(['Validate Bank Account','in.decentro.tech','Decentro','Never']);
-  const refs = steps.map(p => `${st.base}${p}1`).join(', ');
+  const en = MORDER.filter(k => st.mcfg.methods.includes(k)), on = k => en.includes(k);
+  const routes = [['Merchant config (illustrative)','api.decentro.tech','Decfin (to confirm)','Not sent']];
+  if (on('RPD')) routes.push(['RPD Intent','api.decentro.tech','Decfin','Sent if provided'],['GTS Basic (poll)','api.decentro.tech','Decfin','Not sent']);
+  if (on('VP')) routes.push(['VerifyPay','api.decentro.tech','Decfin','Sent if provided'],['GTS Verify (only on PENDING)','api.decentro.tech','Decfin','Not sent']);
+  if (on('VBA')) routes.push(['Validate Bank Account','in.decentro.tech','Decentro','Never']);
+  const refs = en.map(p => `${st.base}${p}1`).join(', ');
   $('#tp-req').innerHTML = `
     <div class="codehd"><b>1 · initialize</b><small>Once per app session · ${ios ? 'Swift (planned)' : 'Kotlin'}</small></div>
     <pre class="code">${esc(ios ? swift : kotlin)}</pre>
-    <div class="codehd"><b>2 · startJourney request</b><button class="tbtn" type="button" id="copyReq">${svg('copy')}Copy JSON</button></div>
+    <div class="codehd"><b>2 · Merchant config</b><small>Saved with Decentro per merchant · read at launch</small></div>
+    <pre class="code">${hl(JSON.stringify(mcfgJson(), null, 2))}</pre>
+    <p class="pur" style="margin:-4px 0 12px;font-size:11.5px;color:var(--fg-2)">Stored per merchant in Decentro's config (MongoDB). The app does not send it; changing it changes which methods every session offers. Endpoint and field names are illustrative.</p>
+    <div class="codehd"><b>3 · startJourney request</b><button class="tbtn" type="button" id="copyReq">${svg('copy')}Copy JSON</button></div>
     <pre class="code" id="reqPre">${hl(req)}</pre>
-    ${st.mode === 'dev' ? `<div class="codehd"><b>3 · Handle the result</b><small>${ios ? 'Swift (planned)' : 'Kotlin'}</small></div><pre class="code">${esc(ios ? `func onResult(_ r: VerificationResult) {
+    ${st.mode === 'dev' ? `<div class="codehd"><b>4 · Handle the result</b><small>${ios ? 'Swift (planned)' : 'Kotlin'}</small></div><pre class="code">${esc(ios ? `func onResult(_ r: VerificationResult) {      // once per session
     switch r.status {
-    case .verified:     confirmOnBackend(r) // then unlock payouts
-    case .notVerified:  showRetryOrAlternative(failedStep: r.failedStep)
-    case .inconclusive: sendToManualReview(r)
+    case .verified:     confirmOnBackend(r)      // r.verifiedBy, r.account
     case .nre:          applyNrePolicy(r.account)
-    case .pending:      pollYourBackend(r.steps)
+    case .notVerified:  showAlternative(r.methodAttempts)
+    case .inconclusive: sendToManualReview(r)
+    case .pending:      pollYourBackend(r.methodAttempts.last)
     default: break
     }
 }` : `override fun onResult(result: VerificationResult) {
-    // Fires before the result screen renders, and after every attempt in entry journeys.
+    // Once per session. result.verifiedBy says which method succeeded.
     when (result.status) {
-        Status.VERIFIED     -> backend.confirm(result)      // then unlock payouts
-        Status.NOT_VERIFIED -> if (!result.retryAvailable) showAlternative(result.failedStep)
-        Status.INCONCLUSIVE -> backend.manualReview(result)
+        Status.VERIFIED     -> backend.confirm(result)        // name + account in result.account
         Status.NRE          -> applyNrePolicy(result.account)
-        Status.PENDING      -> backend.trackPending(result.steps)   // VP still pending
+        Status.NOT_VERIFIED -> showAlternative(result.methodAttempts)
+        Status.INCONCLUSIVE -> backend.manualReview(result)
+        Status.PENDING      -> backend.trackPending(result.methodAttempts.last())
         else -> Unit
     }
 }
-override fun onDismiss() { navigateToNextScreen() }        // last result is final`)}</pre>
-    <div class="codehd"><b>4 · Merchant backend</b><small>Node · illustrative</small></div><pre class="code">${esc(backendSnippets())}</pre>` : ''}
+override fun onMethodResult(attempt: MethodAttempt) {      // optional
+    analytics.track("verification_method", attempt)          // every attempt, incl. failures
+}
+override fun onDismiss() { navigateToNextScreen() }`)}</pre>
+    <div class="codehd"><b>5 · Merchant backend</b><small>Node · illustrative</small></div><pre class="code">${esc(backendSnippets())}</pre>` : ''}
     <div class="spec">
-      <div class="lbl">Calls in this journey</div>
+      <div class="lbl">How a session runs</div>
+      <ol class="pur" style="padding-left:18px;margin:0">
+        <li>The SDK reads the merchant config and offers only the enabled methods (RPD is hidden if the phone has no UPI app).</li>
+        <li>One method: it opens directly. Two or three: the customer chooses.</li>
+        <li>Each method runs on its own. Nothing chains into the next method.</li>
+        <li>The first method that succeeds ends the session: <code>onResult</code> with the name and account.</li>
+        <li>If a method fails, the enabled methods not yet tried are offered. Try again and Modify details still work inside a method.</li>
+        <li>The session also ends when the customer closes, cancels, or has nothing left to try.</li>
+      </ol>
+      <div class="lbl">Calls in this session</div>
       <table><tr><th>Call</th><th>Host</th><th>Token</th><th>x_on_behalf_of</th></tr>${routes.map(r => `<tr><td>${r[0]}</td><td><code>${r[1]}</code></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</table>
       <div class="lbl">Reference IDs</div>
-      <p class="pur">One base ID from the merchant (alphanumeric, 5–45 chars). The SDK appends step and attempt: <code>${refs}</code>. Retries and Modify details increment the number, e.g. <code>${st.base}${steps[steps.length-1]}2</code>.</p>
+      <p class="pur">One base ID from the merchant (alphanumeric, 5–45 chars). The SDK appends method and attempt: <code>${refs}</code>. Try again and Modify details increment the number, e.g. <code>${st.base}${en[en.length-1] || 'RPD'}2</code>.</p>
       <div class="lbl">Callbacks</div>
       <table><tr><th>Callback</th><th>When</th></tr>
-        <tr><td>onResult</td><td>Final outcome known, before the result screen renders. In entry journeys it also fires after every attempt.</td></tr>
-        <tr><td>onDismiss</td><td>Result or error screen closes (Done, Close, auto-close, system back).</td></tr>
-        <tr><td>onCancelled</td><td>Customer leaves before an outcome. Each step carries its last status.</td></tr>
-        <tr><td>onError</td><td>Before an error screen renders. result is null only for INVALID_CONFIG.</td></tr></table>
+        <tr><td>onMethodResult</td><td>After every method attempt: verified, failed, pending, inconclusive, NRE or error. Carries the methods still on offer. Optional.</td></tr>
+        <tr><td>onResult</td><td>Once per session when the outcome is final: right away on VERIFIED or NRE, or when nothing is left to try; otherwise when the customer closes the failure screen.</td></tr>
+        <tr><td>onError</td><td>Once, when a technical error ends the session. result is null only for INVALID_CONFIG and NO_METHOD_ENABLED.</td></tr>
+        <tr><td>onCancelled</td><td>Customer leaves before an outcome. method_attempts lists anything already tried.</td></tr>
+        <tr><td>onDismiss</td><td>The SDK UI closes, after the session's final callback.</td></tr></table>
       <div class="lbl">Trusting the result</div>
-      <p class="pur">The result object is built on the phone. Confirm each step on your backend by <code>decentro_txn_id</code> or <code>reference_id</code> with Decentro's status APIs before acting on it.</p>
+      <p class="pur">The result object is built on the phone. Confirm the verifying attempt on your backend by <code>decentro_txn_id</code> or <code>reference_id</code> with Decentro's status APIs before acting on it.</p>
     </div>`;
   $('#copyReq').addEventListener('click', () => { const txt = req; navigator.clipboard?.writeText(txt).then(() => { $('#copyReq').lastChild.textContent = 'Copied'; }).catch(() => { const r = document.createRange(); r.selectNodeContents($('#reqPre')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }); });
 }
 function renderRes(){
   const L = st.last, el = $('#tp-res');
-  if (!L){ el.innerHTML = `<p class="empty">No callback yet. Run the journey: onResult fires the moment an outcome is known, before the result screen renders.</p>`; return; }
+  if (!L){ el.innerHTML = `<p class="empty">No callback yet. Run a session: onMethodResult fires after each method, and onResult once the session outcome is final.</p>`; return; }
   const s = L.res ? L.res.status : L.err.code;
   const tone = s === 'VERIFIED' ? 'ok' : ['NOT_VERIFIED','ERROR','INVALID_CONFIG'].includes(s) ? 'bad' : 'wn';
-  el.innerHTML = `<div class="cbhead"><span class="badge nt mono">${L.cb}</span><span class="badge ${tone}">${s}</span>${L.res?.failed_step ? `<span class="badge nt">failed_step ${L.res.failed_step}</span>` : ''}${L.res?.retry_available ? '<span class="badge nt">retry_available</span>' : ''}</div>
+  el.innerHTML = `<div class="cbhead"><span class="badge nt mono">${L.cb}</span><span class="badge ${tone}">${s}</span>${L.res?.verified_by ? `<span class="badge nt">verified_by ${L.res.verified_by}</span>` : ''}${L.res?.method && L.cb === 'onMethodResult' ? `<span class="badge nt">${L.res.method}</span>` : ''}</div>
   ${L.err ? `<div class="codehd"><b>error</b></div><pre class="code">${hl(JSON.stringify(L.err, null, 2))}</pre>` : ''}
-  <div class="codehd"><b>result</b><small>Spec §5.5 shape</small></div><pre class="code">${hl(JSON.stringify(L.res, null, 2))}</pre>`;
+  <div class="codehd"><b>${L.cb === 'onMethodResult' ? 'attempt' : 'result'}</b><small>${L.cb === 'onMethodResult' ? 'MethodAttempt' : 'VerificationResult · one per session'}</small></div><pre class="code">${hl(JSON.stringify(L.res, null, 2))}</pre>`;
 }
 
 /* ---------- per-screen spec (for the frontend team) ---------- */
@@ -2069,38 +2193,42 @@ function specFor(){
   if (ov === 'dialog' && $('#dlg').classList.contains('on')) return {
     t:'Cancel verification? · dialog', p:'Stops an accidental exit while the ₹1 link is live.',
     rows:[['Title','"Cancel verification?"'],['Body','"Any ₹1 you paid is refunded within 3 working days."'],['[Keep waiting]','Closes the dialog. Timer and polling continue.'],['[Yes, cancel]','Ends the journey as CANCELLED']], api:['None'], cb:['onCancelled(result): RPD carries its last status, usually PENDING'] };
+  const back = ['Back (←)','Shown when other methods are on offer. Returns to the method list; nothing is sent.'];
   const S = {
     host:{ t:'Merchant app (host)', p:'The merchant\'s own screen. The SDK is launched from here and returns here.',
-      rows:[['Launch','DecentroVerification.startJourney(request, callbacks)'],['Validation','Request is checked against the schema before any screen. Failure fires onError(INVALID_CONFIG) with result null.'],['After close','Merchant shows its next step from the last onResult, after onDismiss']],
+      rows:[['Launch','DecentroVerification.startJourney(request, callbacks)'],['Methods','Not in the request. Read from the merchant config saved with Decentro when the SDK opens.'],['Validation','The request is checked against the schema before any screen. Failure fires onError(INVALID_CONFIG) with result null.'],['After close','Merchant shows its next step from the session result, after onDismiss']],
       api:['initialize once per session: environment, two consumer URNs, tokenProvider, theme, terms_url'], cb:['onResult → onDismiss, or onCancelled, or onError'] },
-    consent:{ t:'Screen 1 · Consent', p:'Explains the steps and captures consent before any money moves.',
-      rows:[['Title',`"${CONSENT[j]?.title}"`],['Steps summary',(CONSENT[j]?.steps || []).join(' · ')],['Refund note','"Your ₹1 is refunded within 3 working days."'],['Consent checkbox','Always unchecked. Wording is fixed by Decentro; only the terms link is the merchant\'s.'],['CTA','"Pay ₹1 to verify". Disabled until ticked. Shows a loader during RPD Intent; screen cannot be dismissed during the call.'],['Close (✕)','onCancelled(result). No API called.']],
-      api:['tokenProvider(DECFIN)','POST /v3/payments/rpd/intent · reference_id {base}RPD{n} · expiry_time · generate_psp_uri true · generate_qr false'], cb:['onCancelled on ✕','onError if the link cannot be created'],
-      keys:['consent.title','consent.steps.*','consent.refund_note','cta.pay_to_verify'] },
-    entry: J().entry === 'vp' ? { t:'Screen 1 · UPI ID entry + consent', p:'Collects or confirms the UPI ID (and name when VP name match is on).',
-      rows:[['UPI ID','≥4 chars, one @, no spaces → "Please enter a valid UPI ID."' + (j === 'VP_VBA' ? ' Must differ from every UPI ID already tried → "This UPI ID was already tried."' : '')],['Account holder name','Only when vp.perform_name_match. ≥2 chars, none of @#$%^&* → "Name must not contain special characters."'],['Prefill','No value: empty. editable true: filled. editable false: locked with lock icon.'],['SKIP mode','Values read-only above consent'],['Consent','Always unchecked, also after Modify details'],['[Verify UPI ID]','Enabled when consent is ticked and every shown field is valid'],['Attempt chip','"Attempt n of 3" on attempts 2 and 3']],
+    boot:{ t:'Loading', p:'Reads the merchant configuration and checks the phone before showing anything to choose.',
+      rows:[['Loader','"Getting things ready" · "Loading your verification options…"'],['Merchant config','enabled_methods plus per-method settings: rpd.expiry_minutes, vp.perform_name_match, vba.validation_type, vba.perform_name_match'],['UPI apps','RPD is hidden when no UPI app is installed. If RPD is the only method: No UPI app found.'],['Next','One method: open it directly. Two or three: the method chooser.'],['Close','Not shown while loading']],
+      api:['tokenProvider(DECFIN)','GET /v3/sdk/verification/config (illustrative; confirm endpoint and which credential set a VBA-only merchant uses)'], cb:['Offline: error screen with Try again','No method enabled: onError(NO_METHOD_ENABLED, null)'] },
+    methods:{ t:'Choose a method', p:'Lists the methods this merchant enabled; the customer picks one.',
+      rows:[['Title','"Verify your bank account"'],['Body','"{merchant} needs to confirm the bank account in your name. Choose any one way."'],['Rows','One per enabled method: Pay ₹1 from a UPI app · Enter your UPI ID · Enter bank account details. Icon, title, one-line description, chevron.'],['Tag','"Fastest" on the ₹1 payment row'],['Order','RPD, VerifyPay, VBA, skipping any that are off'],['Already tried','Not listed again in the same session'],['Note','"Verified securely by Decentro…"'],['Close (✕) / back','onCancelled(result)']],
+      api:['None'], cb:['onCancelled on ✕'] },
+    consent:{ t:'RPD · Consent', p:'Explains the ₹1 payment and captures consent before any money moves.',
+      rows:[['Title',`"${CONSENT.RPD.title}"`],['Body',CONSENT.RPD.steps[0]],['Refund note','"Your ₹1 is refunded within 3 working days."'],['Consent checkbox','Always unchecked. Wording is fixed by Decentro; only the terms link is the merchant\'s.'],['CTA','"Pay ₹1 to verify". Disabled until ticked. Loader during RPD Intent; the screen cannot be dismissed during the call.'],back,['Close (✕)','onCancelled(result). No API called.']],
+      api:['POST /v3/payments/rpd/intent · reference_id {base}RPD{n} · expiry_time · generate_psp_uri true · generate_qr false'], cb:['onCancelled on ✕','Error screen if the link cannot be created'],
+      keys:['consent.title','consent.body','consent.refund_note','cta.pay_to_verify'] },
+    entry: J().entry === 'vp' ? { t:'VerifyPay · UPI ID entry + consent', p:'Collects or confirms the UPI ID, and the name when VP name match is on.',
+      rows:[['UPI ID','≥4 chars, one @, no spaces → "Please enter a valid UPI ID."'],['Account holder name','Only when vp.perform_name_match (config). ≥2 chars, none of @#$%^&* → "Name must not contain special characters."'],['Prefill','prefill.upi_vpa / prefill.name. No value: empty. editable true: filled. editable false: locked with lock icon.'],['SKIP mode','Values read-only above consent'],['Consent','Always unchecked, also after Modify details'],['[Verify UPI ID]','Enabled when consent is ticked and every shown field is valid'],['Attempt chip','"Attempt n of 3" on attempts 2 and 3'],back],
       api:['POST /v3/banking/verify_pay · reference_id {base}VP{n} · is_consent_granted true'], cb:['onCancelled on ✕'], keys:['vp.entry.title','vp.entry.upi_label','cta.verify_upi_id'] }
-      : { t:'Screen 1 · Bank details entry + consent', p:'Collects or confirms the bank account to validate.',
-      rows:[['Account holder name','Always shown. Required only when vba.perform_name_match.'],['Account number','9–18 digits. Plain while typing, masked on blur. Locked: masked with lock icon.'],['Confirm account number','Hidden when the account number is locked. Must match.'],['IFSC','^[A-Z]{4}0[A-Z0-9]{6}$, upper-cased as typed. Bank name not shown in v1 (OP-13).'],['Mobile number','Removed. VBA mobile_number is never sent.'],['[Verify Account]','Enabled when consent is ticked and every field is valid']],
+      : { t:'VBA · Bank details entry + consent', p:'Collects or confirms the bank account to validate.',
+      rows:[['Account holder name','Always shown. Required only when vba.perform_name_match (config).'],['Account number','9–18 digits. Plain while typing, masked on blur. Locked: masked with lock icon.'],['Confirm account number','Hidden when the account number is locked. Must match.'],['IFSC','^[A-Z]{4}0[A-Z0-9]{6}$, upper-cased as typed. Bank name not shown in v1 (OP-13).'],['Mobile number','Removed. VBA mobile_number is never sent.'],['[Verify Account]','Enabled when consent is ticked and every field is valid'],back],
       api:['tokenProvider(DECENTRO)','POST in.decentro.tech/v3/banking/money_transfer/validate_bank_account'], cb:['onCancelled on ✕'], keys:['vba.entry.title','cta.verify_account'] },
-    apps:{ t:'Screen 2 · Choose UPI app', p:'Picks an installed UPI app and hands off to it.',
-      rows:[['Component','Reuses the production checkout payment-option list (decentro-netbanking-connect.html, modal "list"): summary card, centred heading, icon rows, trust footer. Colours come from the SDK theme.'],['Summary card','Merchant name · "Bank account verification" · ₹ 1.00 · Txn ID = RPD decentro_txn_id · Expires In = countdown from expiry_time, in the error colour'],['Rows','Installed apps only, production icons. PhonePe, Google pay, PayTM open with their PSP URIs; BHIM and others with validation_link.'],['Other UPI apps','Row shown when more than four apps are installed; opens a bottom sheet with the rest'],['Timer ends here','Not verified, "Payment link expired"'],['No UPI app','Error screen, [Close] only, onError(NO_UPI_APP)'],['Back / ✕','Cancel dialog']],
+    apps:{ t:'RPD · Choose UPI app', p:'Picks an installed UPI app and hands off to it.',
+      rows:[['Component','Reuses the production checkout payment-option list (decentro-netbanking-connect.html, modal "list"): summary card, centred heading, icon rows, trust footer. Colours come from the SDK theme.'],['Summary card','Merchant name · "Bank account verification" · ₹ 1.00 · Txn ID = RPD decentro_txn_id · Expires In = countdown from expiry_time, in the error colour'],['Rows','Installed apps only, production icons. PhonePe, Google pay, PayTM open with their PSP URIs; BHIM and others with validation_link.'],['Other UPI apps','Row shown when more than four apps are installed; opens a bottom sheet with the rest'],['Timer ends here','Not verified, "Payment link expired", other methods offered'],['Back / ✕','Cancel dialog']],
       api:['Launch intent with gpay_uri / phonepe_uri / paytm_uri / validation_link'], cb:['onCancelled via dialog'] },
-    awaiting:{ t:'Screen 3 · Awaiting payment', p:'Waits for the ₹1 to reach a final status.',
-      rows:[['Text','"Awaiting confirmation. Do not close this screen."'],['Timer','Same countdown as Choose UPI app'],['Try another UPI app','Shown once the customer is back and status is PENDING. Same link, no new RPD call.'],['Network lost','Title becomes "Waiting for network". Polling continues with backoff until expiry.'],['Back / ✕','Cancel dialog; Yes, cancel fires onCancelled with RPD PENDING']],
-      api:['GET /v3/payments/transaction/status?decentro_txn_id=… after a base delay from the app tap (OP-5)','Foreground only; poll at once on return','PENDING and DEEMED keep polling (OP-11); one last poll at expiry'], cb:['onResult on FAILED or EXPIRED'] },
-    verifying:{ t:'Verifying', p:'Shows progress while the remaining products run with no customer input.',
-      rows:[['Progress list',J().steps.map(p => STEPNAME[p]).join(' → ') + '. Each row: waiting, in progress, done.'],['Text','"This takes a few seconds. Do not close this screen."'],['Interaction','Back and close disabled, also while VP is pending'],['Timeout','Each sync call times out after 30 s']],
-      api: (has('VP') ? ['POST /v3/banking/verify_pay (GTS Verify polled only on PENDING)'] : []).concat(has('VBA') ? ['POST /v3/banking/money_transfer/validate_bank_account on the Decentro host'] : []), cb:['onResult or onError when a step ends the journey'] },
-    processing:{ t:'Processing', p:'A single synchronous check with a loader.',
-      rows:[['Text', j === 'VP' ? '"Verifying your UPI ID…"' : '"Verifying your bank account…"'],['Interaction','Back and close disabled'],['Timeout','No response in 30 s opens the error screen' + (j === 'VP' ? ' after checking GTS Verify by reference_id' : '')]],
-      api:[j === 'VP' ? 'POST /v3/banking/verify_pay' : 'POST in.decentro.tech/v3/banking/money_transfer/validate_bank_account'], cb:['onResult before the result screen'] },
-    result:{ t:'Final result · ' + (st.final?.status || ''), p:'One screen for the whole journey, with a per-step line in combined journeys.',
-      rows:[['Header', st.final ? '"' + resultHeader() + '"' : ''],['Details','Account number always masked to last 4 on screen. Name match shown as n/100 when on.'],['Step line','✓ done · ✕ failed · ? inconclusive · ! NRE · … pending · – not run'],['Refund note','When the ₹1 was paid'],['CTA', st.final?.status === 'VERIFIED' ? '[Done]' : canModify() ? '[Modify details] + Close (attempts capped at 3)' : '[Close]'],['auto_close_seconds','Closes the screen after N s when set']],
-      api:['None'], cb:['onResult fired before render','onDismiss on Done / Close'], keys:['result.verified.title','result.not_verified.title','cta.done','cta.close','cta.modify_details'] },
-    error:{ t:'Error · ' + (st.err?.h || ''), p:'Shared by all steps for technical failures.',
-      rows:[['Header','"' + (st.err?.h || '') + '"'],['Reason','"' + (st.err?.r || '') + '"'],['[Retry]', st.err?.retry ? 'Shown. Repeats only the failed step with the next reference ID.' : 'Not shown for this cause'],['[Close]','Always shown; fires onDismiss'],['Error code', st.err?.code || '']],
-      api:['Retry never repeats a confirmed ₹1 payment'], cb:['onError(error, result) before render'] }
+    awaiting:{ t:'RPD · Awaiting payment', p:'Waits for the ₹1 to reach a final status.',
+      rows:[['Text','"Awaiting confirmation. Do not close this screen."'],['Timer','Same countdown as Choose UPI app'],['Try another UPI app','Shown once the customer is back and status is PENDING. Same link, no new RPD call.'],['Network lost','Title becomes "Waiting for network". Polling continues with backoff until expiry.'],['Back / ✕','Cancel dialog; Yes, cancel fires onCancelled']],
+      api:['GET /v3/payments/transaction/status?decentro_txn_id=… after a base delay from the app tap (OP-5)','Foreground only; poll at once on return','PENDING and DEEMED keep polling (OP-11); one last poll at expiry'], cb:['onMethodResult on SUCCESS, FAILED or EXPIRED'] },
+    processing:{ t:st.j + ' · Processing', p:'A single synchronous check with a loader.',
+      rows:[['Text', st.j === 'VP' ? '"Verifying your UPI ID…"' : '"Verifying your bank account…"'],['Interaction','Back and close disabled'],['Timeout','No response in 30 s opens the error screen' + (st.j === 'VP' ? ' after checking GTS Verify by reference_id' : '')]],
+      api:[st.j === 'VP' ? 'POST /v3/banking/verify_pay' : 'POST in.decentro.tech/v3/banking/money_transfer/validate_bank_account'], cb:['onMethodResult when it answers'] },
+    result:{ t:'Result · ' + st.j + ' · ' + (st.final?.status || ''), p:'The outcome of one method. Success ends the session; a failure offers the other methods.',
+      rows:[['Header', st.final ? '"' + resultHeader() + '"' : ''],['Verified','Name, account (masked to last 4), IFSC, plus UPI ID and account type where the method returns them; name match as n/100 when on. "Verified with {method}".'],['Try another way','On NOT_VERIFIED, INCONCLUSIVE or PENDING: one row per enabled method not yet tried. Tapping a row opens that method; no session callback fires.'],['Modify details','VerifyPay and VBA: back to entry with values kept, max 3 attempts'],['Refund note','When the ₹1 was paid'],['CTA', st.final?.status === 'VERIFIED' ? '[Done]' : canModify() ? '[Modify details] + Close' : '[Close]'],['auto_close_seconds','Success screen only']],
+      api:['None'], cb:['onMethodResult before render','onResult before render on VERIFIED, NRE or when nothing is left; otherwise on Close','onDismiss after'], keys:['result.verified.title','result.not_verified.title','result.try_another_way','cta.done','cta.close','cta.modify_details'] },
+    error:{ t:'Error · ' + (st.err?.h || ''), p:'Shared by every method for technical failures.',
+      rows:[['Header','"' + (st.err?.h || '') + '"'],['Reason','"' + (st.err?.r || '') + '"'],['[Try again]', st.err?.retry ? 'Shown. Repeats only the failed call with the next reference ID.' : 'Not shown for this cause'],['Try another way', st.err?.fallback === false ? 'Not shown: this error affects the whole session' : 'Shown when enabled methods are left untried'],['[Close]','Always shown'],['Error code', st.err?.code || '']],
+      api:['Try again never repeats a confirmed ₹1 payment'], cb:['onMethodResult(error) before render (method errors)','onError when the session ends: on Close, or right away if nothing can be retried or tried'] }
   };
   return S[s];
 }
@@ -2112,9 +2240,9 @@ function renderSpec(){
     ${sp.api?.length ? `<div class="lbl">API touchpoints</div><ul>${sp.api.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
     ${sp.cb?.length ? `<div class="lbl">Callbacks</div><ul>${sp.cb.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
     ${sp.keys ? `<div class="lbl">String keys (illustrative)</div><p class="pur">${sp.keys.map(k => `<code>${k}</code>`).join(' ')}. Consent wording cannot be overridden.</p>` : ''}
-    <div class="lbl">Screens in ${st.j}</div>
-    <div class="inv">${seq.map((k,i) => `<div class="${k === cur ? 'cur' : ''}"><i>${i+1}</i>${k === 'host' ? 'Merchant app' : k === 'entry' ? screenTitle('entry') : SCREEN_LABEL[k]}</div>`).join('')}<div><i>+</i>Error screen, cancel dialog${has('RPD') ? ', Other UPI apps sheet' : ''}</div></div>
-    <div class="lbl">Fixed by Decentro</div><p class="pur">Screen order and layout, consent wording, the "Powered by Decentro" footer and on-screen masking of account numbers. Everything else follows the merchant theme.</p>`;
+    <div class="lbl">Screens · ${st.j} in this session</div>
+    <div class="inv">${seq.map((k,i) => `<div class="${k === cur ? 'cur' : ''}"><i>${i+1}</i>${k === 'host' ? 'Merchant app' : k === 'entry' ? screenTitle('entry') : SCREEN_LABEL[k]}</div>`).join('')}<div><i>+</i>Loading, error screen, cancel dialog${has('RPD') ? ', Other UPI apps sheet' : ''}</div></div>
+    <div class="lbl">Fixed by Decentro</div><p class="pur">Method order, screen order and layout, consent wording, the "Powered by Decentro" footer and on-screen masking of account numbers. Everything else follows the merchant theme.</p>`;
 }
 
 
@@ -2126,10 +2254,13 @@ function renderSpec(){
 function pfFromDemo(){
   if (cfg.prefill === 'empty') return {};
   const ed = cfg.prefill !== 'locked';
-  return { upi_vpa:{ value:CUST.vpa, editable:ed }, customer_name:{ value:CUST.typed, editable:ed }, name:{ value:CUST.typed, editable:ed }, account_number:{ value:CUST.acct, editable:ed }, ifsc:{ value:CUST.ifsc, editable:ed } };
+  return { upi_vpa:{ value:CUST.vpa, editable:ed }, name:{ value:CUST.typed, editable:ed }, account_number:{ value:CUST.acct, editable:ed }, ifsc:{ value:CUST.ifsc, editable:ed } };
 }
+const defMcfg = () => ({ methods:['RPD','VP','VBA'], rpd:{ expiry_minutes:15 }, vp:{ perform_name_match:true }, vba:{ validation_type:'pennydrop', perform_name_match:true } });
+const mcfgFromDemo = () => ({ methods:[...st.dm], rpd:{ expiry_minutes:cfg.expiry }, vp:{ perform_name_match:cfg.vpNM }, vba:{ validation_type:cfg.vbaType, perform_name_match:cfg.vbaNM } });
 function applyDemo(){
   st.base = BASE; st.xobVal = cfg.xob ? 'SUBMERCHANT01' : null; st.tov = null;
+  st.mcfg = { methods:[...st.dm] };
   st.pf = pfFromDemo();
   if (cfg.mode === 'SKIP') Object.values(st.pf).forEach(f => f.editable = false);
   st.req = requestJson();
@@ -2137,46 +2268,31 @@ function applyDemo(){
 
 /* ---------- schema validation ---------- */
 const RX = { base:/^[A-Za-z0-9]{5,45}$/, vpa:/^[A-Za-z0-9._-]{2,256}@[A-Za-z0-9]{2,64}$/, name:/^[^@#$%^&*]{2,}$/, acct:/^[0-9]{9,18}$/, ifsc:/^[A-Z]{4}0[A-Z0-9]{6}$/, hex:/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/, vbaPurpose:/^[A-Za-z0-9 ]{5,255}$/ };
-const TOP_KEYS = ['journey_type','base_reference_id','data_entry_mode','prefill','rpd','vp','vba','x_on_behalf_of','theme_override','auto_close_seconds'];
+const TOP_KEYS = ['base_reference_id','data_entry_mode','prefill','x_on_behalf_of','theme_override','auto_close_seconds'];
+const MOVED = { journey_type:'was removed: the methods come from the merchant config saved with Decentro', rpd:'moved to the merchant config (rpd.expiry_minutes)', vp:'moved to the merchant config (vp.perform_name_match)', vba:'moved to the merchant config (vba.validation_type, vba.perform_name_match)' };
 const THEME_KEYS = [...PALETTE_KEYS,'logo','header_title','dark_palette','font_family','title_size','body_size','caption_size','button_style','button_corner_radius','button_height','button_text_case','input_style','input_corner_radius','input_fill','input_border_focused','card_corner_radius','strings','auto_close_seconds'];
-const PF_RULE = { upi_vpa:[RX.vpa,'must look like name@handle'], customer_name:[RX.name,'2+ characters, none of @#$%^&*'], name:[RX.name,'2+ characters, none of @#$%^&*'], account_number:[RX.acct,'must be 9–18 digits'], ifsc:[RX.ifsc,'must match ^[A-Z]{4}0[A-Z0-9]{6}$ (uppercase)'] };
+const PF_RULE = { upi_vpa:[RX.vpa,'must look like name@handle'], name:[RX.name,'2+ characters, none of @#$%^&*'], account_number:[RX.acct,'must be 9–18 digits'], ifsc:[RX.ifsc,'must match ^[A-Z]{4}0[A-Z0-9]{6}$ (uppercase)'] };
 const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+const vcfg = () => st.mode === 'dev' && st.devMcfg ? st.devMcfg : { methods:st.mcfg.methods, vp:{ perform_name_match:cfg.vpNM }, vba:{ perform_name_match:cfg.vbaNM } };
 function validateRequest(q){
   const E = [], W = [], err = (p, m) => E.push({ path:p, msg:m }), warn = m => W.push(m);
   if (!isObj(q)){ err('$', 'must be a JSON object'); return { errors:E, warnings:W }; }
-  Object.keys(q).forEach(k => { if (!TOP_KEYS.includes(k)) err(k, 'is not allowed (additionalProperties: false)'); });
-  const jt = q.journey_type, JJ = JOURNEYS[jt], steps = JJ ? JJ.steps : [];
-  if (jt === undefined) err('journey_type', 'is required'); else if (!JJ) err('journey_type', 'must be one of ' + Object.keys(JOURNEYS).join(', '));
+  Object.keys(q).forEach(k => { if (MOVED[k]) err(k, MOVED[k]); else if (!TOP_KEYS.includes(k)) err(k, 'is not allowed (additionalProperties: false)'); });
   if (q.base_reference_id === undefined) err('base_reference_id', 'is required');
   else if (typeof q.base_reference_id !== 'string' || !RX.base.test(q.base_reference_id)) err('base_reference_id', 'must be alphanumeric, 5–45 characters (no hyphens)');
   if (q.data_entry_mode !== undefined && !['COLLECT','SKIP'].includes(q.data_entry_mode)) err('data_entry_mode', 'must be COLLECT or SKIP');
-  const blk = (name, allowed, check) => {
-    const b = q[name]; if (b === undefined) return;
-    if (!isObj(b)){ err(name, 'must be an object'); return; }
-    Object.keys(b).forEach(k => { if (!allowed.includes(k)) err(name + '.' + k, 'is not allowed'); });
-    check(b);
-    if (JJ && !steps.includes(name.toUpperCase())) warn(`${name} is ignored: ${jt} has no ${name.toUpperCase()} step`);
-  };
-  blk('rpd', ['expiry_minutes'], b => { if (b.expiry_minutes !== undefined && !(Number.isInteger(b.expiry_minutes) && b.expiry_minutes >= 1 && b.expiry_minutes <= 60)) err('rpd.expiry_minutes', 'must be an integer from 1 to 60'); });
-  blk('vp', ['purpose_message','perform_name_match','fetch_branch_details'], b => {
-    if (b.purpose_message !== undefined && (typeof b.purpose_message !== 'string' || b.purpose_message.length < 4)) err('vp.purpose_message', 'must be at least 4 characters');
-    ['perform_name_match','fetch_branch_details'].forEach(k => { if (b[k] !== undefined && typeof b[k] !== 'boolean') err('vp.' + k, 'must be true or false'); });
-  });
-  blk('vba', ['validation_type','perform_name_match','purpose_message'], b => {
-    if (b.validation_type !== undefined && !['penniless','pennydrop','hybrid'].includes(b.validation_type)) err('vba.validation_type', 'must be penniless, pennydrop or hybrid');
-    if (b.perform_name_match !== undefined && typeof b.perform_name_match !== 'boolean') err('vba.perform_name_match', 'must be true or false');
-    if (b.purpose_message !== undefined && (typeof b.purpose_message !== 'string' || !RX.vbaPurpose.test(b.purpose_message))) err('vba.purpose_message', 'must be 5–255 letters, digits or spaces');
-  });
+  const C = vcfg(), en = C.methods || [], on = k => en.includes(k);
   if (q.x_on_behalf_of !== undefined){
     if (typeof q.x_on_behalf_of !== 'string' || !q.x_on_behalf_of.length) err('x_on_behalf_of', 'must be a non-empty string');
-    else if (JJ && !steps.includes('RPD') && !steps.includes('VP')) warn('x_on_behalf_of is never sent on VBA, so it is unused in ' + jt);
+    else if (en.length && !on('RPD') && !on('VP')) warn('x_on_behalf_of is unused: only VBA is enabled, and VBA never sends it');
   }
   if (q.auto_close_seconds !== undefined && !(Number.isInteger(q.auto_close_seconds) && q.auto_close_seconds >= 0)) err('auto_close_seconds', 'must be an integer ≥ 0');
-  const accepts = !JJ ? [] : JJ.entry === 'vp' ? ['upi_vpa','customer_name'] : JJ.entry === 'vba' ? ['name','account_number','ifsc'] : [];
+  const accepts = [...new Set([...(on('VP') ? ['upi_vpa','name'] : []), ...(on('VBA') ? ['name','account_number','ifsc'] : [])])];
   const pf = q.prefill;
   if (pf !== undefined){
     if (!isObj(pf)) err('prefill', 'must be an object');
     else Object.keys(pf).forEach(k => {
+      if (k === 'customer_name'){ err('prefill.customer_name', 'was renamed to prefill.name (one name for VerifyPay and VBA)'); return; }
       if (!PF_RULE[k]){ err('prefill.' + k, 'is not allowed'); return; }
       const f = pf[k];
       if (!isObj(f)){ err('prefill.' + k, 'must be { "value": …, "editable": … }'); return; }
@@ -2184,13 +2300,13 @@ function validateRequest(q){
       if (typeof f.value !== 'string') err(`prefill.${k}.value`, 'is required and must be a string');
       else if (!PF_RULE[k][0].test(f.value)) err(`prefill.${k}.value`, PF_RULE[k][1]);
       if (f.editable !== undefined && typeof f.editable !== 'boolean') err(`prefill.${k}.editable`, 'must be true or false');
-      if (JJ && !accepts.includes(k)) warn(`prefill.${k} is ignored: ${jt} does not accept it`);
+      if (en.length && !accepts.includes(k)) warn(`prefill.${k} is unused: no enabled method takes it`);
     });
   }
-  if (q.data_entry_mode === 'SKIP' && JJ){
-    if (!JJ.entry) warn('data_entry_mode is ignored: ' + jt + ' has no entry screen');
-    const need = JJ.entry === 'vp' ? ['upi_vpa', ...(q.vp?.perform_name_match ? ['customer_name'] : [])] : JJ.entry === 'vba' ? ['account_number','ifsc', ...(q.vba?.perform_name_match ? ['name'] : [])] : [];
-    need.forEach(k => { if (!isObj(pf) || !isObj(pf[k]) || !pf[k].value) err('prefill.' + k, 'is required when data_entry_mode is SKIP'); });
+  if (q.data_entry_mode === 'SKIP'){
+    if (!on('VP') && !on('VBA')) warn('data_entry_mode is unused: no enabled method has an entry screen');
+    const need = [...new Set([...(on('VP') ? ['upi_vpa', ...(C.vp?.perform_name_match ? ['name'] : [])] : []), ...(on('VBA') ? ['account_number','ifsc', ...(C.vba?.perform_name_match ? ['name'] : [])] : [])])];
+    need.forEach(k => { if (!isObj(pf) || !isObj(pf[k]) || !pf[k].value) err('prefill.' + k, 'is required when data_entry_mode is SKIP (an enabled method needs it)'); });
   }
   const t = q.theme_override;
   if (t !== undefined){
@@ -2211,48 +2327,51 @@ function validateRequest(q){
   }
   return { errors:E, warnings:W };
 }
+/* Developer mode: merchant config (mocked) → runtime settings. */
+function applyMcfg(){
+  const C = st.devMcfg || defMcfg();
+  st.mcfg = { methods:MORDER.filter(k => C.methods.includes(k)) };
+  cfg.expiry = Number.isInteger(C.rpd?.expiry_minutes) ? Math.min(60, Math.max(1, C.rpd.expiry_minutes)) : 15;
+  cfg.vpNM = C.vp?.perform_name_match !== false; cfg.vbaNM = C.vba?.perform_name_match !== false;
+  cfg.vbaType = ['penniless','pennydrop','hybrid'].includes(C.vba?.validation_type) ? C.vba.validation_type : 'pennydrop';
+  if (st.mcfg.methods.length && !st.mcfg.methods.includes(st.j)) st.j = st.mcfg.methods[0];
+}
 function applyRequest(q){
+  applyMcfg();
   if (!isObj(q)) return;
-  if (JOURNEYS[q.journey_type]) st.j = q.journey_type;
   st.req = q;
   st.base = typeof q.base_reference_id === 'string' && q.base_reference_id ? q.base_reference_id : BASE;
-  cfg.mode = q.data_entry_mode === 'SKIP' && J().entry ? 'SKIP' : 'COLLECT';
-  cfg.expiry = Number.isInteger(q.rpd?.expiry_minutes) ? Math.min(60, Math.max(1, q.rpd.expiry_minutes)) : 60;
-  cfg.vpNM = q.vp?.perform_name_match === true; cfg.vbaNM = q.vba?.perform_name_match === true;
-  cfg.vbaType = ['penniless','pennydrop','hybrid'].includes(q.vba?.validation_type) ? q.vba.validation_type : 'pennydrop';
+  cfg.mode = q.data_entry_mode === 'SKIP' && st.mcfg.methods.some(k => METHODS[k].entry) ? 'SKIP' : 'COLLECT';
   st.xobVal = typeof q.x_on_behalf_of === 'string' && q.x_on_behalf_of ? q.x_on_behalf_of : null; cfg.xob = !!st.xobVal;
   cfg.autoClose = Number.isInteger(q.auto_close_seconds) ? q.auto_close_seconds : 0;
-  const acc = J().entry === 'vp' ? ['upi_vpa','customer_name'] : J().entry === 'vba' ? ['name','account_number','ifsc'] : [];
   st.pf = {};
-  Object.entries(isObj(q.prefill) ? q.prefill : {}).forEach(([k, f]) => { if (acc.includes(k) && isObj(f) && typeof f.value === 'string') st.pf[k] = { value:f.value, editable:f.editable !== false }; });
+  Object.entries(isObj(q.prefill) ? q.prefill : {}).forEach(([k, f]) => { if (PF_RULE[k] && isObj(f) && typeof f.value === 'string') st.pf[k] = { value:f.value, editable:f.editable !== false }; });
   if (cfg.mode === 'SKIP') Object.values(st.pf).forEach(f => f.editable = false);
   st.tov = isObj(q.theme_override) ? q.theme_override : null;
 }
 
-/* ---------- examples (spec §5.3.3) ---------- */
+/* ---------- examples: request + the merchant config they assume ---------- */
 const EXAMPLES = {
-  RPD:{ journey_type:'RPD', base_reference_id:'ORD10001', rpd:{ expiry_minutes:10 } },
-  VP:{ journey_type:'VP', base_reference_id:'ORD10002', data_entry_mode:'COLLECT', prefill:{ upi_vpa:{ value:'aditi@okhdfc', editable:true } }, vp:{ perform_name_match:true }, x_on_behalf_of:'SUBMERCHANT01' },
-  VBA:{ journey_type:'VBA', base_reference_id:'ORD10003', data_entry_mode:'SKIP', prefill:{ account_number:{ value:'50100234567890' }, ifsc:{ value:'HDFC0000123' }, name:{ value:'Aditi Sharma' } }, vba:{ validation_type:'penniless', perform_name_match:true } },
-  RPD_VP_VBA:{ journey_type:'RPD_VP_VBA', base_reference_id:'ORD10004', rpd:{ expiry_minutes:15 }, vp:{ perform_name_match:true }, x_on_behalf_of:'SUBMERCHANT01', vba:{ validation_type:'pennydrop', perform_name_match:true }, theme_override:{ primary:'#0B5FFF', button_text_case:'SENTENCE' } },
-  RPD_VP:{ journey_type:'RPD_VP', base_reference_id:'ORD10005', rpd:{ expiry_minutes:30 }, vp:{ fetch_branch_details:true } },
-  VP_VBA:{ journey_type:'VP_VBA', base_reference_id:'ORD10006', data_entry_mode:'COLLECT', prefill:{ upi_vpa:{ value:'aditi@okhdfc', editable:false }, customer_name:{ value:'Aditi Sharma', editable:true } }, vp:{ perform_name_match:true }, vba:{ validation_type:'hybrid', perform_name_match:true } },
-  RPD_VBA:{ journey_type:'RPD_VBA', base_reference_id:'ORD10007', rpd:{ expiry_minutes:15 }, vba:{ validation_type:'penniless' }, auto_close_seconds:5 },
-  BAD:{ journey_type:'VBA', base_reference_id:'ORD-10008', data_entry_mode:'SKIP', prefill:{ ifsc:{ value:'hdfc0000123' } }, vba:{ perform_name_match:true }, rpd:{ expiry_minutes:90 }, theme_override:{ primary:'blue' } }
+  ALL:{ l:'All three methods · customer chooses', mcfg:{ methods:['RPD','VP','VBA'] }, req:{ base_reference_id:'ORD10001', data_entry_mode:'COLLECT', prefill:{ name:{ value:'Aditi Sharma', editable:true } }, x_on_behalf_of:'SUBMERCHANT01' } },
+  RPD:{ l:'RPD only · opens straight into payment', mcfg:{ methods:['RPD'], rpd:{ expiry_minutes:10 } }, req:{ base_reference_id:'ORD10002' } },
+  VP_VBA:{ l:'VerifyPay + VBA · no ₹1 payment', mcfg:{ methods:['VP','VBA'] }, req:{ base_reference_id:'ORD10003', data_entry_mode:'COLLECT', prefill:{ upi_vpa:{ value:'aditi@okhdfc', editable:true }, name:{ value:'Aditi Sharma', editable:false } } } },
+  VBA_SKIP:{ l:'VBA only · SKIP mode, details prefilled', mcfg:{ methods:['VBA'], vba:{ validation_type:'penniless', perform_name_match:true } }, req:{ base_reference_id:'ORD10004', data_entry_mode:'SKIP', prefill:{ account_number:{ value:'50100234567890' }, ifsc:{ value:'HDFC0000123' }, name:{ value:'Aditi Sharma' } } } },
+  THEME:{ l:'Theme override + auto-close', mcfg:{ methods:['RPD','VP','VBA'] }, req:{ base_reference_id:'ORD10005', theme_override:{ primary:'#0B5FFF', button_text_case:'SENTENCE' }, auto_close_seconds:5 } },
+  BAD:{ l:'Invalid request · shows INVALID_CONFIG', req:{ journey_type:'VBA', base_reference_id:'ORD-10006', data_entry_mode:'SKIP', prefill:{ ifsc:{ value:'hdfc0000123' } }, theme_override:{ primary:'blue' } } }
 };
+const exMcfg = ex => { const d = defMcfg(), m = ex.mcfg || {}; return { methods:m.methods || d.methods, rpd:{ ...d.rpd, ...(m.rpd || {}) }, vp:{ ...d.vp, ...(m.vp || {}) }, vba:{ ...d.vba, ...(m.vba || {}) } }; };
 
 /* ---------- mock server options ---------- */
 const MK = {
   token:[['ok','Token issued'],['fail','Fails after one refresh']],
-  network:[['online','Online'],['offline_first','Offline at the first call'],['drop_while_polling','Drops while waiting for payment']],
+  network:[['online','Online'],['offline_first','Offline at launch (config call)'],['drop_while_polling','Drops while waiting for payment']],
   apps:[[5,'5 apps'],[4,'4 apps'],[3,'3 apps'],[1,'1 app'],[0,'None installed']],
   rpd_intent:[['success','200 success_validation_link_created'],['provider_error','502 error_provider_error, then OK']],
-  gts:[['success','SUCCESS'],['deemed_success','DEEMED, then SUCCESS'],['failed','FAILED · remitter declined'],['expired','EXPIRED · link runs out'],['success_masked','SUCCESS · account masked'],['success_no_vpa','SUCCESS · no payer_vpa'],['api_failure','FAILURE until expiry']],
+  gts:[['success','SUCCESS'],['deemed_success','DEEMED, then SUCCESS'],['failed','FAILED · remitter declined'],['expired','EXPIRED · link runs out'],['success_masked','SUCCESS · account masked'],['success_no_account','SUCCESS · no payer account'],['api_failure','FAILURE until expiry']],
   vp:[['retrieved','success_account_details_retrieved'],['pending_then_success','PENDING, then verified'],['pending_timeout','PENDING past polling window'],...VPR.map(r => [r.k, r.k]),['masked','Retrieved · account masked'],['frequency_limit','429 frequency limit'],['provider_error','500 provider error, then OK'],['timeout','No response in 30 s, then OK']],
   vba:[['valid','account_status valid'],['invalid','account_status invalid'],['inconclusive','account_status inconclusive'],['nre','account_status NRE'],['internal_error','500 internal error, then OK'],['insufficient_credits','400 insufficient credits']],
   failMode:[['first','Fail the first attempt only'],['every','Fail every attempt (shows the cap)']]
 };
-function devJourney(){ try { const q = JSON.parse($('#reqEd').value); if (JOURNEYS[q.journey_type]) return q.journey_type; } catch(e){} return st.j; }
 
 /* ---------- left panel ---------- */
 function buildDevLeft(){
@@ -2264,12 +2383,12 @@ function buildDevLeft(){
       <select class="sel" id="exSel" aria-label="Load an example request">
         <option value="">Load an example…</option>
         <option value="demo">Current Demo-mode settings</option>
-        ${Object.keys(JOURNEYS).map(k => `<option value="${k}">${k} · spec §5.3.3${k === 'RPD_VP_VBA' ? ' (P0)' : ''}</option>`).join('')}
-        <option value="BAD">Invalid request · shows INVALID_CONFIG</option>
+        ${Object.entries(EXAMPLES).map(([k, x]) => `<option value="${k}">${esc(x.l)}</option>`).join('')}
       </select>
       <div class="ed-wrap"><div class="ed-gut" id="edGut">1</div><textarea id="reqEd" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="startJourney request JSON"></textarea></div>
       <div class="ed-status" id="edStatus"></div>
-      <div class="ed-act"><button class="tbtn pri" id="runBtn" type="button">${svg('chev')}Run journey <span class="kbd">⌘↵</span></button><button class="tbtn" id="fmtBtn" type="button">Format</button><button class="tbtn" id="cpyBtn" type="button">${svg('copy')}Copy</button></div>
+      <div class="ed-act"><button class="tbtn pri" id="runBtn" type="button">${svg('chev')}Run <span class="kbd">⌘↵</span></button><button class="tbtn" id="fmtBtn" type="button">Format</button><button class="tbtn" id="cpyBtn" type="button">${svg('copy')}Copy</button></div>
+      <div class="mc-box" id="mcBox"></div>
       <details class="init"><summary>initialize(config)</summary>
         <div class="grid">
           <span>environment</span><div class="seg" id="envSeg"><button type="button" data-v="STAGING">STAGING</button><button type="button" data-v="PRODUCTION">PRODUCTION</button></div>
@@ -2282,10 +2401,11 @@ function buildDevLeft(){
     <div id="dvMock" style="display:none;flex-direction:column;gap:10px">
       <div class="dv-h"><b>Mock responses</b><small>Apply on the next run</small></div>
       <div class="mk" id="mk"></div>
-      <div class="ed-act"><button class="tbtn pri" id="runBtn2" type="button">${svg('chev')}Run journey</button><button class="tbtn" id="mkReset" type="button">Reset mocks</button></div>
+      <div class="ed-act"><button class="tbtn pri" id="runBtn2" type="button">${svg('chev')}Run</button><button class="tbtn" id="mkReset" type="button">Reset mocks</button></div>
     </div>`;
   segSet('#envSeg', st.env);
   $('#reqEd').value = JSON.stringify(st.mode === 'dev' && st.req ? st.req : requestJson(), null, 2);
+  buildMcfgUI();
   edChanged();
   buildMock();
   $('#dvSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; segSet('#dvSeg', b.dataset.v); $('#dvReq').style.display = b.dataset.v === 'req' ? 'flex' : 'none'; $('#dvMock').style.display = b.dataset.v === 'mock' ? 'flex' : 'none'; if (b.dataset.v === 'mock') buildMock(); });
@@ -2298,8 +2418,11 @@ function buildDevLeft(){
   });
   $('#exSel').addEventListener('change', e => {
     const v = e.target.value; if (!v) return;
-    const q = v === 'demo' ? (() => { const sv = snapDemo(); restoreDemo(st.demoSnap); applyDemo(); const r = requestJson(); restoreDemo(sv); return r; })() : EXAMPLES[v];
-    ed.value = JSON.stringify(q, null, 2); edChanged(); e.target.value = '';
+    let q;
+    if (v === 'demo'){ const sv = snapDemo(); restoreDemo(st.demoSnap); applyDemo(); q = requestJson(); st.devMcfg = mcfgFromDemo(); restoreDemo(sv); }
+    else { q = EXAMPLES[v].req; if (EXAMPLES[v].mcfg) st.devMcfg = exMcfg(EXAMPLES[v]); }
+    applyMcfg(); buildMcfgUI();
+    ed.value = JSON.stringify(q, null, 2); edChanged(); e.target.value = ''; flowbar(); renderScreens();
   });
   $('#runBtn').addEventListener('click', launch); $('#runBtn2').addEventListener('click', launch);
   $('#fmtBtn').addEventListener('click', () => { try { ed.value = JSON.stringify(JSON.parse(ed.value), null, 2); edChanged(); } catch(e){} });
@@ -2308,6 +2431,29 @@ function buildDevLeft(){
   $('#urnDecfin').addEventListener('change', e => st.urn.decfin = e.target.value.trim() || 'DECFINURN123');
   $('#urnDecentro').addEventListener('change', e => st.urn.decentro = e.target.value.trim() || 'DECENTROURN456');
   $('#mkReset').addEventListener('click', () => { st.devMock = { ...MOCK_DEFAULT }; buildMock(); });
+  $('#mcBox').addEventListener('click', e => {
+    const b = e.target.closest('[data-mcm]'); if (!b) return;
+    const k = b.dataset.mcm, C = st.devMcfg;
+    C.methods = C.methods.includes(k) ? C.methods.filter(x => x !== k) : MORDER.filter(x => x === k || C.methods.includes(x));
+    mcfgChanged();
+  });
+  $('#mcBox').addEventListener('change', e => {
+    const el = e.target.closest('[data-mc]'); if (!el) return;
+    const [g, f] = el.dataset.mc.split('.'), C = st.devMcfg;
+    C[g][f] = f === 'expiry_minutes' ? Math.min(60, Math.max(1, parseInt(el.value, 10) || 15)) : el.value === 'true' ? true : el.value === 'false' ? false : el.value;
+    mcfgChanged();
+  });
+}
+function mcfgChanged(){ applyMcfg(); buildMcfgUI(); edChanged(); buildMock(); restart(); }
+function buildMcfgUI(){
+  const C = st.devMcfg, on = k => C.methods.includes(k), tf = v => `<option value="true" ${v ? 'selected' : ''}>true</option><option value="false" ${!v ? 'selected' : ''}>false</option>`;
+  $('#mcBox').innerHTML = `<div class="dv-h"><b>Merchant config</b><small>Saved with Decentro</small></div>
+    <div class="mc-ms">${MORDER.map(k => `<button type="button" class="mc-m" data-mcm="${k}" aria-pressed="${on(k)}">${on(k) ? svg('check') : ''}${k}</button>`).join('')}<span class="mc-n">enabled_methods</span></div>
+    ${C.methods.length ? `<div class="mk-g">
+      ${on('RPD') ? `<label class="mk-r"><span title="rpd.expiry_minutes">Link expiry (min)</span><input data-mc="rpd.expiry_minutes" type="number" min="1" max="60" value="${C.rpd.expiry_minutes}"></label>` : ''}
+      ${on('VP') ? `<label class="mk-r"><span title="vp.perform_name_match">VP name match</span><select data-mc="vp.perform_name_match">${tf(C.vp.perform_name_match)}</select></label>` : ''}
+      ${on('VBA') ? `<label class="mk-r"><span title="vba.validation_type">VBA validation</span><select data-mc="vba.validation_type">${['penniless','pennydrop','hybrid'].map(v => `<option ${v === C.vba.validation_type ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label class="mk-r"><span title="vba.perform_name_match">VBA name match</span><select data-mc="vba.perform_name_match">${tf(C.vba.perform_name_match)}</select></label>` : ''}
+    </div>` : `<p class="ctx-note" style="color:var(--err)">No method enabled. Run fires onError(NO_METHOD_ENABLED, null).</p>`}`;
 }
 function edChanged(){
   const ed = $('#reqEd'), n = ed.value.split('\n').length;
@@ -2318,7 +2464,7 @@ function edChanged(){
   catch(e){ s.className = 'ed-status bad'; s.innerHTML = `<b>Not valid JSON</b><span>${esc(e.message)}</span>`; return null; }
   const v = validateRequest(q);
   if (v.errors.length){ s.className = 'ed-status bad'; s.innerHTML = `<b>${v.errors.length} schema error${v.errors.length > 1 ? 's' : ''} · Run fires onError(INVALID_CONFIG)</b>` + v.errors.map(x => `<span><code>${esc(x.path)}</code> ${esc(x.msg)}</span>`).join('') + v.warnings.map(w => `<span class="w">${esc(w)}</span>`).join(''); }
-  else { s.className = 'ed-status ok'; s.innerHTML = `<b>Valid StartJourneyRequest · ${q.journey_type}</b>` + (v.warnings.length ? v.warnings.map(w => `<span class="w">${esc(w)}</span>`).join('') : '<span>Every omitted field takes its default.</span>'); }
+  else { s.className = 'ed-status ok'; s.innerHTML = `<b>Valid StartJourneyRequest · methods from merchant config: ${(st.devMcfg?.methods || []).join(', ') || 'none'}</b>` + (v.warnings.length ? v.warnings.map(w => `<span class="w">${esc(w)}</span>`).join('') : '<span>Every omitted field takes its default.</span>'); }
   if ($('#dvMock') && $('#dvMock').style.display !== 'none') buildMock();
   return q;
 }
@@ -2330,31 +2476,31 @@ function devApply(){
   return true;
 }
 function buildMock(){
-  const m = st.devMock, jt = devJourney(), S = JOURNEYS[jt].steps;
+  const m = st.devMock, S = (st.devMcfg || defMcfg()).methods;
   const sel = (k, label) => `<label class="mk-r"><span>${label}</span><select data-mk="${k}">${MK[k].map(([v, l]) => `<option value="${v}" ${String(v) === String(m[k]) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>`;
   const txt = (k, label) => `<label class="mk-r"><span>${label}</span><input data-mk="${k}" value="${esc(m[k])}" spellcheck="false"></label>`;
   let h = `<div class="mk-g"><h4>SDK and device</h4>${sel('token','tokenProvider')}${sel('network','Network')}${S.includes('RPD') ? sel('apps','UPI apps') : ''}</div>`;
   if (S.includes('RPD')) h += `<div class="mk-g"><h4>RPD <code>/v3/payments/rpd/intent · GTS Basic</code></h4>${sel('rpd_intent','RPD Intent')}${sel('gts','GTS Basic')}${txt('payer_name','payer_name')}</div>`;
   if (S.includes('VP')) h += `<div class="mk-g"><h4>VerifyPay <code>/v3/banking/verify_pay</code></h4>${sel('vp','Response')}${txt('vp_name','name_as_per_bank')}</div>`;
   if (S.includes('VBA')) h += `<div class="mk-g"><h4>VBA <code>/v3/banking/money_transfer/validate_bank_account</code></h4>${sel('vba','Response')}${txt('vba_name','beneficiary_name')}</div>`;
-  if (JOURNEYS[jt].entry) h += `<div class="mk-g"><h4>Modify details</h4>${sel('failMode','Failures')}</div>`;
+  if (S.includes('VP') || S.includes('VBA')) h += `<div class="mk-g"><h4>Modify details</h4>${sel('failMode','Failures')}</div>`;
   $('#mk').innerHTML = h;
   $('#mk').querySelectorAll('[data-mk]').forEach(el => el.addEventListener('change', () => { const k = el.dataset.mk; m[k] = k === 'apps' ? +el.value : el.value; }));
 }
 
 /* ---------- mode ---------- */
-const snapDemo = () => ({ j:st.j, cfg:{ ...cfg } });
-const restoreDemo = s => { if (!s) return; st.j = s.j; Object.assign(cfg, s.cfg); };
+const snapDemo = () => ({ j:st.j, dm:[...st.dm], cfg:{ ...cfg } });
+const restoreDemo = s => { if (!s) return; st.j = s.j; st.dm = [...s.dm]; Object.assign(cfg, s.cfg); };
 function setMode(m){
   if (m === st.mode) return;
   if (st.pvRestore){ st.pvRestore(); st.pvRestore = null; } st.pv = null;
-  if (m === 'dev'){ st.demoSnap = snapDemo(); applyDemo(); st.mode = 'dev'; buildDevLeft(); }
+  if (m === 'dev'){ st.demoSnap = snapDemo(); applyDemo(); st.devMcfg = mcfgFromDemo(); st.mode = 'dev'; buildDevLeft(); applyMcfg(); }
   else { st.mode = 'demo'; st.tov = null; restoreDemo(st.demoSnap); setInspect(false); }
   document.body.classList.toggle('devmode', st.mode === 'dev');
   segSet('#modeSeg', st.mode);
   try { history.replaceState(null, '', st.mode === 'dev' ? '#dev' : location.pathname + location.search); } catch(e){}
   syncControls(); theme(); buildTabs(); restart(); fit();
-  $('#btnCtl').lastChild.textContent = st.mode === 'dev' ? 'Request' : 'Journey';
+  $('#btnCtl').lastChild.textContent = st.mode === 'dev' ? 'Request' : 'Setup';
 }
 
 /* ---------- tabs ---------- */
@@ -2403,7 +2549,7 @@ function renderNet(){
           ${e.body ? `<div class="lbl">Request body</div><pre class="code">${hl(JSON.stringify(e.body, null, 2))}</pre>` : ''}
           <div class="lbl">Response · HTTP ${e.http}<button class="tbtn xs" type="button" data-curl="${e.id}">${svg('copy')}Copy as cURL</button></div><pre class="code">${hl(JSON.stringify(e.res, null, 2))}</pre>
         </div>` : '');
-    }).join('') : `<p class="empty">No requests yet. Run the journey and every call to Decentro shows here with its headers and bodies.</p>`) +
+    }).join('') : `<p class="empty">No requests yet. Run a session and every call to Decentro shows here with its headers and bodies.</p>`) +
     `<p class="empty" style="font-size:11px">Response shapes are illustrative and use the field names in the SDK spec. Confirm exact envelopes against Decentro's API reference.</p>`;
   if (scrolled && !st.netOpen) el.scrollTop = el.scrollHeight;
 }
@@ -2417,8 +2563,8 @@ function renderCbs(){
     const s = c.res ? c.res.status : c.err ? c.err.code : '';
     const tone = s === 'VERIFIED' ? 'ok' : ['NOT_VERIFIED','ERROR','INVALID_CONFIG'].includes(s) || c.cb === 'onError' ? 'bad' : s ? 'wn' : 'nt';
     const payload = c.cb === 'onError' ? { error:c.err, result:c.res } : c.cb === 'onDismiss' ? null : c.res;
-    return `<details class="cb" ${i === L.length - 1 ? 'open' : ''}><summary><span class="badge nt mono">${c.cb}</span>${s ? `<span class="badge ${tone}">${s}</span>` : `<span class="pill">${esc(c.how || '')}</span>`}<span class="t">+${fmtT(c.at || 0)}</span></summary>${payload ? `<pre class="code">${hl(JSON.stringify(payload, null, 2))}</pre>` : '<pre class="code">// no payload · the SDK UI has closed</pre>'}</details>`;
-  }).join('') : `<p class="empty">No callbacks yet. onResult fires the moment an outcome is known, before the result screen renders; onDismiss fires when the screen closes.</p>`;
+    return `<details class="cb" ${i === L.length - 1 ? 'open' : ''}><summary><span class="badge nt mono">${c.cb}</span>${s ? `<span class="badge ${tone}">${s}</span>` : `<span class="pill">${esc(c.how || '')}</span>`}${c.cb === 'onMethodResult' && c.res ? `<span class="pill">${c.res.method}</span>` : ''}<span class="t">+${fmtT(c.at || 0)}</span></summary>${payload ? `<pre class="code">${hl(JSON.stringify(payload, null, 2))}</pre>` : '<pre class="code">// no payload · the SDK UI has closed</pre>'}</details>`;
+  }).join('') : `<p class="empty">No callbacks yet. onMethodResult fires after each method attempt, onResult once per session, and onDismiss when the SDK closes.</p>`;
 }
 
 /* ---------- state ---------- */
@@ -2429,17 +2575,22 @@ function renderState(){
   const refs = (st.net || []).filter(e => e.ref && e.method === 'POST');
   const tok = set => { const t = st.tokens?.[set]; return t ? `<span class="pill ok">cached</span> expires in <b class="mono">${mmss(t.exp - Date.now())}</b>` : '<span class="pill">not fetched</span>'; };
   const rem = st.expiryEnd ? st.expiryEnd - Date.now() - st.ff : 0;
+  const C = MORDER.filter(k => st.mcfg.methods.includes(k));
   el.innerHTML = `
-    <div class="lbl">Journey</div>
-    <table class="stt"><tr><td>journey_id</td><td><code>${st.jid}</code></td></tr><tr><td>journey_type</td><td>${st.j}</td></tr><tr><td>base_reference_id</td><td><code>${esc(st.base)}</code></td></tr>
+    <div class="lbl">Session</div>
+    <table class="stt"><tr><td>session_id</td><td><code>${st.jid}</code></td></tr><tr><td>base_reference_id</td><td><code>${esc(st.base)}</code></td></tr>
+      <tr><td>Merchant config</td><td>${C.join(', ') || 'no methods'}</td></tr>
+      <tr><td>Offered</td><td>${st.methods ? st.methods.join(', ') : '— (read at launch)'}</td></tr>
+      <tr><td>Current method</td><td>${st.sdkOpen && !['boot','methods'].includes(st.screen) ? st.j : '—'}</td></tr>
+      <tr><td>Still on offer</td><td>${st.methods ? (chooserList().join(', ') || 'none') : '—'}</td></tr>
       <tr><td>Screen</td><td>${st.sdkOpen ? screenTitle(st.screen) : 'SDK closed (merchant app)'}${st.overlay && ($('#dlg').classList.contains('on') || $('#sheet').classList.contains('on')) ? ' + ' + st.overlay : ''}</td></tr>
       <tr><td>Attempt</td><td>${st.attempt} of 3${J().entry ? '' : ' · no entry screen'}</td></tr>
-      <tr><td>Consent</td><td>${st.consentAt ? ist(st.consentAt) : '—'}</td></tr>
-      <tr><td>data_entry_mode</td><td>${J().entry ? cfg.mode : 'n/a'}</td></tr></table>
-    <div class="lbl">Steps</div>
-    <table class="stt"><tr><th>Step</th><th>Status</th><th>reference_id</th><th>Retries</th></tr>${J().steps.map(p => { const s = st.steps?.[p]; return `<tr><td>${p}</td><td><span class="pill ${tone(s?.status)}">${s ? s.status : 'NOT_RUN'}</span></td><td><code>${s?.reference_id || '—'}</code></td><td>${s ? s.error_retries : 0}</td></tr>`; }).join('')}</table>
+      <tr><td>Session ended</td><td>${st.ended ? 'yes · final callback fired' : 'no'}</td></tr>
+      <tr><td>data_entry_mode</td><td>${C.some(k => METHODS[k].entry) ? cfg.mode : 'n/a'}</td></tr></table>
+    <div class="lbl">Method attempts</div>
+    <table class="stt"><tr><th>Method</th><th>Status</th><th>reference_id</th><th>#</th></tr>${st.history.length ? st.history.map(h => `<tr><td>${h.method}</td><td><span class="pill ${tone(h.status)}">${h.status}${h.code ? ' · ' + h.code : ''}</span></td><td><code>${h.ref || '—'}</code></td><td>${h.attempt}</td></tr>`).join('') : '<tr><td colspan="4">None yet.</td></tr>'}</table>
     <div class="lbl">Reference IDs issued</div>
-    <table class="stt">${refs.length ? refs.map(e => `<tr><td><code>${esc(e.ref)}</code></td><td>${e.step}</td><td><span class="pill ${e.http < 300 ? 'ok' : 'bad'}">HTTP ${e.http}</span></td></tr>`).join('') : '<tr><td colspan="3">None yet. The SDK appends {step}{n} to the base ID per call.</td></tr>'}</table>
+    <table class="stt">${refs.length ? refs.map(e => `<tr><td><code>${esc(e.ref)}</code></td><td>${e.step}</td><td><span class="pill ${e.http < 300 ? 'ok' : 'bad'}">HTTP ${e.http}</span></td></tr>`).join('') : '<tr><td colspan="3">None yet. The SDK appends {method}{n} to the base ID per call.</td></tr>'}</table>
     <div class="lbl">Tokens</div>
     <table class="stt"><tr><td>DECFIN</td><td>${tok('DECFIN')}</td></tr><tr><td>DECENTRO</td><td>${tok('DECENTRO')}</td></tr></table>
     <div class="lbl">Polling</div>
@@ -2450,30 +2601,33 @@ function renderState(){
 setInterval(() => { if (st.mode === 'dev' && st.tab === 'state') renderState(); }, 1000);
 
 /* ---------- screen gallery ---------- */
-const errStep = k => k === 'masked' ? (has('VP') ? 'VP' : 'RPD') : J().steps[0];
+const PV_GROUP = { S:'Session', RPD:'RPD · ₹1 payment', VP:'VerifyPay · UPI ID', VBA:'VBA · bank details' };
 function pvList(){
-  const j = J(), L = [], add = (g, id, l, t) => L.push({ g, id, l, t });
-  if (j.entry){ add('Entry','entry','As configured'); add('Entry','entry-err','Validation errors','bad'); add('Entry','entry-skip','SKIP mode'); add('Entry','entry-lock','Fields locked'); add('Entry','entry-a2','Attempt 2 of 3'); }
-  else { add('Payment','consent','Consent'); add('Payment','apps','Choose UPI app'); add('Payment','sheet','Other UPI apps'); add('Payment','awaiting','Awaiting payment'); add('Payment','awaiting-net','Waiting for network','wn'); add('Payment','dialog','Cancel dialog'); }
-  if (j.steps.length > 1){ add('Progress','verifying','Verifying'); if (has('VP')) add('Progress','verifying-pend','VP pending','wn'); }
-  else if (j.entry) add('Progress','processing','Processing');
-  add('Results','r-verified','Verified','ok');
-  if (has('RPD')){ add('Results','r-declined','Payment declined','bad'); add('Results','r-expired','Link expired','bad'); }
-  if (has('VP')){ add('Results','r-vpfail','UPI ID not verified','bad'); add('Results','r-pending','Pending','wn'); }
-  if (has('VBA')){ add('Results','r-invalid','Account invalid','bad'); add('Results','r-inconc','Inconclusive','wn'); add('Results','r-nre','NRE account','wn'); }
-  if (j.entry) add('Results','r-modify','Modify details offered','bad');
-  const errs = ['offline','session'];
-  if (has('RPD')) errs.push('link','noapp','unconfirmed','missing');
-  if (has('VP')) errs.push('vp','vp_timeout','velocity');
-  if (has('VBA')) errs.push('vba','unavail');
-  if (has('VBA') && j.steps.length > 1) errs.push('masked');
-  errs.forEach(k => { const d = errDef(k, errStep(k)); add('Errors', 'e-' + k, d.code + (d.retry ? ' · Retry' : ''), 'bad'); });
+  const L = [], en = MORDER.filter(k => st.mcfg.methods.includes(k));
+  const add = (g, id, l, t) => L.push({ g:PV_GROUP[g], id:g + ':' + id, l, t });
+  const errs = (g, ks) => ks.forEach(k => { const d = errDef(k, g); add(g, 'e-' + k, 'Error · ' + d.code + (d.retry ? ' · Try again' : ''), 'bad'); });
+  add('S', 'boot', 'Loading config');
+  if (en.length > 1){ add('S', 'methods', 'Choose a method'); add('S', 'fallback-ok', 'Verified after a fallback', 'ok'); }
+  add('S', 'e-offline', 'Offline at launch · Try again', 'bad'); add('S', 'e-session', 'Session expired', 'bad');
+  if (en.includes('RPD')){
+    add('RPD','consent','Consent'); add('RPD','apps','Choose UPI app'); add('RPD','sheet','Other UPI apps'); add('RPD','awaiting','Awaiting payment'); add('RPD','awaiting-net','Waiting for network','wn'); add('RPD','dialog','Cancel dialog');
+    add('RPD','r-verified','Verified','ok'); add('RPD','r-declined','Payment declined','bad'); add('RPD','r-expired','Link expired','bad');
+    errs('RPD', ['link','unconfirmed','missing','noapp']);
+  }
+  ['VP','VBA'].filter(k => en.includes(k)).forEach(k => {
+    add(k,'entry','Entry · as configured'); add(k,'entry-err','Entry · validation errors','bad'); add(k,'entry-skip','Entry · SKIP mode'); add(k,'entry-lock','Entry · fields locked'); add(k,'entry-a2','Entry · attempt 2 of 3'); add(k,'processing','Processing');
+    add(k,'r-verified','Verified','ok');
+    if (k === 'VP'){ add(k,'r-vpfail','UPI ID not verified','bad'); add(k,'r-pending','Pending','wn'); }
+    else { add(k,'r-invalid','Account invalid','bad'); add(k,'r-inconc','Inconclusive','wn'); add(k,'r-nre','NRE account','wn'); }
+    add(k,'r-modify','Modify details offered','bad');
+    errs(k, k === 'VP' ? ['vp','vp_timeout','velocity'] : ['vba','unavail']);
+  });
   return L;
 }
 function renderScreens(){
   const el = $('#tp-scr'); if (!el || el.hidden) return;
   const L = pvList(), G = [...new Set(L.map(x => x.g))];
-  el.innerHTML = `<p class="pur" style="margin:0 0 10px;color:var(--fg-2)">Jump to any screen state in ${st.j}. Previews use sample data and fire no callbacks. Restart runs the journey live.</p>` +
+  el.innerHTML = `<p class="pur" style="margin:0 0 10px;color:var(--fg-2)">Jump to any screen for the methods in the merchant config (${MORDER.filter(k => st.mcfg.methods.includes(k)).join(', ') || 'none'}). Previews use sample data and fire no callbacks. Restart runs a live session.</p>` +
     G.map(g => `<div class="pvg"><h5>${g}</h5><div class="l">${L.filter(x => x.g === g).map(x => `<button class="pvb ${st.pv === x.id ? 'on' : ''}" type="button" data-pv="${x.id}"><i class="${x.t || ''}"></i><span>${esc(x.l)}</span></button>`).join('')}</div></div>`).join('');
 }
 function fakeStep(p, s){
@@ -2487,51 +2641,55 @@ function fakeStep(p, s){
   return base;
 }
 function preview(id){
+  const [g, k] = id.split(':');
   freshRun(); closeOverlays(); $('#handoff').classList.remove('on'); $('#scr').classList.remove('ho');
+  const en = MORDER.filter(x => st.mcfg.methods.includes(x));
+  st.methods = en; st.j = g === 'S' ? (en[0] || 'RPD') : g;
   st.sdkOpen = true; $('#sdk').classList.add('open'); paintBars(); st.startedAt = new Date();
-  const seq = J().steps, ok = { RPD:'SUCCESS', VP:'VERIFIED', VBA:'VALID' };
-  const upTo = (p, s) => { for (const q of seq){ if (q === p){ st.steps[q] = fakeStep(q, s); break; } st.steps[q] = fakeStep(q, ok[q]); } };
-  const fillAll = () => seq.forEach(q => st.steps[q] = fakeStep(q, ok[q]));
-  const result = (status, failed, reason) => { st.final = { status, failed, reason }; go('result'); };
+  const ok = { RPD:'SUCCESS', VP:'VERIFIED', VBA:'VALID' };
+  const hist = (m, status) => st.history.push({ method:m, attempt:1, status, ref:st.steps[m]?.reference_id || null, txn:st.steps[m]?.decentro_txn_id || null, rk:null, code:null, at:ist(new Date()) });
+  const result = (status, failed, reason) => { st.final = { status, failed, reason }; hist(st.j, status); go('result'); };
   st.rpdTxn = hex32(); st.expiryEnd = Date.now() + cfg.expiry * 60000; st.app = 'PhonePe';
   const fill = () => { st.form = { vpa:CUST.vpa, name:CUST.typed, acct:CUST.acct, acct2:CUST.acct, ifsc:CUST.ifsc }; };
   const saveCfg = () => { const m = cfg.mode, pf = st.pf; st.pvRestore = () => { cfg.mode = m; st.pf = pf; }; };
+  const locked = { upi_vpa:{value:CUST.vpa,editable:false}, name:{value:CUST.typed,editable:false}, account_number:{value:CUST.acct,editable:false}, ifsc:{value:CUST.ifsc,editable:false} };
   st.pv = id;
-  if (id === 'consent') go('consent');
-  else if (id === 'apps' || id === 'sheet' || id === 'awaiting' || id === 'awaiting-net' || id === 'dialog'){
+  if (k === 'boot') go('boot');
+  else if (k === 'methods') go('methods');
+  else if (k === 'fallback-ok'){
+    const a = en[0], b = en[1], fs = { RPD:'FAILED', VP:'NOT_VERIFIED', VBA:'INVALID' };
+    st.steps[a] = fakeStep(a, fs[a]); hist(a, 'NOT_VERIFIED');
+    st.j = b; fill(); st.steps[b] = fakeStep(b, ok[b]); result('VERIFIED');
+  }
+  else if (k === 'consent') go('consent');
+  else if (['apps','sheet','awaiting','awaiting-net','dialog'].includes(k)){
     st.steps.RPD = fakeStep('RPD', 'PENDING');
-    if (id.startsWith('awaiting') || id === 'dialog'){ st.showTry = true; st.netLost = id === 'awaiting-net'; go('awaiting'); if (id === 'dialog') openDialog(); }
-    else { go('apps'); if (id === 'sheet') openSheet(); }
+    if (k.startsWith('awaiting') || k === 'dialog'){ st.showTry = true; st.netLost = k === 'awaiting-net'; go('awaiting'); if (k === 'dialog') openDialog(); }
+    else { go('apps'); if (k === 'sheet') openSheet(); }
   }
-  else if (id === 'entry') go('entry');
-  else if (id === 'entry-err'){ st.form = { vpa:'aditi', name:'A#', acct:'50100', acct2:'5010', ifsc:'hdfc012' }; st.touched = { vpa:1, name:1, acct:1, acct2:1, ifsc:1 }; st.showAll = true; saveCfg(); cfg.mode = 'COLLECT'; st.pf = {}; go('entry'); }
-  else if (id === 'entry-skip'){ saveCfg(); cfg.mode = 'SKIP'; fill(); st.pf = { upi_vpa:{value:CUST.vpa,editable:false}, customer_name:{value:CUST.typed,editable:false}, name:{value:CUST.typed,editable:false}, account_number:{value:CUST.acct,editable:false}, ifsc:{value:CUST.ifsc,editable:false} }; go('entry'); }
-  else if (id === 'entry-lock'){ saveCfg(); cfg.mode = 'COLLECT'; fill(); st.pf = { upi_vpa:{value:CUST.vpa,editable:false}, customer_name:{value:CUST.typed,editable:false}, name:{value:CUST.typed,editable:true}, account_number:{value:CUST.acct,editable:false}, ifsc:{value:CUST.ifsc,editable:false} }; go('entry'); }
-  else if (id === 'entry-a2'){ saveCfg(); cfg.mode = 'COLLECT'; st.pf = {}; fill(); st.attempt = 2; if (st.j === 'VP_VBA'){ st.tried = [CUST.vpa]; st.touched = { vpa:1 }; } go('entry'); }
-  else if (id === 'verifying' || id === 'verifying-pend'){
-    const i = id === 'verifying-pend' ? seq.indexOf('VP') : Math.min(1, seq.length - 1);
-    st.prog = {}; seq.forEach((q, k) => { if (k < i){ st.prog[q] = 'done'; st.steps[q] = fakeStep(q, ok[q]); } else if (k === i) st.prog[q] = id === 'verifying-pend' ? 'pend' : 'active'; else st.prog[q] = 'wait'; });
-    if (J().entry) st.form.vpa = st.form.vpa || CUST.vpa;
-    go('verifying');
-  }
-  else if (id === 'processing'){ go('processing'); }
-  else if (id === 'r-verified'){ fillAll(); result('VERIFIED'); }
-  else if (id === 'r-declined'){ upTo('RPD', 'FAILED'); result('NOT_VERIFIED', 'RPD', { b:'Payment declined', s:'Your bank declined the ₹1 payment.' }); }
-  else if (id === 'r-expired'){ upTo('RPD', 'EXPIRED'); result('NOT_VERIFIED', 'RPD', { b:'Payment link expired', s:'No money was taken.' }); }
-  else if (id === 'r-vpfail'){ upTo('VP', 'NOT_VERIFIED'); result('NOT_VERIFIED', 'VP', { b:VPR[0].b, s:VPR[0].s }); }
-  else if (id === 'r-pending'){ upTo('VP', 'PENDING'); result('PENDING', 'VP'); }
-  else if (id === 'r-invalid'){ upTo('VBA', 'INVALID'); result('NOT_VERIFIED', 'VBA', { b:'The account number/IFSC passed is invalid.', s:'' }); }
-  else if (id === 'r-inconc'){ upTo('VBA', 'INCONCLUSIVE'); result('INCONCLUSIVE', 'VBA', { b:'Bank account details', s:'could not be verified.' }); }
-  else if (id === 'r-nre'){ upTo('VBA', 'NRE'); result('NRE'); }
-  else if (id === 'r-modify'){
+  else if (k === 'entry') go('entry');
+  else if (k === 'entry-err'){ st.form = { vpa:'aditi', name:'A#', acct:'50100', acct2:'5010', ifsc:'hdfc012' }; st.touched = { vpa:1, name:1, acct:1, acct2:1, ifsc:1 }; st.showAll = true; saveCfg(); cfg.mode = 'COLLECT'; st.pf = {}; go('entry'); }
+  else if (k === 'entry-skip'){ saveCfg(); cfg.mode = 'SKIP'; fill(); st.pf = { ...locked }; go('entry'); }
+  else if (k === 'entry-lock'){ saveCfg(); cfg.mode = 'COLLECT'; fill(); st.pf = { ...locked, name:{ value:CUST.typed, editable:true } }; go('entry'); }
+  else if (k === 'entry-a2'){ saveCfg(); cfg.mode = 'COLLECT'; st.pf = {}; fill(); st.attempt = 2; go('entry'); }
+  else if (k === 'processing') go('processing');
+  else if (k === 'r-verified'){ fill(); st.steps[st.j] = fakeStep(st.j, ok[st.j]); result('VERIFIED'); }
+  else if (k === 'r-declined'){ st.steps.RPD = fakeStep('RPD', 'FAILED'); result('NOT_VERIFIED', 'RPD', { b:'Payment declined', s:'Your bank declined the ₹1 payment.' }); }
+  else if (k === 'r-expired'){ st.steps.RPD = fakeStep('RPD', 'EXPIRED'); result('NOT_VERIFIED', 'RPD', { b:'Payment link expired', s:'No money was taken.' }); }
+  else if (k === 'r-vpfail'){ st.steps.VP = fakeStep('VP', 'NOT_VERIFIED'); result('NOT_VERIFIED', 'VP', { b:VPR[0].b, s:VPR[0].s }); }
+  else if (k === 'r-pending'){ st.steps.VP = fakeStep('VP', 'PENDING'); result('PENDING', 'VP'); }
+  else if (k === 'r-invalid'){ fill(); st.steps.VBA = fakeStep('VBA', 'INVALID'); result('NOT_VERIFIED', 'VBA', { b:'The account number/IFSC passed is invalid.', s:'' }); }
+  else if (k === 'r-inconc'){ fill(); st.steps.VBA = fakeStep('VBA', 'INCONCLUSIVE'); result('INCONCLUSIVE', 'VBA', { b:'Bank account details', s:'could not be verified.' }); }
+  else if (k === 'r-nre'){ fill(); st.steps.VBA = fakeStep('VBA', 'NRE'); result('NRE'); }
+  else if (k === 'r-modify'){
     saveCfg(); cfg.mode = 'COLLECT'; st.pf = {}; fill();
-    const p = J().entry === 'vp' ? 'VP' : 'VBA';
-    upTo(p, p === 'VP' ? 'NOT_VERIFIED' : 'INVALID');
-    result('NOT_VERIFIED', p, p === 'VP' ? { b:VPR[0].b, s:VPR[0].s } : { b:'The account number/IFSC passed is invalid.', s:'' });
+    st.steps[g] = fakeStep(g, g === 'VP' ? 'NOT_VERIFIED' : 'INVALID');
+    result('NOT_VERIFIED', g, g === 'VP' ? { b:VPR[0].b, s:VPR[0].s } : { b:'The account number/IFSC passed is invalid.', s:'' });
   }
-  else if (id.startsWith('e-')){
-    const k = id.slice(2), E = errDef(k, errStep(k));
-    if (E.step && seq.includes(E.step) && E.step !== seq[0]) upTo(E.step, 'ERROR');
+  else if (k.startsWith('e-')){
+    const E = errDef(k.slice(2), g === 'S' ? null : g);
+    if (k === 'e-noapp') st.methods = ['RPD'];
+    if (E.step){ st.steps[E.step] = fakeStep(E.step, 'ERROR'); }
     st.err = E; go('error');
   }
   log('SDK', `Preview · <b>${esc((pvList().find(x => x.id === id) || {}).l || id)}</b> · sample data, no callbacks`);
@@ -2539,7 +2697,7 @@ function preview(id){
 }
 function pvBanner(){
   const c = $('#caption'); if (!c) return;
-  if (st.pv && st.mode === 'dev'){ const l = (pvList().find(x => x.id === st.pv) || {}).l || st.pv; c.innerHTML = `<span class="pvchip">Preview</span>${esc(l)} with sample data. Restart runs the journey live.`; }
+  if (st.pv && st.mode === 'dev'){ const l = (pvList().find(x => x.id === st.pv) || {}).l || st.pv; c.innerHTML = `<span class="pvchip">Preview</span>${esc(l)} with sample data. Restart runs a live session.`; }
 }
 /* ---------- element inspector ---------- */
 const ANN = [
@@ -2561,6 +2719,10 @@ const ANN = [
   ['.cs',['PaymentSummaryCard','surface · card_corner_radius · error (expiry)']],
   ['.co-sel',['SectionHeading','text_primary · text_secondary']],
   ['.op-r',['PaymentOptionRow','background · border · card_corner_radius']],
+  ['.mr',['MethodRow','background · border · card_corner_radius · text_primary · text_secondary']],
+  ['.mr-tag',['FastestTag','success']],
+  ['.fb-card',['TryAnotherWay','text_secondary · reuses MethodRow']],
+  ['.s-bk',['BackButton','text_primary · returns to the method list']],
   ['.co-tr',['TrustFooter','success · text_secondary']],
   ['.spinner',['Loader','border · text_primary']],
   ['.s-pill',['ExpiryTimer','surface · error under 1 min']],
@@ -2638,13 +2800,15 @@ app.post('/decentro/sdk-token', requireUser, async (req, res) => {
 });
 
 // Merchant backend · confirm the outcome before acting on it (§5.5.9).
-// The result object is built on the phone, so re-check each step server-side.
-async function confirmJourney(result) {
-  for (const step of result.steps.filter(s => s.status !== 'NOT_RUN')) {
-    if (step.product === 'VBA') continue;             // VBA has no status API (OP-12)
-    const status = await decentro.getStatus(step.product, step.decentro_txn_id);
-    if (status !== step.status) throw new Error('Mismatch on ' + step.reference_id);
-  }
+// The result object is built on the phone, so re-check the verifying attempt.
+// Which methods the SDK offers is set in your merchant config with Decentro.
+async function confirmSession(result) {
+  if (result.status !== 'VERIFIED') return false;
+  const a = result.method_attempts.at(-1);            // the method that verified
+  if (a.method === 'VBA') return true;                // VBA has no status API (OP-12)
+  const status = await decentro.getStatus(a.method, a.decentro_txn_id);
+  if (status !== a.status) throw new Error('Mismatch on ' + a.reference_id);
+  return true;
 }`;
 }
 
@@ -2672,9 +2836,18 @@ $('#btnDev').addEventListener('click', () => drawer('dev'));
 $('#dscrim').addEventListener('click', () => { ['#ctl','#dev'].forEach(s => $(s).classList.remove('open')); $('#dscrim').classList.remove('on'); });
 
 /* ---------- control wiring ---------- */
-$('#jlist').addEventListener('click', e => { const b = e.target.closest('[data-j]'); if (!b) return; st.j = b.dataset.j; syncControls(); restart(); });
-$('#outSel').addEventListener('change', e => { st.out = e.target.value; buildOutcomes(); buildCfg(); restart(); });
-$('#vprSel').addEventListener('change', e => { st.vpr = +e.target.value; restart(); });
+$('#mlist').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return; const k = b.dataset.m;
+  if (st.dm.includes(k)){ if (st.dm.length === 1){ toast('Keep at least one method on'); return; } st.dm = st.dm.filter(x => x !== k); }
+  else st.dm = MORDER.filter(x => x === k || st.dm.includes(x));
+  syncControls(); restart();
+});
+$('#scn').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; setScenario(b.dataset.v); buildOutcomes(); buildCfg(); restart(); });
+$('#outs').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.out) st.outs[t.dataset.out] = t.value; else if (t.id === 'vprSel') st.vpr = +t.value; else if (t.id === 'issueSel') st.issue = t.value; else return;
+  buildOutcomes(); buildCfg(); restart();
+});
 $('#cfg').addEventListener('click', e => {
   const s = e.target.closest('[data-cfg]'); if (s){ const k = s.dataset.cfg; cfg[k] = !cfg[k]; buildCfg(); restart(); return; }
   const b = e.target.closest('[data-cfgseg] button'); if (b){ const k = b.closest('[data-cfgseg]').dataset.cfgseg; cfg[k] = k === 'autoClose' ? +b.dataset.v : b.dataset.v; buildCfg(); restart(); }
@@ -2719,146 +2892,6 @@ if (location.hash === '#dev') setMode('dev');
 requestAnimationFrame(fit);
 document.fonts && document.fonts.ready.then(fit);
 
-</script>
-<script>
-/* ══ Demo Hub bridge · 29 Oct 2026 ══════════════════════════════════════════
-   Opened from file://, every iframe gets an opaque origin, so the hub cannot
-   touch this document and its reach-in Demo fill silently fails. The hub then
-   asks over postMessage instead — this is the half that answers. Same code
-   serves http, so behaviour is identical either way. */
-(function(){
-  if (window.__dcnBridge) return; window.__dcnBridge = 1;
-
-  var RULES = [
-    [/otp|passcode|\bpin\b/i,            '482913'],
-    [/mobile|phone|contact|msisdn|tel/i, '9876543210'],
-    [/e-?mail/i,                         'rakesh.sharma@example.in'],
-    [/\bpan\b/i,                         'ABCDE1234F'],
-    [/ifsc/i,                            'HDFC0001205'],
-    [/upi|vpa|handle/i,                  'rakesh.sharma@okhdfcbank'],
-    [/account.*(number|no)|acc.*num/i,   '50100412887201'],
-    [/passport/i,                        'Z4821907'],
-    [/aadhaar|uid/i,                     '9821'],
-    [/pin ?code|postal|zip/i,            '560025'],
-    [/first.*name|given/i,               'Rakesh'],
-    [/middle/i,                          'Kumar'],
-    [/last.*name|surname|family/i,       'Sharma'],
-    [/company|business|merchant|entity/i,'Aurora & Co.'],
-    [/\bcity\b/i,                        'Bengaluru'],
-    [/\bstate\b/i,                       'Karnataka'],
-    [/address|street|line ?1/i,          '12 Residency Road'],
-    [/amount|value|price/i,              '2499'],
-    [/\bdate\b|dob|birth/i,              '1991-04-12'],
-    [/\bname\b/i,                        'Rakesh Sharma'],
-    [/reference|ref ?id|order/i,         'DEC20261029001']
-  ];
-
-  function hint(el){
-    var t = [el.id, el.name, el.getAttribute('placeholder') || '',
-             el.getAttribute('aria-label') || '', el.className || ''].join(' ');
-    try{
-      var lab = (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) || el.closest('label');
-      if(lab) t += ' ' + lab.textContent;
-      var fld = el.closest('.fld,.field,.form-row,.b-field,.inp');
-      if(fld) t += ' ' + (fld.textContent || '').slice(0, 80);
-    }catch(e){}
-    return t;
-  }
-  function valueFor(el){
-    var type = (el.getAttribute('type') || 'text').toLowerCase();
-    if(type === 'date') return '1991-04-12';
-    if(type === 'email') return 'rakesh.sharma@example.in';
-    if(type === 'tel') return '9876543210';
-    /* single-character boxes are OTP/PIN digits */
-    if(el.maxLength === 1) return String(Math.floor(Math.random() * 10));
-    var h = hint(el);
-    for(var i = 0; i < RULES.length; i++) if(RULES[i][0].test(h)) return RULES[i][1];
-    var ph = (el.getAttribute('placeholder') || '').replace(/^(e\.?g\.?|example|sample)[:.\s]*/i, '').trim();
-    if(ph && !/^(enter|type|select|choose|search|add)\b/i.test(ph)) return ph;
-    if(type === 'number') return '100';
-    return 'Demo value';
-  }
-  /* React and friends track value on the node, so poke the native setter */
-  function setVal(el, v){
-    var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-    var d = Object.getOwnPropertyDescriptor(proto, 'value');
-    if(d && d.set) d.set.call(el, v); else el.value = v;
-    ['input','change','keyup','blur'].forEach(function(ev){
-      el.dispatchEvent(new Event(ev, {bubbles:true}));
-    });
-  }
-  function visible(el){
-    if(el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
-    var r = el.getBoundingClientRect();
-    return r.width > 8 && r.height > 6;
-  }
-
-  function fill(){
-    var n = 0;
-    var els = document.querySelectorAll(
-      'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=file]),textarea,select');
-    Array.prototype.forEach.call(els, function(el){
-      if(el.disabled || el.readOnly || !visible(el)) return;
-      var type = (el.getAttribute('type') || '').toLowerCase();
-      if(type === 'checkbox' || type === 'radio'){
-        if(!el.checked){ el.click(); n++; }      /* consents gate the primary action */
-        return;
-      }
-      if(el.tagName === 'SELECT'){
-        if(el.selectedIndex > 0) return;
-        var opt = Array.prototype.filter.call(el.options, function(o){ return o.value && !o.disabled; })[0];
-        if(opt){ el.value = opt.value; el.dispatchEvent(new Event('change', {bubbles:true})); n++; }
-        return;
-      }
-      if((el.value || '').trim()) return;
-      setVal(el, valueFor(el)); n++;
-    });
-    /* a flow that ships its own sample data knows its persona better than we do */
-    if(!n){
-      var own = window.prefill || window.useSample || window.fillSample;
-      if(typeof own === 'function'){ try{ own(true); return -1; }catch(e){} }
-      var btn = Array.prototype.filter.call(
-        document.querySelectorAll('button,[onclick],.btn'),
-        function(b){ return /use sample|sample details|fill sample|demo data/i.test(b.innerText || ''); })[0];
-      if(btn && visible(btn)){ btn.click(); return -1; }
-    }
-    return n;
-  }
-
-  function send(msg){
-    msg.source = 'decentro-demo';
-    try{ parent.postMessage(msg, '*'); }catch(e){}
-  }
-
-  addEventListener('message', function(ev){
-    var d = ev.data;
-    if(!d || d.source !== 'decentro-hub') return;
-    if(d.type === 'fill'){
-      var n = fill();
-      /* some screens repaint on input and recreate fields empty */
-      setTimeout(function(){
-        var more = fill();
-        var total = (n < 0 || more < 0) ? -1 : n + (more > 0 ? more : 0);
-        send({type:'fill-result', n: total});
-      }, 260);
-    }
-  });
-
-  addEventListener('keydown', function(e){ if(e.key === 'Escape') send({type:'escape'}); });
-
-  /* report the visible screen so the hub's backend trace follows along */
-  var lastScreen = null;
-  function reportScreen(){
-    var el = document.querySelector('.screen.active,.screen.on,[class*=screen].active,section.active');
-    var id = el && el.id;
-    if(id && id !== lastScreen){ lastScreen = id; send({type:'screen', screen:id}); }
-  }
-  setInterval(reportScreen, 400);
-
-  if(document.readyState === 'loading')
-    addEventListener('DOMContentLoaded', function(){ send({type:'ready'}); reportScreen(); });
-  else { send({type:'ready'}); reportScreen(); }
-})();
 </script>
 </body>
 </html>
